@@ -195,6 +195,21 @@ export function CardDetail({ card, tile, onClosed }: Props) {
                     <span aria-hidden>{"\u00a0”"}</span>
                   </span>
                 </blockquote>
+              ) : card.type === "lyric" && card.lyric ? (
+                <>
+                  {/* The quoted line is the card's whole point: it leads, in the same treatment comment cards give the comment. */}
+                  <blockquote className={HEADLINE}>
+                    <span aria-hidden className="block h-8 text-[64px] leading-[normal]">
+                      “
+                    </span>
+                    <span className="mt-2 block whitespace-pre-line">
+                      {card.lyric.excerptOrTimestamp.trim()}
+                      <span aria-hidden>{"\u00a0”"}</span>
+                    </span>
+                  </blockquote>
+                  <p className="-mt-2 text-[14px] leading-[20px] text-white/55">{card.lyric.lyricSource}</p>
+                  <h2 className={HEADLINE}>{card.headline}</h2>
+                </>
               ) : (
                 <h2 className={HEADLINE}>{card.headline}</h2>
               )}

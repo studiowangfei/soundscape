@@ -53,6 +53,11 @@ export function TileFace({ card }: { card: EntryCard }) {
           <p className={LABEL}>{TYPE_LABEL[card.type]}</p>
           {card.type === "comment" ? (
             <p className={`line-clamp-6 whitespace-pre-line ${HEADLINE}`}>{quoted(card.snippet)}</p>
+          ) : card.type === "lyric" && card.lyric ? (
+            <>
+              <p className={`line-clamp-4 whitespace-pre-line ${HEADLINE}`}>{quoted(card.lyric.excerptOrTimestamp)}</p>
+              <h3 className="line-clamp-2 font-serif text-[15px] leading-[21px] text-white/85">{card.headline}</h3>
+            </>
           ) : (
             <>
               <h3 className={`line-clamp-3 ${HEADLINE}`}>{card.headline}</h3>
