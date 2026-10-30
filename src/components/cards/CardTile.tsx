@@ -32,6 +32,14 @@ export const quoted = (s: string) => `“ ${s.trim()} ”`;
  * card while it grows out of the tile.
  */
 export function TileFace({ card }: { card: EntryCard }) {
+  // A lyric card's tile is the lyric and nothing else: no label, no headline, no source line.
+  if (card.type === "lyric" && card.lyric) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center px-6">
+        <p className={`whitespace-pre-line text-center ${HEADLINE}`}>{quoted(card.lyric.excerptOrTimestamp)}</p>
+      </div>
+    );
+  }
   const media = cardMedia(card);
   return (
     <>
@@ -53,11 +61,6 @@ export function TileFace({ card }: { card: EntryCard }) {
           <p className={LABEL}>{TYPE_LABEL[card.type]}</p>
           {card.type === "comment" ? (
             <p className={`line-clamp-6 whitespace-pre-line ${HEADLINE}`}>{quoted(card.snippet)}</p>
-          ) : card.type === "lyric" && card.lyric ? (
-            <>
-              <p className={`line-clamp-4 whitespace-pre-line ${HEADLINE}`}>{quoted(card.lyric.excerptOrTimestamp)}</p>
-              <h3 className="line-clamp-2 font-serif text-[15px] leading-[21px] text-white/85">{card.headline}</h3>
-            </>
           ) : (
             <>
               <h3 className={`line-clamp-3 ${HEADLINE}`}>{card.headline}</h3>
@@ -87,7 +90,7 @@ export function CardTile({ card, index, hidden, onOpen }: Props) {
       onClick={(e) => onOpen(e.currentTarget)}
       style={{ ...style, "--rise-delay": `${index * 45}ms` } as CSSProperties}
       className={`glass glass-hover glass-rise relative block h-[276px] w-[250px] shrink-0 snap-start overflow-hidden text-left ${hidden ? "invisible" : ""}`}
-      aria-label={`${TYPE_LABEL[card.type]}: ${card.type === "comment" ? card.snippet : card.headline}`}
+      aria-label={`${TYPE_LABEL[card.type]}: ${card.type === "comment" ? card.snippet : card.type === "lyric" ? (card.lyric?.excerptOrTimestamp ?? card.headline) : card.headline}`}
     >
       {filter}
       <TileFace card={card} />
