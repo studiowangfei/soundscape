@@ -98,7 +98,7 @@ export const EntrySchema = z
         sourceUrl: httpUrl.optional(),
       })
       .strict(),
-    cards: z.array(EntryCardSchema).min(1).max(8),
+    cards: z.array(EntryCardSchema).min(1).max(9),
     // Free-form generation details; never rendered.
     provenance: z.record(z.string(), z.unknown()).optional(),
   })
