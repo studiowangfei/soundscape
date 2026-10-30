@@ -1,0 +1,261 @@
+{
+  "slug": "yeah-yeah-yeahs-hysteric",
+  "title": "Hysteric",
+  "artist": "Yeah Yeah Yeahs",
+  "aliases": [],
+  "releaseYear": 2009,
+  "addedAt": "2026-10-30",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=KfQW8zLaqBg",
+  "spotifyId": "0sYM2UAQhOvrFGj9C3HARt",
+  "youtubeMusicId": "KfQW8zLaqBg",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/25/26/47/25264758-3937-3892-a215-d23b334e5546/mzaf_767111680064141166.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/hysteric/1440784273?i=1440784431&uo=4"
+  },
+  "cover": {
+    "file": "yeah-yeah-yeahs-hysteric.jpg",
+    "kind": "album",
+    "album": "It's Blitz!",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/bb/Yeah_Yeah_Yeahs_-_It%27s_Blitz.png"
+  },
+  "cards": [
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g1",
+      "type": "background",
+      "headline": "The mirror twin of 'Maps'",
+      "snippet": "'Hysteric' is a love song with the desperation drained out of it. AllMusic's Heather Phares described it as 'a love song about being happy with someone rather than trying to make him or her stay' — the inverse of 'Maps,' the band's pleading signature ballad, where love is something begged for. Here the refrain is pure arrival: you suddenly complete me. Phares called 'Hysteric' the mirror twin of 'Maps' — the same devotion, answered instead of yearned for.",
+      "context": "AllMusic's review of It's Blitz! (Heather Phares), March 2009; full review text via the album's Qobuz page.",
+      "source": {
+        "name": "allmusic.com",
+        "platform": "web"
+      },
+      "url": "https://www.qobuz.com/us-en/album/its-blitz-yeah-yeah-yeahs/b14wr6mrgxf2a",
+      "sourceDate": null
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g2",
+      "type": "background",
+      "headline": "Packed for downtime, it became the album's sound",
+      "snippet": "It's Blitz! was largely written in the studio, and its defining sound arrived as luggage. Heading to Sonic Ranch in Tornillo, Texas, guitarist Nick Zinner packed a vintage ARP synthesizer that, as Classic Rock told it, 'was supposed to provide downtime entertainment, but ended up being the defining noise on It's Blitz!' Producer Nick Launay described songs assembling from chopped drum loops and jams: 'Karen [O] would listen to that and come up with a vocal melody and then suddenly everything would fall into place.' 'Hysteric' — co-produced by David Sitek, with saxophone and trumpet threaded through it — is that method at its most tender.",
+      "context": "Wikipedia's It's Blitz! article, drawing on Classic Rock's account of the 2008 Sonic Ranch sessions.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "wikipedia"
+      },
+      "url": "https://en.wikipedia.org/wiki/It's_Blitz!",
+      "sourceDate": "2026-10-03"
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g3",
+      "type": "lyric",
+      "headline": "The refrain everyone quotes",
+      "snippet": "The song's refrain is its most-quoted line: two of the pool's top comments quote it word for word, and the higher-liked one (91 likes) names it a favorite lyric outright. The Village Voice heard the moment the same way in 2009, calling Karen O's repeated delivery 'this record's best mantra.'",
+      "context": "Two of the song's top comments quote the line word for word; @karlirae6423 (91 likes) names it a favorite lyric. The Village Voice called Karen O's delivery of it 'this record's best mantra' in 2009.",
+      "source": {
+        "name": "YouTube — Tom",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=Uggzf51n8zVEEngCoAEC",
+      "sourceDate": null,
+      "lyric": {
+        "excerptOrTimestamp": "Flow sweetly, hang heavy — you suddenly complete me",
+        "lyricSource": "It's Blitz! (2009) — Yeah Yeah Yeahs",
+        "reusePermission": "Short excerpt quoted for commentary.",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted word for word by two independent top comments on the song's most-commented upload; the 91-like one names it a favorite lyric outright.",
+        "reactionCardIds": [
+          "yeah-yeah-yeahs-hysteric-g7"
+        ]
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g4",
+      "type": "comment",
+      "headline": "A borrowed nostalgia",
+      "snippet": "This song gives me a nostalgia that doesn't belong to me",
+      "context": "Top comment on Tom's 2009 fan upload — at 1.5M views, the song's most-commented page.",
+      "source": {
+        "name": "YouTube — Tom",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=Ugj6IT-z9GhTDngCoAEC",
+      "sourceDate": null,
+      "comment": {
+        "author": "@Meeech0",
+        "commentId": "Ugj6IT-z9GhTDngCoAEC",
+        "likesObserved": 239,
+        "observedAt": "2026-10-30",
+        "replies": [
+          {
+            "author": "@falljeff1111",
+            "commentId": null,
+            "text": "+Michelle Ann Cala I remember a younger time,  dozing off to this song through earphones, a light snow flurry hitting roof of the cabin. Miss those days.",
+            "likesObserved": 10
+          },
+          {
+            "author": "@srbond",
+            "commentId": null,
+            "text": "+Michelle Ann Cala  i knew i wasnt the only one!!!",
+            "likesObserved": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g5",
+      "type": "comment",
+      "headline": "Down the aisle to 'Hysteric'",
+      "snippet": "I walked down the aisle to this song at my wedding - it was perfect. <3",
+      "context": "On the same 2009 fan upload; both replies under it are aisle stories of their own.",
+      "source": {
+        "name": "YouTube — Tom",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=Ugz9W7fPF7xo8ORNZ9t4AaABAg",
+      "sourceDate": null,
+      "comment": {
+        "author": "@She.Guevara84",
+        "commentId": "Ugz9W7fPF7xo8ORNZ9t4AaABAg",
+        "likesObserved": 146,
+        "observedAt": "2026-10-30",
+        "replies": [
+          {
+            "author": "@killerkart9818",
+            "commentId": null,
+            "text": "Bro ain't no way my step mom walked down the aisle to with this song",
+            "likesObserved": 8
+          },
+          {
+            "author": "@ahoover726",
+            "commentId": null,
+            "text": "I had this play as my bridesmaids walked down the aisle! ❤",
+            "likesObserved": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g6",
+      "type": "comment",
+      "headline": "Reunited after 8 years, she sent him this",
+      "snippet": "I just recently got back together with the love of my life after almost 8 years.\nI sent him this song just now.",
+      "context": "On the 2009 fan upload; the thread under it fills with other people's reunions.",
+      "source": {
+        "name": "YouTube — Tom",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=UggCVwjTeAuyW3gCoAEC",
+      "sourceDate": null,
+      "comment": {
+        "author": "@stephaniedorsey5667",
+        "commentId": "UggCVwjTeAuyW3gCoAEC",
+        "likesObserved": 104,
+        "observedAt": "2026-10-30",
+        "replies": [
+          {
+            "author": "@lmaopookiebeast",
+            "commentId": null,
+            "text": "Stephanie Dorsey you give me hope",
+            "likesObserved": 10
+          },
+          {
+            "author": "@darrianstillwagon3309",
+            "commentId": null,
+            "text": "Literally talking to my ex is what brought me back to this song! it was on repeat when i was younger then i got into other things. Funny how life reminds you of beautiful moments through others' magnificent creations <3",
+            "likesObserved": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g7",
+      "type": "comment",
+      "headline": "'Flow sweetly, hang heavy'",
+      "snippet": "\"Flow sweetly, hang heavy\" forever one of my favorite lyrics",
+      "context": "On the 2009 fan upload. The line she quotes is the song's refrain — and its most-quoted words.",
+      "source": {
+        "name": "YouTube — Tom",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=Uggzf51n8zVEEngCoAEC",
+      "sourceDate": null,
+      "comment": {
+        "author": "@karlirae6423",
+        "commentId": "Uggzf51n8zVEEngCoAEC",
+        "likesObserved": 91,
+        "observedAt": "2026-10-30",
+        "replies": []
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g8",
+      "type": "version",
+      "headline": "The dance-floor number, remade as a ballad",
+      "snippet": "The deluxe edition's acoustic remake of the album track: Karen O over acoustic guitar and strings, the synth ballad slowed and hushed. One of two acoustic versions the band released in 2009. One listener: \"THERES AN ACOUSTIC VERSION?????\"",
+      "context": "yeahyeahyeahsmusic, the band's official channel. 123,528 views, 21 comments observed Oct 30, 2026. A second acoustic take followed on iTunes Originals (4:10).",
+      "source": {
+        "name": "YouTube — yeahyeahyeahsmusic",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=A60XmFAnNPM",
+      "sourceDate": "2018-12-12",
+      "version": {
+        "performer": "Yeah Yeah Yeahs",
+        "versionLabel": "Hysteric (Acoustic Version)",
+        "popularityObserved": "123K views",
+        "observedAt": "2026-10-30"
+      }
+    },
+    {
+      "id": "yeah-yeah-yeahs-hysteric-g9",
+      "type": "film",
+      "headline": "Sunny Dancer (2026) gives it a pre-party makeover",
+      "snippet": "About 32 minutes into George Jaques's Sunny Dancer, 'Hysteric' plays as Ivy (Bella Ramsey) and her roommate Ella (Ruby Stokes) do a makeover in their cabin before heading out to join the gang at camp.",
+      "context": "Documented by SeekerTune's timestamped soundtrack guide (the scene at 00:32:05); NME's soundtrack listing confirms the song.",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/sunny-dancer/",
+      "sourceDate": "2026-02-13",
+      "supporting": [
+        {
+          "label": "SeekerTune",
+          "url": "https://www.seekertune.com/movies/sunny-dancer-2026/"
+        },
+        {
+          "label": "NME",
+          "url": "https://www.nme.com/news/film/sunny-dancer-soundtrack-every-song-3962505"
+        }
+      ],
+      "film": {
+        "association": "About 32 minutes into George Jaques's Sunny Dancer, 'Hysteric' plays as Ivy (Bella Ramsey) and her roommate Ella (Ruby Stokes) do a makeover in their cabin before heading out to join the gang at camp.",
+        "title": "Sunny Dancer",
+        "year": 2026,
+        "kind": "film",
+        "poster": {
+          "file": "yeah-yeah-yeahs-hysteric-g9.jpg",
+          "sourceUrl": "https://letterboxd.com/film/sunny-dancer/"
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "generator": "pipeline v2 run 2026-10-30; entry built by build_entry.py from final.json + drafts.json lyric_test with verbatim assertions",
+    "observed": "2026-10-30",
+    "upload": {
+      "id": "KfQW8zLaqBg",
+      "title": "Hysteric",
+      "channel": "Yeah Yeah Yeahs - Topic",
+      "views": 478096,
+      "likes": 8125,
+      "comments": 17
+    },
+    "spotifyIdNote": "Track ID via trackify.am listing for Hysteric (same recording, ISRC GBUM70900931); Spotify connector not connected.",
+    "lyricCard": "First published lyric card; Fei approved the type 2026-10-30 and placed it after Background, before Comments, as the 9th card under the raised cap.",
+    "coverSource": "https://upload.wikimedia.org/wikipedia/en/b/bb/Yeah_Yeah_Yeahs_-_It%27s_Blitz.png",
+    "posterSource": "https://a.ltrbxd.com/resized/film-poster/1/1/6/3/8/1/3/1163813-sunny-dancer-0-600-0-900-crop.jpg"
+  }
+}
