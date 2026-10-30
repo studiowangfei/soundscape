@@ -1,0 +1,305 @@
+{
+  "slug": "underworld-born-slippy",
+  "title": "Born Slippy",
+  "artist": "Underworld",
+  "aliases": [],
+  "releaseYear": null,
+  "addedAt": "2026-10-24",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=XiMrrleH_hI",
+  "spotifyId": null,
+  "youtubeMusicId": "R723w9CWkX0",
+  "cover": {
+    "file": "underworld-born-slippy.jpg",
+    "kind": "album",
+    "album": "Born Slippy .NUXX",
+    "sourceUrl": "https://coverartarchive.org/release/231265b4-7b48-48dc-8ad4-152778a3d45c/31354372746-1200.jpg"
+  },
+  "cards": [
+    {
+      "id": "underworld-born-slippy-g1",
+      "type": "background",
+      "headline": "Written drunk in Soho, meant as a cry for help",
+      "snippet": "In 1995, Underworld released \"Born Slippy .NUXX\" as a B-side. Its vocalist Karl Hyde had written the lyrics after a night of drinking on Wardour Street in Soho, London, while deep in alcoholism. He wanted to capture how a drunk sees the world in fragments, with only small pieces of memory left afterwards. Audiences later raised lager cans during performances, which disturbed him. Hyde said he meant the song as a cry for help, not a drinking anthem.",
+      "context": "Hyde was deep in alcoholism at the time.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "wikipedia"
+      },
+      "url": "https://en.wikipedia.org/wiki/Born_Slippy_(Nuxx)",
+      "sourceDate": "2026-10-04"
+    },
+    {
+      "id": "underworld-born-slippy-g2",
+      "type": "background",
+      "headline": "\"Lager, lager, lager\" came from losing his place",
+      "snippet": "In a 2006 interview with The Guardian, Underworld vocalist Karl Hyde explained how \"Born Slippy\" came together. He recorded the vocals in one take. Whenever he lost his place, he sang the same line again, and that is where \"lager, lager, lager, lager\" came from. The title has a separate origin: Born Slippy was a greyhound the band had won money on.",
+      "context": "Hyde interviewed by The Guardian, 2006.",
+      "source": {
+        "name": "theguardian.com",
+        "platform": "web"
+      },
+      "url": "https://www.theguardian.com/music/2006/feb/24/popandrock2",
+      "sourceDate": "2006-02-24"
+    },
+    {
+      "id": "underworld-born-slippy-g6",
+      "type": "comment",
+      "headline": "The film's famous monologue, in one line",
+      "snippet": "Choose life. Choose a job. Choose a career. Choose a family...",
+      "context": "Quotes Renton's opening monologue from Trainspotting.",
+      "source": {
+        "name": "YouTube — Underworld",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=XiMrrleH_hI&lc=UgyEKz3jDWeo1GGkGFV4AaABAg",
+      "sourceDate": "2010-10-27",
+      "comment": {
+        "author": "@ichamo1",
+        "commentId": "UgyEKz3jDWeo1GGkGFV4AaABAg",
+        "likesObserved": 1800,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@kantigesholz",
+            "commentId": "UgyEKz3jDWeo1GGkGFV4AaABAg.8Gb_jvVOhYr9RscGfI-zTJ",
+            "text": "sounds horrible to me",
+            "likesObserved": 65
+          },
+          {
+            "author": "@AngelaElSayed",
+            "commentId": "UgyEKz3jDWeo1GGkGFV4AaABAg.8Gb_jvVOhYrA2SKvH8uJbp",
+            "text": "Choose happiness. Whatever that is for you.",
+            "likesObserved": 33
+          }
+        ]
+      }
+    },
+    {
+      "id": "underworld-born-slippy-g7",
+      "type": "comment",
+      "headline": "The song hits different for those who lived it",
+      "snippet": "Takes me to place I never want to be again. Active addiction. 13 years clean tho 💪💪",
+      "context": "Fits Hyde's intent that the song was a cry for help, not a party anthem.",
+      "source": {
+        "name": "YouTube — Underworld",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=XiMrrleH_hI&lc=UgwLWs0L5qjmKjc3g8t4AaABAg",
+      "sourceDate": "2023-10-27",
+      "comment": {
+        "author": "@lauracampbell224",
+        "commentId": "UgwLWs0L5qjmKjc3g8t4AaABAg",
+        "likesObserved": 1700,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@chrisSmith-nz9qr",
+            "commentId": "UgwLWs0L5qjmKjc3g8t4AaABAg.9q1F2p7OwiSAB9QPIAK_N5",
+            "text": "Well done. 24 years clean for me. Love this song. Takes me back.",
+            "likesObserved": 68
+          },
+          {
+            "author": "@Kyuri85",
+            "commentId": "UgwLWs0L5qjmKjc3g8t4AaABAg.9q1F2p7OwiSAKlRHupa5ux",
+            "text": "This random person on the internet is proud of you. Well done!",
+            "likesObserved": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "underworld-born-slippy-g8",
+      "type": "comment",
+      "headline": "The 90s, in one sentence",
+      "snippet": "Kids will never know the freedom of an unconnected analogic world.",
+      "context": "Nostalgia for the pre-internet era the song soundtracks.",
+      "source": {
+        "name": "YouTube — Underworld",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=XiMrrleH_hI&lc=UgxXD97JMO1nTfCP4_t4AaABAg",
+      "sourceDate": "2026-07-27",
+      "comment": {
+        "author": "@jomarmont",
+        "commentId": "UgxXD97JMO1nTfCP4_t4AaABAg",
+        "likesObserved": 732,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@HDFRAISER48",
+            "commentId": "UgxXD97JMO1nTfCP4_t4AaABAg.AZbsqfTKvYnA_0WjXRXdYj",
+            "text": "We had everything",
+            "likesObserved": 28
+          },
+          {
+            "author": "@konzy.",
+            "commentId": "UgxXD97JMO1nTfCP4_t4AaABAg.AZbsqfTKvYnAa_IVPUm9Yy",
+            "text": "we need to go back to it. abandoning social media would make everything better, it wont happen though.",
+            "likesObserved": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "underworld-born-slippy-g4",
+      "type": "version",
+      "headline": "Underworld's Glastonbury 2016 set, filmed by BBC Music",
+      "snippet": "Underworld play Born Slippy live at Glastonbury 2016, in a ten-minute festival-field performance filmed by BBC Music. One listener: \"BBC did one hell of a job filming this. The camera angles are incredible\"",
+      "context": "Underworld live at Glastonbury.",
+      "source": {
+        "name": "YouTube — BBC Music",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=sQGOlawi6n0",
+      "sourceDate": "2020-06-25",
+      "version": {
+        "performer": "Underworld",
+        "versionLabel": "BBC Music · Underworld - Born Slippy (Glastonbury 2016)",
+        "popularityObserved": "10.1M views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "underworld-born-slippy-g5",
+      "type": "version",
+      "headline": "Underworld live in Berlin on their tour, via Electronic Beats TV",
+      "snippet": "Underworld perform Born Slippy in a ten-minute live take filmed on the Berlin leg of their tour by Telekom Electronic Beats TV.",
+      "context": "Telekom Electronic Beats TV.",
+      "source": {
+        "name": "YouTube — Telekom Electronic Beats TV",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=krN3ledny-Y",
+      "sourceDate": "2016-10-11",
+      "version": {
+        "performer": "Underworld",
+        "versionLabel": "Underworld  Born Slippy  Live in Berlin (Electronic Beats TV)",
+        "popularityObserved": "14.2M views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "underworld-born-slippy-g3",
+      "type": "film",
+      "headline": "Trainspotting (1996)",
+      "snippet": "Danny Boyle called the song the film's \"heartbeat\". It helped push the reissue to number two in the UK.",
+      "context": "A reworked version, \"Slow Slippy\", appears in T2 Trainspotting (2017).",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/trainspotting/",
+      "sourceDate": "1996",
+      "supporting": [
+        {
+          "label": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Born_Slippy_(Nuxx)"
+        }
+      ],
+      "film": {
+        "association": "Danny Boyle called the song the film's \"heartbeat\". It helped push the reissue to number two in the UK.",
+        "title": "Trainspotting",
+        "year": 1996,
+        "kind": "film",
+        "poster": {
+          "file": "underworld-born-slippy-g3.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/7/71/Trainspotting_ver2.jpg"
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":3,\"version\":2,\"film\":1,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "generation": {
+      "generatedAt": "2026-10-26T22:06:13.618Z",
+      "model": "claude-sonnet-5-5 (effort low)",
+      "totalMs": 19087,
+      "stages": {
+        "search": 1717,
+        "gather": 6617,
+        "write": 10753,
+        "check": 0
+      },
+      "sourceCounts": {
+        "comments": 40,
+        "versions": 10,
+        "articles": 6,
+        "wikipedia": 1
+      },
+      "checks": [
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S3",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": false,
+          "reason": "trimmed: more than 2 backgrounds"
+        },
+        {
+          "cardRef": "S1",
+          "type": "film",
+          "ok": true,
+          "rank": 3
+        },
+        {
+          "cardRef": "V1",
+          "type": "version",
+          "ok": true,
+          "rank": 1
+        },
+        {
+          "cardRef": "V7",
+          "type": "version",
+          "ok": true,
+          "rank": 2
+        },
+        {
+          "cardRef": "C4",
+          "type": "comment",
+          "ok": true,
+          "rank": 5
+        },
+        {
+          "cardRef": "C5",
+          "type": "comment",
+          "ok": true,
+          "rank": 4
+        },
+        {
+          "cardRef": "C17",
+          "type": "comment",
+          "ok": true,
+          "rank": 8
+        },
+        {
+          "cardRef": "C18",
+          "type": "comment",
+          "ok": false,
+          "rank": 6,
+          "reason": "trimmed: last slot went to S1 (rank 3 vs 6)"
+        },
+        {
+          "cardRef": "C37",
+          "type": "comment",
+          "ok": false,
+          "reason": "over type cap",
+          "rank": 7
+        }
+      ]
+    }
+  },
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/55/7b/2d/557b2df8-3592-e1d3-5e49-12fa0c80cf82/mzaf_17812663078551126252.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/born-slippy-nuxx/1445883589?i=1445884058&uo=4"
+  }
+}

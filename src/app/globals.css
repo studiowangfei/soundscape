@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0d0b0a;
+  --foreground: #f3eee8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* The design's sans: Apple's system face (SF), else the platform's own UI font. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Not inline: the serif typeface is switched while the page runs (Tune → Text sets --font-serif on <html>; see
+   components/typeface.ts), so `font-serif` must read the variable rather than have its value baked in. */
+@theme {
+  --font-serif: var(--font-libre-baskerville), Georgia, serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+}
+
+@keyframes ring {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(2.1); opacity: 0; }
+}
+.animate-ring { animation: ring 1.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+
+@keyframes rise {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.animate-rise { animation: rise 0.45s ease-out both; }
+
+/* Film grain for the soft backdrops (SVG turbulence, tiled). */
+.grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Liquid Glass panes (components/glass/Glass.tsx): useGlass() sets the variables. Every browser gets frost; Chromium
+   (html.svg-glass, set before the first paint) runs the pane's SVG filter on its backdrop: the refraction. */
+.glass {
+  background-color: var(--glass-fill);
+  -webkit-backdrop-filter: var(--glass-fallback);
+  backdrop-filter: var(--glass-fallback);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6);
+}
+.svg-glass .glass { backdrop-filter: var(--glass-filter); }
+/* The open card carries its glass in a layer under its content (see CardDetail), so its shadow goes on the card. */
+.glass-shadow { box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6); }
+
+/* A card's hover: it lifts a little, its fill and rim light brighten. All transitions, so on and off are smooth. */
+.glass-hover {
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 320ms ease, box-shadow 420ms ease;
+}
+.glass-hover:hover {
+  transform: translateY(-3px) scale(1.012);
+  background-color: var(--glass-fill-hover);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 28px 50px -22px rgba(0, 0, 0, 0.7);
+}
+.glass-hover:active { transform: translateY(-1px) scale(0.996); transition-duration: 140ms; }
+
+/* The light caught along the rim (GlassEdge): a 1px ring, brightest top left, a fainter catch bottom right. */
+.glass-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 315deg,
+    rgb(255 255 255 / calc(var(--edge) * 1)),
+    rgb(255 255 255 / calc(var(--edge) * 0.22)) 18%,
+    rgb(255 255 255 / calc(var(--edge) * 0.12)) 32%,
+    rgb(255 255 255 / calc(var(--edge) * 0.45)) 50%,
+    rgb(255 255 255 / calc(var(--edge) * 0.12)) 68%,
+    rgb(255 255 255 / calc(var(--edge) * 0.22)) 82%,
+    rgb(255 255 255 / calc(var(--edge) * 1))
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.8;
+  transition: opacity 320ms ease;
+}
+.glass-hover:hover .glass-edge { opacity: 1; }
+
+/* Cards rise into place on load (one after another via --rise-delay). Not "forwards": once done, hover owns transform. */
+@keyframes glass-rise {
+  from { opacity: 0; transform: translateY(26px); }
+}
+.glass-rise { animation: glass-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--rise-delay, 0ms) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .glass-rise { animation: none; }
+  .glass-hover, .glass-hover:hover, .glass-hover:active { transform: none; }
+}
+
+/* The player's scrubber (player/Players.tsx): a slim glassy track, filled up to --p, with a white knob. */
+.scrub {
+  appearance: none;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.scrub::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.55) var(--p), rgba(255, 255, 255, 0.12) var(--p));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+.scrub::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.55) var(--p), rgba(255, 255, 255, 0.12) var(--p));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+.scrub::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.scrub::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.scrub:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.5); outline-offset: 4px; border-radius: 999px; }
+
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Where the cover sits (mirrors coverFrame in components/backdrops/art.ts): a square on the right on wide
+   screens, across the top on narrow ones. .cover-feather fades its edges, longest towards the content column. */
+.cover-box {
+  --s: min(92vh, 52vw);
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  right: 0;
+  top: calc(50% - var(--s) / 2);
+}
+.cover-feather {
+  mask-image: linear-gradient(to right, transparent, #000 30%), linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+}
+@media (max-width: 1023px) {
+  .cover-box { --s: 100vw; top: 0; }
+  .cover-feather { mask-image: linear-gradient(to bottom, #000 50%, transparent); }
+}
+
+@keyframes slow-zoom {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(var(--zoom-to, 1.18)) translate(-3%, 2%); }
+}
+.animate-slow-zoom { animation: slow-zoom 36s ease-in-out infinite alternate; }
+
+/* Slow push-in for the still styles (Blur, Glass, Pixel glass), centred on the cover so it grows in place. Amount
+   and duration come from the Tune panel via --zoom-to and inline animation timing (see backdrops/params.ts). */
+@keyframes subtle-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(var(--zoom-to, 1.1)); }
+}
+.animate-subtle-zoom {
+  animation: subtle-zoom 20s ease-in-out -4s infinite alternate;
+  transform-origin: calc(100% - min(92vh, 52vw) / 2) 50%;
+}
+@media (max-width: 1023px) {
+  .animate-subtle-zoom { transform-origin: 50% 50vw; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(var(--k)); }
+  50% { transform: scale(calc(var(--k) * 1.05)); }
+}
+.animate-breathe { transform: scale(var(--k)); animation: breathe 9s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slow-zoom, .animate-subtle-zoom, .animate-breathe { animation: none; }
+}

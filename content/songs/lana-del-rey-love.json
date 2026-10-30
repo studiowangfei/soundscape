@@ -1,0 +1,291 @@
+{
+  "slug": "lana-del-rey-love",
+  "title": "Love",
+  "artist": "Lana Del Rey",
+  "aliases": [],
+  "releaseYear": null,
+  "addedAt": "2026-10-24",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=tBwoRviPvVw",
+  "spotifyId": "2Kerz9H9IejzeIpjhDJoYG",
+  "youtubeMusicId": "RB3Wjz_VzG4",
+  "cover": {
+    "file": "lana-del-rey-love.jpg",
+    "kind": "album",
+    "album": "Lust for Life",
+    "sourceUrl": "https://coverartarchive.org/release/50d10c92-0e49-43bd-85b5-ad3e6e6d3fda/17234770153-1200.jpg"
+  },
+  "cards": [
+    {
+      "id": "lana-del-rey-love-g1",
+      "type": "background",
+      "headline": "Posters across LA, then a leak forced an early release",
+      "snippet": "In February 2017, Lana Del Rey began teasing \"Love,\" the lead single from her album Lust for Life, with promotional posters hung around Los Angeles on February 17. That same day, leaked versions of the song surfaced online. Because of the leaks, the release date was moved up, and the song came out on February 18, 2017. It was her first new music in nearly 16 months.",
+      "context": "Lead single from Lust for Life, her first release in nearly 16 months.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "wikipedia"
+      },
+      "url": "https://en.wikipedia.org/wiki/Love_(Lana_Del_Rey_song)",
+      "sourceDate": "2026-08-22"
+    },
+    {
+      "id": "lana-del-rey-love-g2",
+      "type": "background",
+      "headline": "The song ends with a nod to the Beach Boys",
+      "snippet": "Lana Del Rey's 2017 single \"Love\" closes with a nod to the Beach Boys' classic \"Don't Worry Baby.\" Rolling Stone described the track as retro-sounding and inspired by Sixties girl groups, and the ending fits that feel. The song's original title was a lyric, \"Oh, to be young and in love.\"",
+      "context": "Rolling Stone described the track as retro-sounding and Sixties girl group-inspired.",
+      "source": {
+        "name": "rollingstone.com",
+        "platform": "web"
+      },
+      "url": "https://www.rollingstone.com/music/music-news/hear-lana-del-reys-anthemic-new-single-love-124695/",
+      "sourceDate": "2017-02-18"
+    },
+    {
+      "id": "lana-del-rey-love-g6",
+      "type": "comment",
+      "headline": "The cure and the cause",
+      "snippet": "she cured the depression she gave us",
+      "context": "Plays on Lana's reputation for sad songs, with this one feeling hopeful by comparison.",
+      "source": {
+        "name": "YouTube — Lana Del Rey",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=tBwoRviPvVw&lc=UgyIJxOFvqSiEXrrbst4AaABAg",
+      "sourceDate": "2018-10-27",
+      "comment": {
+        "author": "@daphne9982",
+        "commentId": "UgyIJxOFvqSiEXrrbst4AaABAg",
+        "likesObserved": 15000,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@daemangel055",
+            "commentId": "UgyIJxOFvqSiEXrrbst4AaABAg.8f8yz1GZFsv8xx6mPW3izp",
+            "text": "When depression hit me,Lana voice calm me down",
+            "likesObserved": 98
+          },
+          {
+            "author": "@Tullece",
+            "commentId": "UgyIJxOFvqSiEXrrbst4AaABAg.8f8yz1GZFsv8yxtn3NNriG",
+            "text": "I live for these comments",
+            "likesObserved": 28
+          }
+        ]
+      }
+    },
+    {
+      "id": "lana-del-rey-love-g7",
+      "type": "comment",
+      "headline": "A lyric that aged strangely well in lockdown",
+      "snippet": "This song hits different during Corona; “you get ready, you get all dressed up, to go nowhere in particular”",
+      "context": "The line \"you get all dressed up, to go nowhere in particular\" took on new meaning during the 2020 pandemic.",
+      "source": {
+        "name": "YouTube — Lana Del Rey",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=3-NTv0CdFCk&lc=UgyOVHtQ53wQXr8552h4AaABAg",
+      "sourceDate": "2020-10-27",
+      "comment": {
+        "author": "@sardiniapiedmont",
+        "commentId": "UgyOVHtQ53wQXr8552h4AaABAg",
+        "likesObserved": 11000,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@didtrict9",
+            "commentId": "UgyOVHtQ53wQXr8552h4AaABAg.96vYdUFBnqi970hOPoOFug",
+            "text": "That's what's been happening  to me for days because  of corona",
+            "likesObserved": 94
+          },
+          {
+            "author": "@iamthewalrusx",
+            "commentId": "UgyOVHtQ53wQXr8552h4AaABAg.96vYdUFBnqi97BdvUgo0XL",
+            "text": "That's exactly what I thought when I heard it lol",
+            "likesObserved": 41
+          }
+        ]
+      }
+    },
+    {
+      "id": "lana-del-rey-love-g8",
+      "type": "comment",
+      "headline": "One word, newly beautiful",
+      "snippet": "Didn't know the word \"particular\" could sound so beautiful",
+      "context": "Refers to the lyric \"to go nowhere in particular\" and the way she sings it.",
+      "source": {
+        "name": "YouTube — Lana Del Rey",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=3-NTv0CdFCk&lc=UggjZtXNV1Nxw3gCoAEC",
+      "sourceDate": "2017-10-27",
+      "comment": {
+        "author": "@marjana259",
+        "commentId": "UggjZtXNV1Nxw3gCoAEC",
+        "likesObserved": 3800,
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "lana-del-rey-love-g3",
+      "type": "version",
+      "headline": "Lana Del Rey plays \"Love\" live for the very first time, SXSW 2017",
+      "snippet": "Lana Del Rey's first-ever performance of the song, recorded at Apple Music Austin during SXSW on March 17, 2017. One listener: \"it's like listening to the studio version!\"",
+      "context": "Fan-uploaded recording of the March 17, 2017 show.",
+      "source": {
+        "name": "YouTube — abearatemyparents",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=lcOuDKJ6bfo",
+      "sourceDate": "2017-03-18",
+      "supporting": [
+        {
+          "label": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Love_(Lana_Del_Rey_song)"
+        }
+      ],
+      "version": {
+        "performer": "LANA DEL REY",
+        "versionLabel": "LANA DEL REY - LOVE - [Live at SXSW] - First Ever Performance At Apple Music Austin March 17, 2017",
+        "popularityObserved": "205K views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "lana-del-rey-love-g4",
+      "type": "version",
+      "headline": "Lana Del Rey sings \"Love\" at Lollapalooza Paris, July 2017",
+      "snippet": "Lana Del Rey performs the song, from the Lust for Life album, live at Lollapalooza Paris on 23 July 2017. One listener: \"I was there, I cried when she sang Love, the best performance in my opinion\"",
+      "context": "Fan-uploaded recording from July 23, 2017.",
+      "source": {
+        "name": "YouTube — Avi Torossian",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=i-OfvYY5Ec8",
+      "sourceDate": "2017-07-29",
+      "version": {
+        "performer": "Lana Del Rey",
+        "versionLabel": "Lana Del Rey - Love - Live at Lollapalooza Paris 23/07/17",
+        "popularityObserved": "52K views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "lana-del-rey-love-g5",
+      "type": "film",
+      "headline": "Heard in the pilot of MTV's Siesta Key",
+      "snippet": "In 2017, the song can be heard in the pilot episode of the television show Siesta Key, a reality series set in Florida.",
+      "context": "Reality series set in Florida.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "wikipedia"
+      },
+      "url": "https://en.wikipedia.org/wiki/Love_(Lana_Del_Rey_song)",
+      "sourceDate": "2026-08-22",
+      "film": {
+        "association": "In 2017, the song can be heard in the pilot episode of the television show Siesta Key, a reality series set in Florida.",
+        "title": "Siesta Key",
+        "year": 2017,
+        "kind": "tv",
+        "poster": {
+          "file": "lana-del-rey-love-g5.jpg",
+          "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Video114/v4/72/ec/2b/72ec2bfc-3077-22bf-5e21-36ef0a075860/mzl.dnjcdlls.png/600x600bb.jpg"
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":3,\"version\":2,\"film\":1,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "generation": {
+      "generatedAt": "2026-10-26T21:48:16.021Z",
+      "model": "claude-sonnet-5-5 (effort low)",
+      "totalMs": 27689,
+      "stages": {
+        "search": 3964,
+        "gather": 7113,
+        "write": 16611,
+        "check": 1
+      },
+      "sourceCounts": {
+        "comments": 40,
+        "versions": 10,
+        "articles": 6,
+        "wikipedia": 1
+      },
+      "checks": [
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S3",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": false,
+          "reason": "trimmed: more than 2 backgrounds"
+        },
+        {
+          "cardRef": "V6",
+          "type": "version",
+          "ok": true,
+          "rank": 2
+        },
+        {
+          "cardRef": "V8",
+          "type": "version",
+          "ok": true,
+          "rank": 6
+        },
+        {
+          "cardRef": "S1",
+          "type": "film",
+          "ok": true,
+          "rank": 4
+        },
+        {
+          "cardRef": "C3",
+          "type": "comment",
+          "ok": true,
+          "rank": 5
+        },
+        {
+          "cardRef": "C4",
+          "type": "comment",
+          "ok": true,
+          "rank": 1
+        },
+        {
+          "cardRef": "C24",
+          "type": "comment",
+          "ok": true,
+          "rank": 7
+        },
+        {
+          "cardRef": "C27",
+          "type": "comment",
+          "ok": false,
+          "rank": 8,
+          "reason": "trimmed: last slot went to V8 (rank 6 vs 8)"
+        },
+        {
+          "cardRef": "C29",
+          "type": "comment",
+          "ok": false,
+          "reason": "over type cap",
+          "rank": 3
+        }
+      ]
+    }
+  },
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/cb/55/f4/cb55f431-9770-630b-a8f7-bbf91ab2a8c0/mzaf_5679380577330623677.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/love/1440899893?i=1440899958&uo=4"
+  }
+}

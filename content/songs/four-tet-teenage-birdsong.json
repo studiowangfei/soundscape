@@ -1,0 +1,277 @@
+{
+  "slug": "four-tet-teenage-birdsong",
+  "title": "Teenage Birdsong",
+  "artist": "Four Tet",
+  "aliases": [],
+  "releaseYear": null,
+  "addedAt": "2026-10-24",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=jXSHEVv2I-Y",
+  "spotifyId": "4onzxTzKgnSrKUmA2YydJB",
+  "youtubeMusicId": "hPZaam7NbUk",
+  "cover": {
+    "file": "four-tet-teenage-birdsong.jpg",
+    "kind": "album",
+    "album": "Sixteen Oceans",
+    "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/34/b0/7f/34b07f62-22a4-9906-e62c-17b77fb5f1ff/3663729105363_cover.jpg/1200x1200bb.jpg"
+  },
+  "cards": [
+    {
+      "id": "four-tet-teenage-birdsong-g1",
+      "type": "background",
+      "headline": "The video was shot at Alexandra Palace",
+      "snippet": "Four Tet's \"Teenage Birdsong\" was released in July 2019 as the first song shared from his album \"Sixteen Oceans\", months before the record was officially announced. NME reported that its video was filmed at Alexandra Palace in London on May 9, 2019. The album, announced in early 2020 with its tracklist, was Four Tet's first since 2017's \"New Energy\".",
+      "context": "NME on the album announcement.",
+      "source": {
+        "name": "nme.com",
+        "platform": "web"
+      },
+      "url": "https://www.nme.com/news/music/four-tet-announces-new-album-sixteen-oceans-2599651",
+      "sourceDate": "2020-01-21"
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g2",
+      "type": "background",
+      "headline": "Critics called it an 'infatuated banger'",
+      "snippet": "In its March 2020 review of Four Tet's \"Sixteen Oceans\", Paste Magazine called \"Teenage Birdsong\" an \"infatuated banger.\" The reviewer noted that it sits in the middle of a four-song run: it follows the harpsichord-led \"Harpsichord\" and leads into the delicate \"Romantics,\" then \"Love Salad.\" Paste said this stretch shows the album's elegant sequencing, building a clear emotional arc from sounds and song titles alone.",
+      "context": "Paste's review of Sixteen Oceans, March 2020.",
+      "source": {
+        "name": "pastemagazine.com",
+        "platform": "web"
+      },
+      "url": "https://www.pastemagazine.com/music/four-tet/four-tet-sixteen-oceans-review",
+      "sourceDate": "2020-03-19"
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g5",
+      "type": "comment",
+      "headline": "A fan's new claim to fame",
+      "snippet": "Spotted my footage at 2:38 so this is now my new claim to fame",
+      "context": "The video used fan footage from the Alexandra Palace show.",
+      "source": {
+        "name": "YouTube — Four Tet",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=jXSHEVv2I-Y&lc=Ugx3ayyZ7WzaY-Acvex4AaABAg",
+      "sourceDate": "2019-10-27",
+      "comment": {
+        "author": "@alexstern188",
+        "commentId": "Ugx3ayyZ7WzaY-Acvex4AaABAg",
+        "likesObserved": 86,
+        "observedAt": "2026-10-26",
+        "replies": []
+      }
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g6",
+      "type": "comment",
+      "headline": "Video game nostalgia, unlocked",
+      "snippet": "this sounds like really emotional Donkey Kong Country music",
+      "context": "Several commenters hear game soundtracks, from Donkey Kong Country to Age of Empires.",
+      "source": {
+        "name": "YouTube — Four Tet",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=yYEq9ZhZvl8&lc=UgzqO5xHMWP4pmSaUut4AaABAg",
+      "sourceDate": "2020-10-27",
+      "comment": {
+        "author": "@Curtis3604",
+        "commentId": "UgzqO5xHMWP4pmSaUut4AaABAg",
+        "likesObserved": 42,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@ash2760",
+            "commentId": "UgzqO5xHMWP4pmSaUut4AaABAg.9ArnMXs38HXA0FXSk14psq",
+            "text": "Damn now can't unhear it",
+            "likesObserved": 5
+          },
+          {
+            "author": "@EmuNext",
+            "commentId": "UgzqO5xHMWP4pmSaUut4AaABAg.9ArnMXs38HXA0LOIK_YDuz",
+            "text": "Yeah it reminds me of Stickerbrush Symphony with maybe a mix of Windows XP Setup.",
+            "likesObserved": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g7",
+      "type": "comment",
+      "headline": "30 years of gigs, one clear winner",
+      "snippet": "30 years of going to gigs and that was definitely the best I have ever been too.",
+      "context": "A commenter on the Alexandra Palace show.",
+      "source": {
+        "name": "YouTube — Four Tet",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=jXSHEVv2I-Y&lc=Ugz14967NqRxsIL_fQV4AaABAg",
+      "sourceDate": "2019-10-27",
+      "comment": {
+        "author": "@soulpower29",
+        "commentId": "Ugz14967NqRxsIL_fQV4AaABAg",
+        "likesObserved": 42,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@MrCharlie066",
+            "commentId": "Ugz14967NqRxsIL_fQV4AaABAg.8wwDGn1Yg8h9pbtzKj92gY",
+            "text": "You’ve pretty much just convinced me to buy a ticket for the 23/5/2023 show. Hope it’s as good!",
+            "likesObserved": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g8",
+      "type": "comment",
+      "headline": "'This is a window. Not a song.'",
+      "snippet": "I was a teenage girl, and so were my best friends...this is a window. Not a song or a music video.",
+      "context": "The video's teenage pre-party scenes hit home for this commenter.",
+      "source": {
+        "name": "YouTube — Four Tet",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=jXSHEVv2I-Y&lc=Ugy9LxssXCD7hAuktcR4AaABAg",
+      "sourceDate": "2020-10-27",
+      "comment": {
+        "author": "@PsiloSirenTarot",
+        "commentId": "Ugy9LxssXCD7hAuktcR4AaABAg",
+        "likesObserved": 24,
+        "observedAt": "2026-10-26",
+        "replies": []
+      }
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g3",
+      "type": "version",
+      "headline": "Overmono's remix of Teenage Birdsong, released on Text Records",
+      "snippet": "Overmono remix released on 2019-12-09 via Text Records and posted on Four Tet's own channel. It runs 4:38 and reworks the track with drums and a sample that listeners noticed.",
+      "context": "Remix on the artist channel.",
+      "source": {
+        "name": "YouTube — Four Tet",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=U-96G348PsY",
+      "sourceDate": "2019-12-09",
+      "version": {
+        "performer": "Four Tet",
+        "versionLabel": "Teenage Birdsong (Overmono Remix)",
+        "popularityObserved": "49K views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "four-tet-teenage-birdsong-g4",
+      "type": "version",
+      "headline": "Four Tet, Fred again.. & Skrillex mashup with a DnB edit of Teenage Birdsong",
+      "snippet": "A Coachella 2023 live mashup that blends Four Tet's Baby with Skrillex and Fred again.. tracks and acapellas, and ends in a DnB edit of Teenage Birdsong.",
+      "context": "Live at Coachella.",
+      "source": {
+        "name": "YouTube — S6789",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=dX71QYRixQ4",
+      "sourceDate": "2023-05-08",
+      "version": {
+        "performer": "Four Tet",
+        "versionLabel": "Coachella · Four Tet - Teenage Birdsong (Four Tet & Fred again.. & Skrillex Edit) [Coachella 2023]",
+        "popularityObserved": "47K views",
+        "observedAt": "2026-10-26"
+      }
+    }
+  ],
+  "provenance": {
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":2,\"film\":0,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "generation": {
+      "generatedAt": "2026-10-26T21:45:41.551Z",
+      "model": "claude-sonnet-5-5 (effort low)",
+      "totalMs": 16576,
+      "stages": {
+        "search": 1399,
+        "gather": 5325,
+        "write": 9852,
+        "check": 0
+      },
+      "sourceCounts": {
+        "comments": 40,
+        "versions": 8,
+        "articles": 6,
+        "wikipedia": 1
+      },
+      "checks": [
+        {
+          "cardRef": "S4",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S7",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S6",
+          "type": "background",
+          "ok": false,
+          "reason": "trimmed: more than 2 backgrounds"
+        },
+        {
+          "cardRef": "V2",
+          "type": "version",
+          "ok": true,
+          "rank": 1
+        },
+        {
+          "cardRef": "V1",
+          "type": "version",
+          "ok": true,
+          "rank": 7
+        },
+        {
+          "cardRef": "V3",
+          "type": "version",
+          "ok": false,
+          "rank": 8,
+          "reason": "trimmed: last slot went to C12 (rank 2 vs 8)"
+        },
+        {
+          "cardRef": "C4",
+          "type": "comment",
+          "ok": true,
+          "rank": 4
+        },
+        {
+          "cardRef": "C7",
+          "type": "comment",
+          "ok": true,
+          "rank": 3
+        },
+        {
+          "cardRef": "C6",
+          "type": "comment",
+          "ok": true,
+          "rank": 5
+        },
+        {
+          "cardRef": "C12",
+          "type": "comment",
+          "ok": true,
+          "rank": 2
+        },
+        {
+          "cardRef": "C16",
+          "type": "comment",
+          "ok": false,
+          "reason": "over type cap",
+          "rank": 6
+        }
+      ]
+    }
+  },
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/de/da/f5/dedaf545-5355-989b-44c2-6a26e43e229d/mzaf_16590144621920844353.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/teenage-birdsong/1458934064?i=1458934316&uo=4"
+  }
+}

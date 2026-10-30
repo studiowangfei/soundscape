@@ -1,0 +1,315 @@
+{
+  "slug": "eminem-mockingbird",
+  "title": "Mockingbird",
+  "artist": "Eminem",
+  "aliases": [],
+  "releaseYear": null,
+  "addedAt": "2026-10-24",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=S9bCLPwzSC0",
+  "spotifyId": "0JtIWgsblOvJfpoyhGkFuS",
+  "youtubeMusicId": "9kznlAwE-8o",
+  "cover": {
+    "file": "eminem-mockingbird.jpg",
+    "kind": "album",
+    "album": "Encore",
+    "sourceUrl": "https://coverartarchive.org/release/34300819-9efb-42cb-9fc6-4a3d8fe55032/34997097113-1200.jpg"
+  },
+  "cards": [
+    {
+      "id": "eminem-mockingbird-g1",
+      "type": "background",
+      "headline": "Eminem's own words: 'probably the most emotional song I ever wrote'",
+      "snippet": "Eminem wrote \"Mockingbird,\" a track on his 2004 album Encore, for his daughter Hailie and his niece Alaina. He has said that when their mom was on the run, the girls couldn't understand what was happening. Someone who had always been part of their lives had suddenly disappeared. He isn't a great talker, so he wrote the song to explain it to them. He calls it probably the most emotional song he ever wrote.",
+      "context": "Eminem describing the song in a quote on Genius.",
+      "source": {
+        "name": "genius.com",
+        "platform": "web"
+      },
+      "url": "https://genius.com/Eminem-mockingbird-lyrics",
+      "sourceDate": null
+    },
+    {
+      "id": "eminem-mockingbird-g2",
+      "type": "background",
+      "headline": "TikTok pushed a 2004 song past 1 billion Spotify streams",
+      "snippet": "Eminem's 2004 song \"Mockingbird\" crossed 1 billion Spotify streams, as XXL reported on March 16, 2023. It had only about 500 million streams in April 2022, even though it was a hit on release and peaked at No. 11 on the Billboard Hot 100. The revival came mostly from TikTok. Sped-up versions and vocal covers of the song's ending helped drive it.",
+      "context": "XXL reported the milestone on March 16, 2023.",
+      "source": {
+        "name": "xxlmag.com",
+        "platform": "web"
+      },
+      "url": "https://www.xxlmag.com/eminem-mockingbird-tik-tok-lyrics/",
+      "sourceDate": "2023-03-16"
+    },
+    {
+      "id": "eminem-mockingbird-g5",
+      "type": "comment",
+      "headline": "Two years, one song, a different meaning",
+      "snippet": "2009: I know this song.\r\n2026: I understand this song.",
+      "context": "The most-liked comment: the lyrics land differently once you've lived a bit.",
+      "source": {
+        "name": "YouTube — EminemMusic",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=S9bCLPwzSC0&lc=UgweRFAh43DGBRxnAn14AaABAg",
+      "sourceDate": "2022-10-27",
+      "comment": {
+        "author": "@beenInTheHills69",
+        "commentId": "UgweRFAh43DGBRxnAn14AaABAg",
+        "likesObserved": 339000,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@bonesaw2968",
+            "commentId": "UgweRFAh43DGBRxnAn14AaABAg.9hXMAtWeIcb9hkorXtw-vx",
+            "text": "she took the kids",
+            "likesObserved": 4600
+          },
+          {
+            "author": "@thedeathknightegris7287",
+            "commentId": "UgweRFAh43DGBRxnAn14AaABAg.9hXMAtWeIcb9hoUiNsVsh9",
+            "text": "2009 l was just born",
+            "likesObserved": 899
+          }
+        ]
+      }
+    },
+    {
+      "id": "eminem-mockingbird-g6",
+      "type": "comment",
+      "headline": "Rap can't make you cry? Challenge accepted",
+      "snippet": "\"Rap songs can't make you cry.\"\nThe rap song:",
+      "context": "Plays on the old claim that rap lacks emotion.",
+      "source": {
+        "name": "YouTube — EminemMusic",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=S9bCLPwzSC0&lc=UgwsOuBazzkqDap4I5h4AaABAg",
+      "sourceDate": "2021-10-27",
+      "comment": {
+        "author": "@maxsh545",
+        "commentId": "UgwsOuBazzkqDap4I5h4AaABAg",
+        "likesObserved": 37000,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@StevePVPs",
+            "commentId": "UgwsOuBazzkqDap4I5h4AaABAg.9Nf2XZ1zg7J9ONS-vidjLq",
+            "text": "The chorus is so sad..",
+            "likesObserved": 150
+          },
+          {
+            "author": "@TheMilesreynolds",
+            "commentId": "UgwsOuBazzkqDap4I5h4AaABAg.9Nf2XZ1zg7J9ObFEfQy0qI",
+            "text": "When I'm gone pretty sad too lol",
+            "likesObserved": 105
+          }
+        ]
+      }
+    },
+    {
+      "id": "eminem-mockingbird-g7",
+      "type": "comment",
+      "headline": "Three personas, three reactions",
+      "snippet": "Slim Shady makes us laugh..\nEminem makes us think..\nMarshal makes us cry..",
+      "context": "Sums up Eminem's alter egos: Slim Shady, Eminem and Marshall Mathers, his real name.",
+      "source": {
+        "name": "YouTube — EminemMusic",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=S9bCLPwzSC0&lc=Ugg0IaunOYoG0ngCoAEC",
+      "sourceDate": "2017-10-27",
+      "comment": {
+        "author": "@MahatmaGunndi",
+        "commentId": "Ugg0IaunOYoG0ngCoAEC",
+        "likesObserved": 8700,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@christianortiz179",
+            "commentId": "Ugg0IaunOYoG0ngCoAEC.8NDn-tuly4Z8NwBK-Lsgej",
+            "text": "what about B-Rabbit\nI think he makes us want more",
+            "likesObserved": 75
+          },
+          {
+            "author": "@johani21",
+            "commentId": "Ugg0IaunOYoG0ngCoAEC.8NDn-tuly4Z8O5N-8KE6Bz",
+            "text": "Harshit Langer what about stan",
+            "likesObserved": 12
+          }
+        ]
+      }
+    },
+    {
+      "id": "eminem-mockingbird-g8",
+      "type": "comment",
+      "headline": "Mom's spaghetti, but make it a tearjerker",
+      "snippet": "\"Nobody can make grown men cry!\"\nEminem: Hold my mom's spaghetti.",
+      "context": "A nod to the 'mom's spaghetti' line from Eminem's 'Lose Yourself'.",
+      "source": {
+        "name": "YouTube — EminemMusic",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=S9bCLPwzSC0&lc=UgzCsyHTg9OyncZdj8p4AaABAg",
+      "sourceDate": "2019-10-27",
+      "comment": {
+        "author": "@giannibleya7690",
+        "commentId": "UgzCsyHTg9OyncZdj8p4AaABAg",
+        "likesObserved": 6100,
+        "observedAt": "2026-10-26",
+        "replies": [
+          {
+            "author": "@giannibleya7690",
+            "commentId": "UgzCsyHTg9OyncZdj8p4AaABAg.9-t3UyaYTUS90F0INGq2CP",
+            "text": "Blake I know my friend, I did as well",
+            "likesObserved": 13
+          },
+          {
+            "author": "@noxusfumes3628",
+            "commentId": "UgzCsyHTg9OyncZdj8p4AaABAg.9-t3UyaYTUS90MQc2fNIOc",
+            "text": "What does it mean? Just can't seem to figure out 😅",
+            "likesObserved": 7
+          }
+        ]
+      }
+    },
+    {
+      "id": "eminem-mockingbird-g3",
+      "type": "version",
+      "headline": "Eminem performs Mockingbird live, voice shaking",
+      "snippet": "Eminem performs the song live in a 2:30 clip from his own channel, delivering the lyrics to his daughters in a concert setting. One listener: \"His voice was shaking the whole time.\"",
+      "context": "Official-channel live recording by Eminem.",
+      "source": {
+        "name": "YouTube — EminemD12VEVO",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=7cP09xwi5ns",
+      "sourceDate": "2011-01-02",
+      "version": {
+        "performer": "Eminem",
+        "versionLabel": "Eminem - Mockingbird (live)",
+        "popularityObserved": "584K views",
+        "observedAt": "2026-10-26"
+      }
+    },
+    {
+      "id": "eminem-mockingbird-g4",
+      "type": "version",
+      "headline": "Mockingbird as a street piano performance in public",
+      "snippet": "David Leon plays Mockingbird on a piano set up in a public space, turning the song into an instrumental performance, filmed with passersby reacting.",
+      "context": "Instrumental cover that brings out the lullaby melody.",
+      "source": {
+        "name": "YouTube — David Leon",
+        "platform": "youtube"
+      },
+      "url": "https://www.youtube.com/watch?v=VD2PMJbTEi8",
+      "sourceDate": "2023-05-19",
+      "version": {
+        "performer": "Eminem",
+        "versionLabel": "Eminem Mockingbird - Piano in Public - Street Piano Performance by David Leon",
+        "popularityObserved": "1.8M views",
+        "observedAt": "2026-10-26"
+      }
+    }
+  ],
+  "provenance": {
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":2,\"film\":0,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "generation": {
+      "generatedAt": "2026-10-26T21:45:24.973Z",
+      "model": "claude-sonnet-5-5 (effort low)",
+      "totalMs": 20284,
+      "stages": {
+        "search": 1558,
+        "gather": 7056,
+        "write": 11670,
+        "check": 0
+      },
+      "sourceCounts": {
+        "comments": 40,
+        "versions": 10,
+        "articles": 4,
+        "wikipedia": 1
+      },
+      "checks": [
+        {
+          "cardRef": "S3",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S2",
+          "type": "background",
+          "ok": true
+        },
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": false,
+          "reason": "trimmed: more than 2 backgrounds"
+        },
+        {
+          "cardRef": "S1",
+          "type": "background",
+          "ok": false,
+          "reason": "trimmed: more than 2 backgrounds"
+        },
+        {
+          "cardRef": "V5",
+          "type": "version",
+          "ok": true,
+          "rank": 1
+        },
+        {
+          "cardRef": "V3",
+          "type": "version",
+          "ok": true,
+          "rank": 6
+        },
+        {
+          "cardRef": "V2",
+          "type": "version",
+          "ok": false,
+          "rank": 8,
+          "reason": "trimmed: last slot went to C18 (rank 5 vs 8)"
+        },
+        {
+          "cardRef": "C1",
+          "type": "comment",
+          "ok": true,
+          "rank": 2
+        },
+        {
+          "cardRef": "C5",
+          "type": "comment",
+          "ok": true,
+          "rank": 4
+        },
+        {
+          "cardRef": "C13",
+          "type": "comment",
+          "ok": true,
+          "rank": 3
+        },
+        {
+          "cardRef": "C18",
+          "type": "comment",
+          "ok": true,
+          "rank": 5
+        },
+        {
+          "cardRef": "C38",
+          "type": "comment",
+          "ok": false,
+          "reason": "over type cap",
+          "rank": 7
+        }
+      ]
+    }
+  },
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/01/02/04/010204d9-0ec4-9f71-586c-4776a579b1cb/mzaf_6978124395926668013.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/mockingbird/1425129724?i=1425131554&uo=4"
+  }
+}
