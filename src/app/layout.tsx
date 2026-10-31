@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Cormorant_Garamond,
   DM_Serif_Display,
@@ -15,7 +15,9 @@ import {
 } from "next/font/google";
 import { glassBoot } from "@/components/glass/settings";
 import { typefaceBoot } from "@/components/typeface";
+import { SoundtrackProvider } from "@/components/player/Soundtrack";
 import "./globals.css";
+import { legacyStorageBoot } from "@/components/legacy-storage";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,8 +50,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Musimore",
+  title: "Soundscape",
   description: "Discover something meaningful through the song that's playing.",
+};
+
+// Edge to edge on notched phones (the backdrop runs under the notch and home indicator; controls keep clear of them
+// with env(safe-area-inset-*)), the browser's toolbars in the page's own dark, and dark form controls.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0d0b0a",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -61,9 +73,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         {/* The serif typeface chosen in Tune, applied before the first paint (components/typeface.ts). */}
-        <script dangerouslySetInnerHTML={{ __html: typefaceBoot() + glassBoot() }} />
+        <script dangerouslySetInnerHTML={{ __html: legacyStorageBoot() + typefaceBoot() + glassBoot() }} />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* Above the pages, so the music plays on from page to page (components/player/Soundtrack.tsx). */}
+        <SoundtrackProvider>{children}</SoundtrackProvider>
+      </body>
     </html>
   );
 }

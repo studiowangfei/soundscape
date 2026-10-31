@@ -3,7 +3,15 @@ import { Landing } from "@/components/landing/Landing";
 
 export default async function Home() {
   const entries = await loadEntries();
-  const songs = entries.map(({ slug, title, artist, aliases, tags, cover }) => ({ slug, title, artist, aliases, tags, cover: { file: cover.file, kind: cover.kind } }));
+  const songs = entries.map(({ slug, title, artist, aliases, tags, cover, preview }) => ({
+    slug,
+    title,
+    artist,
+    aliases,
+    tags,
+    cover: { file: cover.file, kind: cover.kind },
+    preview: preview?.url ?? null,
+  }));
   return (
     <>
       <Landing songs={songs} />

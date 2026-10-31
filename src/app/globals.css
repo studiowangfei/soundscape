@@ -1,8 +1,46 @@
 @import "tailwindcss";
 
+/* The environment (components/env.ts has the same rules for scripts):
+   wide: the song pages' cover beside the content, on landscape screens 640 px wide and up (desktops, iPads and phones
+   held sideways); portrait screens stack it on top. short: phones held sideways. coarse: a finger is the main pointer.
+   phone: a phone either way up (narrow, or short). */
+@custom-variant wide (@media (orientation: landscape) and (min-width: 640px));
+@custom-variant short (@media (max-height: 500px));
+@custom-variant coarse (@media (pointer: coarse));
+@custom-variant phone {
+  @media (max-width: 639px) { @slot; }
+  @media (max-height: 500px) { @slot; }
+}
+
 :root {
   --background: #0d0b0a;
   --foreground: #f3eee8;
+  color-scheme: dark;
+  /* The page's side margin; never less than a notched phone's safe area (held sideways). */
+  --page-x: 1.25rem;
+}
+@media (min-width: 640px) {
+  :root { --page-x: 5rem; }
+}
+
+/* Side padding (and the matching scroll-snap padding) that keeps clear of the notch and rounded corners. */
+@utility px-page {
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
+}
+@utility scroll-px-page {
+  scroll-padding-left: max(var(--page-x), env(safe-area-inset-left));
+  scroll-padding-right: max(var(--page-x), env(safe-area-inset-right));
+}
+
+/* A small control's tap target grows to at least 44 px on touch screens (what a fingertip needs), drawn or not. The
+   control must be positioned (relative, fixed…): unlayered CSS like this would override Tailwind's position classes. */
+@media (pointer: coarse) {
+  .hit::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((100% - 44px) / 2));
+  }
 }
 
 @theme inline {
@@ -54,14 +92,17 @@ body {
 /* The open card carries its glass in a layer under its content (see CardDetail), so its shadow goes on the card. */
 .glass-shadow { box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6); }
 
-/* A card's hover: it lifts a little, its fill and rim light brighten. All transitions, so on and off are smooth. */
+/* A card's hover: it lifts a little, its fill and rim light brighten. All transitions, so on and off are smooth. Only
+   where there is hover (a mouse or trackpad): on touch screens a tapped card would stay lifted. The press works on all. */
 .glass-hover {
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 320ms ease, box-shadow 420ms ease;
 }
-.glass-hover:hover {
-  transform: translateY(-3px) scale(1.012);
-  background-color: var(--glass-fill-hover);
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 28px 50px -22px rgba(0, 0, 0, 0.7);
+@media (hover: hover) {
+  .glass-hover:hover {
+    transform: translateY(-3px) scale(1.012);
+    background-color: var(--glass-fill-hover);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 28px 50px -22px rgba(0, 0, 0, 0.7);
+  }
 }
 .glass-hover:active { transform: translateY(-1px) scale(0.996); transition-duration: 140ms; }
 
@@ -88,7 +129,9 @@ body {
   opacity: 0.8;
   transition: opacity 320ms ease;
 }
-.glass-hover:hover .glass-edge { opacity: 1; }
+@media (hover: hover) {
+  .glass-hover:hover .glass-edge { opacity: 1; }
+}
 
 /* Cards rise into place on load (one after another via --rise-delay). Not "forwards": once done, hover owns transform. */
 @keyframes glass-rise {
@@ -138,27 +181,34 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .scrub:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.5); outline-offset: 4px; border-radius: 999px; }
+/* On touch screens: a taller target and a bigger knob, the track as slim as before. */
+@media (pointer: coarse) {
+  .scrub { height: 32px; }
+  .scrub::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -8px; }
+  .scrub::-moz-range-thumb { width: 22px; height: 22px; }
+}
 
 .scrollbar-hide { scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* Where the cover sits (mirrors coverFrame in components/backdrops/art.ts): a square on the right on wide
-   screens, across the top on narrow ones. .cover-feather fades its edges, longest towards the content column. */
+/* Where the cover sits (mirrors coverFrame in components/backdrops/art.ts): a square across the top in the stacked
+   layout, on the right in the wide one (the `wide` variant's rule). .cover-feather fades its edges, longest towards
+   the content. Backdrops are 100lvh tall, so the square is sized against that. */
 .cover-box {
-  --s: min(92vh, 52vw);
+  --s: 100vw;
   position: absolute;
   width: var(--s);
   height: var(--s);
   right: 0;
-  top: calc(50% - var(--s) / 2);
+  top: 0;
 }
-.cover-feather {
-  mask-image: linear-gradient(to right, transparent, #000 30%), linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
-  mask-composite: intersect;
-}
-@media (max-width: 1023px) {
-  .cover-box { --s: 100vw; top: 0; }
-  .cover-feather { mask-image: linear-gradient(to bottom, #000 50%, transparent); }
+.cover-feather { mask-image: linear-gradient(to bottom, #000 50%, transparent); }
+@media (orientation: landscape) and (min-width: 640px) {
+  .cover-box { --s: min(92lvh, 52vw); top: calc(50% - var(--s) / 2); }
+  .cover-feather {
+    mask-image: linear-gradient(to right, transparent, #000 30%), linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    mask-composite: intersect;
+  }
 }
 
 @keyframes slow-zoom {
@@ -175,10 +225,10 @@ body {
 }
 .animate-subtle-zoom {
   animation: subtle-zoom 20s ease-in-out -4s infinite alternate;
-  transform-origin: calc(100% - min(92vh, 52vw) / 2) 50%;
+  transform-origin: 50% 50vw;
 }
-@media (max-width: 1023px) {
-  .animate-subtle-zoom { transform-origin: 50% 50vw; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .animate-subtle-zoom { transform-origin: calc(100% - min(92lvh, 52vw) / 2) 50%; }
 }
 
 @keyframes breathe {
@@ -189,4 +239,27 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-slow-zoom, .animate-subtle-zoom, .animate-breathe { animation: none; }
+}
+
+/* The open card's stage (cards/CardDetail.tsx): centred with 16 px round it; on phones held upright, a sheet along the
+   foot of the screen, 8 px in from the edges, clear of the home indicator, leaving room above to tap away. */
+.card-stage {
+  --stage-t: 1rem;
+  --stage-b: 1rem;
+  --stage-x: 1rem;
+  padding: var(--stage-t) var(--stage-x) var(--stage-b);
+  align-items: center;
+}
+@media (max-width: 639px) {
+  .card-stage {
+    --stage-t: max(3rem, calc(env(safe-area-inset-top) + 1.5rem));
+    --stage-b: max(0.5rem, env(safe-area-inset-bottom));
+    --stage-x: 0.5rem;
+    align-items: flex-end;
+  }
+}
+.card-stage-content {
+  max-height: calc(100dvh - var(--stage-t) - var(--stage-b));
+  /* The design's height for the card's kind (CardDetail sets it). */
+  min-height: min(var(--card-min-h, 476px), calc(100dvh - var(--stage-t) - var(--stage-b)));
 }
