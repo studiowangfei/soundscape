@@ -48,29 +48,6 @@
       "sourceDate": "2026-10-03"
     },
     {
-      "id": "yeah-yeah-yeahs-hysteric-g3",
-      "type": "lyric",
-      "headline": "The refrain everyone quotes",
-      "snippet": "The song's refrain is its most-quoted line: two of the pool's top comments quote it word for word, and the higher-liked one (91 likes) names it a favorite lyric outright. The Village Voice heard the moment the same way in 2009, calling Karen O's repeated delivery 'this record's best mantra.'",
-      "context": "Two of the song's top comments quote the line word for word; @karlirae6423 (91 likes) names it a favorite lyric. The Village Voice called Karen O's delivery of it 'this record's best mantra' in 2009.",
-      "source": {
-        "name": "YouTube — Tom",
-        "platform": "youtube"
-      },
-      "url": "https://www.youtube.com/watch?v=fqKjIquR5Bc&lc=Uggzf51n8zVEEngCoAEC",
-      "sourceDate": null,
-      "lyric": {
-        "excerptOrTimestamp": "Flow sweetly, hang heavy — you suddenly complete me",
-        "lyricSource": "It's Blitz! (2009) — Yeah Yeah Yeahs",
-        "reusePermission": "Short excerpt quoted for commentary.",
-        "selectionBasis": "observed_frequency",
-        "selectionNote": "Quoted word for word by two independent top comments on the song's most-commented upload; the 91-like one names it a favorite lyric outright.",
-        "reactionCardIds": [
-          "yeah-yeah-yeahs-hysteric-g7"
-        ]
-      }
-    },
-    {
       "id": "yeah-yeah-yeahs-hysteric-g4",
       "type": "comment",
       "headline": "A borrowed nostalgia",
