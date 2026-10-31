@@ -15,6 +15,7 @@ brief covers what to deliver here and how to check it.
 | `content/covers/<slug>.jpg` | always | its cover |
 | `content/posters/<card id>.jpg` | a film card with a poster | the film's or show's poster |
 | `content/icons/<domain>.png` | a card cites a site with no icon yet | the site's icon |
+| `content/icons/<domain>.mono.png` | with every new icon | its one-colour mark for collapsed cards (see Icons) |
 
 ### The slug
 
@@ -32,8 +33,9 @@ errors. In short:
 - `preview`: `{ url, source: "itunes", link }`, the song's 30-second Apple Music preview (design doc §9.3).
 - `spotifyId`, `youtubeMusicId` (an 11-character video id) and `youtubeUrl`: null when not found (the player then
   searches that service instead).
-- `cards`: at most 8, in the order they show, mixed as in design doc §7. Card ids are `<slug>-g<n>`, unique across the
-  repo, and permanent.
+- `cards`: at most 8, mixed as in design doc §7, plus an optional 9th **lyric card** (design doc §7.1) when listeners are
+  seen quoting a line. In the order they show: Background → Lyric → Comments → Version → Film. Card ids are `<slug>-g<n>`,
+  numbered in that order, unique across the repo, and permanent.
 - `provenance` (optional): your research notes and generation details; never shown.
 
 ### The cover
@@ -57,6 +59,10 @@ limits as a cover. No confident match: leave `poster` out, and the card shows te
 Each card shows its source site's icon, `content/icons/<domain>.png`: a 64×64 PNG, the domain without `www.` or `m.`
 (all of Wikipedia is `wikipedia.org`, YouTube `youtube.com`, Douban `douban.com`). A missing icon is simply hidden, so add one for a new
 site when you can.
+
+Collapsed cards draw the icon as a one-colour mark, `content/icons/<domain>.mono.png`. After adding an icon, make its mark from
+`web/`: `NODE_USE_ENV_PROXY=1 npx tsx generator/scripts/mono-icons.mts` (it only makes marks that are missing; `--force`
+remakes all). Without one, the site shows no icon on collapsed cards.
 
 ## Before you push
 
