@@ -43,6 +43,26 @@
       "sourceDate": "2026-09-20"
     },
     {
+      "id": "kraftwerk-radioactivity-g9",
+      "type": "lyric",
+      "headline": "One line, two readings: fallout and radio waves",
+      "snippet": "The line works two ways: radioactivity leaking from nuclear plants for \"you and me\" to breathe in, or radio waves broadcast through the air for us to listen to. Later live versions added Chernobyl, Harrisburg, Hiroshima and Fukushima.",
+      "context": "Kraftwerk sharpened the anti-nuclear reading over time, so a pun about radio became a warning. One fan just quotes it: \"Its in the air for you and me.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/4383750/Kraftwerk-radioactivity/Radioactivity-is-in-the-air-for-you-and-me",
+      "sourceDate": "1975-10-08",
+      "lyric": {
+        "excerptOrTimestamp": "Is in the air for you and me",
+        "lyricSource": "Radio‐Aktivität, 1975",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 3 of the top 189 YouTube comments on the song's uploads (88 likes between them); also the song's most-voted annotation on Genius (19 votes)."
+      }
+    },
+    {
       "id": "kraftwerk-radioactivity-g5",
       "type": "comment",
       "headline": "Time travellers, not musicians",

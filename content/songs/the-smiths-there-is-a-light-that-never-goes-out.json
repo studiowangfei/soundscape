@@ -43,6 +43,26 @@
       "sourceDate": "2026-01-05"
     },
     {
+      "id": "the-smiths-there-is-a-light-that-never-goes-out-g9",
+      "type": "lyric",
+      "headline": "A death wish phrased as the sweetest thing you could say to someone",
+      "snippet": "Per the Genius annotation, Morrissey turns depression and suicidal thoughts into a romantic fantasy, wishing to die in a moment of joy. It may also read as unrequited love: he'd rather die beside this person than confess.",
+      "context": "One commenter calls it \"The saddest compliment\" (22,000 likes). Another hopes to be \"by the love of my life\" when they die.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/797696/The-smiths-there-is-a-light-that-never-goes-out/And-if-a-double-decker-bus-crashes-into-us-to-die-by-your-side-is-such-a-heavenly-way-to-die-and-if-a-ten-tonne-truck-kills-the-both-of-us-to-die-by-your-side-well-the-pleasure-the-privilege-is-mine",
+      "sourceDate": "1986-06-16",
+      "lyric": {
+        "excerptOrTimestamp": "To die by your side is such a heavenly way to die",
+        "lyricSource": "The Queen Is Dead, 1986",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 13 of the top 150 YouTube comments on the song's uploads (34K likes between them); also the song's most-voted annotation on Genius (394 votes)."
+      }
+    },
+    {
       "id": "the-smiths-there-is-a-light-that-never-goes-out-g5",
       "type": "comment",
       "headline": "It hurts more when there's nobody to think of",

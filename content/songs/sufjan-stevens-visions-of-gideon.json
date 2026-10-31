@@ -43,6 +43,26 @@
       "sourceDate": "2026-05-11"
     },
     {
+      "id": "sufjan-stevens-visions-of-gideon-g9",
+      "type": "lyric",
+      "headline": "The goodbye that opens the closing song",
+      "snippet": "It echoes \"Mystery of Love,\" which begins with the \"first time\" of a touch or kiss and ends with \"the last time that you touched me.\" This song carries that theme on, swapping in loved, touched and kissed.",
+      "context": "One commenter with 705 likes calls accepting this line \"the hardest thing to do.\" Another says they start crying the moment it plays over the film's ending.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/13155826/Sufjan-stevens-visions-of-gideon/I-have-loved-you-for-the-last-time",
+      "sourceDate": "2017-11-03",
+      "lyric": {
+        "excerptOrTimestamp": "I have loved you for the last time",
+        "lyricSource": "Call Me by Your Name: Original Motion Picture Soundtrack, 2017",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 6 of the top 300 YouTube comments on the song's uploads (1.8K likes between them); 95 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "sufjan-stevens-visions-of-gideon-g5",
       "type": "comment",
       "headline": "Life keeps going in the background",

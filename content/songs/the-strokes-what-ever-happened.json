@@ -43,6 +43,26 @@
       "sourceDate": "2003-10-07"
     },
     {
+      "id": "the-strokes-what-ever-happened-g9",
+      "type": "lyric",
+      "headline": "A shout to Tennessee Williams, then a line that sticks in the head",
+      "snippet": "The line points to Tennessee Williams, who wrote \"A Streetcar Named Desire.\" Stanley drunkenly screams Stella's name, a scene made famous by Marlon Brando. Julian can't do that, because he expects his girl to let him down.",
+      "context": "Fans belt it back in the comments: \"OH TENNESSEE WHAT DID YOU WRITEEEEEEEEEEE\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/898112/The-strokes-what-ever-happened/Oh-tennessee-what-did-you-write-i-come-together-in-the-middle-of-the-night-oh-thats-an-ending-that-i-cant-write-cause-ive-got-you-to-let-me-down",
+      "sourceDate": "2003-10-28",
+      "lyric": {
+        "excerptOrTimestamp": "Oh, Tennessee, what did you write?\nI come together in the middle of the night",
+        "lyricSource": "Room on Fire, 2003",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 11 of the top 300 YouTube comments on the song's uploads (1.2K likes between them); 74 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "the-strokes-what-ever-happened-g5",
       "type": "comment",
       "headline": "The opening line that hurts a bit too much",

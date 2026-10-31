@@ -43,6 +43,26 @@
       "sourceDate": "2026-10-21"
     },
     {
+      "id": "outkast-ms-jackson-g9",
+      "type": "lyric",
+      "headline": "A wish for forever that unravels as he repeats the word",
+      "snippet": "André never thought much about what \"forever\" meant. The repeated word shows him testing it and seeing how unlikely it was for a young couple like him and Erykah to last for life. Kanye West and Big K.R.I.T. later reused the repetition.",
+      "context": "One fan says the song's \"Forever never seems that long until you're grown\" hits different 20 years later. It got 5,000 likes.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/164793/Outkast-ms-jackson/I-hope-we-feel-like-this-forever-forever-forever-ever-forever-ever-forever-never-seems-that-long-until-youre-grown-and-notice-that-the-day-by-day-ruler-cant-be-too-wrong",
+      "sourceDate": "2000-10-03",
+      "lyric": {
+        "excerptOrTimestamp": "I hope we feel like this forever\nForever, forever ever? Forever ever?",
+        "lyricSource": "Stankonia, 2000",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 4 of the top 150 YouTube comments on the song's uploads (17K likes between them); 256 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "outkast-ms-jackson-g5",
       "type": "comment",
       "headline": "The apology gets a reply",

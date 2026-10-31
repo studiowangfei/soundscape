@@ -43,6 +43,26 @@
       "sourceDate": "2009-11-29"
     },
     {
+      "id": "the-streets-turn-the-page-g10",
+      "type": "lyric",
+      "headline": "A battlefield and a rave, folded into one image",
+      "snippet": "Church bells in the UK went silent in WWII because ringing them was reserved as an invasion signal. They returned after the war for Sunday services and weddings. The annotation reads the line as a battle looking like a huge rave.",
+      "context": "",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/36496293/The-streets-turn-the-page/The-wars-over-the-bells-ring-memories-fading-soldiers-slaying-looks-like-geezers-raving",
+      "sourceDate": "2002-03-25",
+      "lyric": {
+        "excerptOrTimestamp": "The war’s over, the bells ring\nMemories fading, soldiers slaying, looks like geezers raving",
+        "lyricSource": "Original Pirate Material, 2002",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 6 of the top 300 YouTube comments on the song's uploads (214 likes between them); 1 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "the-streets-turn-the-page-g4",
       "type": "comment",
       "headline": "Five nights on a hospital ward, this on the drive home",

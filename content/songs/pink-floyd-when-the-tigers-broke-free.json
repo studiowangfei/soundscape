@@ -43,6 +43,26 @@
       "sourceDate": "2026-06-11"
     },
     {
+      "id": "pink-floyd-when-the-tigers-broke-free-g9",
+      "type": "lyric",
+      "headline": "A war story ends with one raw, personal accusation",
+      "snippet": "Waters isn't blaming the soldiers who killed his father so much as the High Command on both sides of the war. The story is of a company left behind at Anzio, with a stamped royal condolence scroll as the only answer.",
+      "context": "One commenter hears \"decades' worth of anger\" in the delivery. Another calls it the most personal Waters gets, and hard to listen to.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/10271530/Pink-floyd-when-the-tigers-broke-free/And-thats-how-the-high-command-took-my-daddy-from-me",
+      "sourceDate": "1982-07-15",
+      "lyric": {
+        "excerptOrTimestamp": "And that’s how the High Command took my daddy from me",
+        "lyricSource": "The Final Cut, 1982",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 12 of the top 256 YouTube comments on the song's uploads (1.1K likes between them); also the song's most-voted annotation on Genius (36 votes)."
+      }
+    },
+    {
       "id": "pink-floyd-when-the-tigers-broke-free-g5",
       "type": "comment",
       "headline": "So perfect it ruins every song after it",

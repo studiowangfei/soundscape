@@ -43,6 +43,26 @@
       "sourceDate": "2026-08-16"
     },
     {
+      "id": "interpol-pda-g9",
+      "type": "lyric",
+      "headline": "A cold goodnight with two hundred couches behind it",
+      "snippet": "Genius readers take the couches as a bad relationship's punishment: the partner who's mad sends you to sleep on one. Asked about the line's origin, Paul Banks told Rolling Stone he guessed it was \"some sort of vision of a big Brooklyn warehouse rave scene.\"",
+      "context": "One listener first misheard it as \"Sleep tight, dream right.\" They still text that to their kids as a goodnight.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/2248716/Interpol-pda/Sleep-tight-grim-rite-we-have-two-hundred-couches-where-you-can-sleep-tight-grim-rite-we-have-two-hundred-couches-where-you-can-sleep-tight-grim-rite-we-have-two-hundred-couches-where-you-can-sleep-tonight-simpleton-sleep-tonight-yeah-simpleton-sleep-tonight-you-cannot-follow-sleep-tonight-through-the-words-alone",
+      "sourceDate": "2002-06-04",
+      "lyric": {
+        "excerptOrTimestamp": "Sleep tight, grim rite\nWe have two hundred couches where you can",
+        "lyricSource": "Turn On the Bright Lights, 2002",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 3 of the top 150 YouTube comments on the song's uploads (157 likes between them); also the song's most-voted annotation on Genius (74 votes)."
+      }
+    },
+    {
       "id": "interpol-pda-g5",
       "type": "comment",
       "headline": "Who deleted the best part?",

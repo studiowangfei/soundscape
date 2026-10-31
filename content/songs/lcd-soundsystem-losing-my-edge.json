@@ -43,6 +43,29 @@
       "sourceDate": "2026-10-06"
     },
     {
+      "id": "lcd-soundsystem-losing-my-edge-g9",
+      "type": "lyric",
+      "headline": "A fading hipster concedes to people who are better and kinder",
+      "snippet": "Murphy was thinking of The Neptunes, Pharrell Williams and Chad Hugo. He met them backstage at a Beastie Boys show, complimented them, and expected jerks. They were nice and knew his production work.",
+      "context": "One fan quotes the full run, \"better ideas... more talent... really really nice,\" and calls it \"Absolute Class.\" 1,400 likes.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/115629/Lcd-soundsystem-losing-my-edge/But-im-losing-my-edge-to-better-looking-people-with-better-ideas-and-more-talent-and-theyre-actually-really-really-nice",
+      "sourceDate": "2002-07-08",
+      "lyric": {
+        "excerptOrTimestamp": "But I’m losing my edge\nTo better-looking people",
+        "lyricSource": "LCD Soundsystem, 2002",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 4 of the top 300 YouTube comments on the song's uploads (1.6K likes between them); 15 votes on its Genius annotation.",
+        "reactionCardIds": [
+          "lcd-soundsystem-losing-my-edge-g6"
+        ]
+      }
+    },
+    {
       "id": "lcd-soundsystem-losing-my-edge-g5",
       "type": "comment",
       "headline": "Two hours searching for the wrong band",

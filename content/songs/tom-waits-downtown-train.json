@@ -43,6 +43,26 @@
       "sourceDate": "2026-10-04"
     },
     {
+      "id": "tom-waits-downtown-train-g9",
+      "type": "lyric",
+      "headline": "A moon that punches a hole in the night",
+      "snippet": "One Genius reading takes it as the best way to describe burning the midnight oil, working through the night. The mystical night gets \"punched into like a punchclock.\"",
+      "context": "One fan calls it \"one of the greatest opening lines EVER\" and says this song and video introduced them to Tom Waits. They've been hooked since.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/38633074/Tom-waits-downtown-train/Punched-a-hole-in-the-nighttime-yes",
+      "sourceDate": "1985-09-30",
+      "lyric": {
+        "excerptOrTimestamp": "Punched a hole in the nighttime, yes",
+        "lyricSource": "Rain Dogs, 1985",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 5 of the top 220 YouTube comments on the song's uploads (93 likes between them)."
+      }
+    },
+    {
       "id": "tom-waits-downtown-train-g5",
       "type": "comment",
       "headline": "One line that sums up Waits",

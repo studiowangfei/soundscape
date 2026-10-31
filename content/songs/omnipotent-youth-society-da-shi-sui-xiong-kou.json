@@ -48,6 +48,26 @@
       "sourceDate": "2010-11-12"
     },
     {
+      "id": "omnipotent-youth-society-da-shi-sui-xiong-kou-g11",
+      "type": "lyric",
+      "headline": "A fallen fisher king, passed out in a bathhouse",
+      "snippet": "One Genius reading takes the fisher king as Mao, powerless in Diaoyutai (the state guesthouse) after the Cultural Revolution failed. His fall is the \"Blurred sunset in the front of chest\", the sun-like figure now dimmed.",
+      "context": "One fan says the sung \"在洗浴中心\" always gives them a jolt, as if 董二千 were calling their name. A translator renders it \"brothel\".",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/36781448/Omnipotent-youth-society-the-boulder-that-crushes-the-chest",
+      "sourceDate": "2010-11-12",
+      "lyric": {
+        "excerptOrTimestamp": "此刻他醉倒 在洗浴中心",
+        "lyricSource": "万能青年旅店, 2010",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 4 of the top 150 YouTube comments on the song's uploads (179 likes between them)."
+      }
+    },
+    {
       "id": "omnipotent-youth-society-da-shi-sui-xiong-kou-g5",
       "type": "comment",
       "headline": "Hits you hard again every time",

@@ -43,6 +43,26 @@
       "sourceDate": "2026-02-07"
     },
     {
+      "id": "nick-cave-the-bad-seeds-o-children-g9",
+      "type": "lyric",
+      "headline": "A gospel-choir singalong that boards a train to the Kingdom",
+      "snippet": "The annotation calls the imagery conflicting: a train that could echo the Holocaust's transports to gas chambers, yet bound for \"the Kingdom\". A gospel-style choir sings it, with a hauntingly beautiful sound that deepens the religious themes.",
+      "context": "One fan reads the train as death, with a seat for everyone, and says the song helps put any bad day into perspective.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/3315587/Nick-cave-and-the-bad-seeds-o-children/Hey-little-train-we-are-all-jumping-on-the-train-that-goes-to-the-kingdom-were-happy-ma-were-having-fun-and-the-train-aint-even-left-the-station-hey-little-train-wait-for-me",
+      "sourceDate": "2004-09-20",
+      "lyric": {
+        "excerptOrTimestamp": "Hey, little train, we are all jumping on",
+        "lyricSource": "Abattoir Blues / The Lyre of Orpheus, 2004",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 8 of the top 300 YouTube comments on the song's uploads (724 likes between them); 39 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "nick-cave-the-bad-seeds-o-children-g5",
       "type": "comment",
       "headline": "Dumbledore's advice, followed literally",

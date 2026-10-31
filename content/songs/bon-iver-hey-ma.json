@@ -43,6 +43,26 @@
       "sourceDate": "2019-06-03"
     },
     {
+      "id": "bon-iver-hey-ma-g9",
+      "type": "lyric",
+      "headline": "A money boast set against a coal mine",
+      "snippet": "One Genius reading ties the coal mine to wealth invested in fossil fuels, with \"Ma\" as Earth or Gaia. Bragging about riches hides the cost to the environment and communities, and the subject is left spiritually poor.",
+      "context": "A top fan reading (772 likes) hears a kid who grew up too fast. The coalmine is the \"dismal state of his soul and his family life.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/17321048/Bon-iver-hey-ma/Full-time-you-talk-your-money-up-while-its-living-in-a-coal-mine",
+      "sourceDate": "2019-06-03",
+      "lyric": {
+        "excerptOrTimestamp": "Full time, you talk your money up",
+        "lyricSource": "i,i, 2019",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 3 of the top 150 YouTube comments on the song's uploads (889 likes between them); also the song's most-voted annotation on Genius (36 votes)."
+      }
+    },
+    {
       "id": "bon-iver-hey-ma-g5",
       "type": "comment",
       "headline": "Bon Iver as a memory from a past life",

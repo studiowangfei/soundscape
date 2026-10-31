@@ -43,6 +43,26 @@
       "sourceDate": "2020-09-03"
     },
     {
+      "id": "radiohead-jigsaw-falling-into-place-g9",
+      "type": "lyric",
+      "headline": "A glance back that could be a meeting or a goodbye",
+      "snippet": "The annotation reads it as a bittersweet parting: the relationship ends, but a glimmer of want remains, and both still look back, mourning better times.",
+      "context": "The same glance can read as a first meeting: two people catch eyes in a busy club, and she looks back twice before the hookup.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/8500809/Radiohead-jigsaw-falling-into-place/You-eye-each-other-as-you-pass-she-looks-back-and-you-look-back-not-just-once-and-not-just-twice",
+      "sourceDate": "2007-10-10",
+      "lyric": {
+        "excerptOrTimestamp": "You eye each other as you pass\nShe looks back, and you look back",
+        "lyricSource": "In Rainbows, 2007",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 7 of the top 150 YouTube comments on the song's uploads (3.8K likes between them); 185 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "radiohead-jigsaw-falling-into-place-g5",
       "type": "comment",
       "headline": "The helmet-cam video, summed up",

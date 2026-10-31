@@ -43,6 +43,26 @@
       "sourceDate": "2026-10-07"
     },
     {
+      "id": "frank-ocean-pyramids-g9",
+      "type": "lyric",
+      "headline": "An intimate bath scene that quietly turns into a transaction",
+      "snippet": "The narrator is Cleopatra's ex-lover, or possibly a frequent john, per the annotation. He treats her as his own, though she may be a prostitute. The intimacy suggests he has won her back.",
+      "context": "One commenter says \"you showed up after work I'm bathing your bod-\" is the \"best verse I've ever heard.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/836775/Frank-ocean-pyramids/You-showed-up-after-work-im-bathing-your-body-touch-you-in-places-only-i-know-youre-wet-and-youre-warm-just-like-our-bathwater-can-we-make-love-before-you-go",
+      "sourceDate": "2012-06-08",
+      "lyric": {
+        "excerptOrTimestamp": "You showed up after work, I’m bathing your body\nTouch you in places only I know",
+        "lyricSource": "channel ORANGE, 2012",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 5 of the top 150 YouTube comments on the song's uploads (2.7K likes between them); 125 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "frank-ocean-pyramids-g5",
       "type": "comment",
       "headline": "Career arc of a pyramid resident",

@@ -43,6 +43,26 @@
       "sourceDate": "2017-02-18"
     },
     {
+      "id": "lana-del-rey-love-g9",
+      "type": "lyric",
+      "headline": "Lana teases the kids streaming old songs on new tech",
+      "snippet": "Per the Genius annotation, Lana points to the irony of young listeners finding old music through satellite radio and streaming, which didn't exist when it was made. It also hints at nostalgia clashing with a hi-tech world.",
+      "context": "One 2,300-like comment spots the joke: \"Lana: Makes vintage and very aesthetic music Also Lana: Look at you kids with your vintage music.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/11366287/Lana-del-rey-love/Look-at-you-kids-with-your-vintage-music-comin-through-satellites-while-cruisin-youre-part-of-the-past-but-now-youre-the-future-signals-crossing-can-get-confusin",
+      "sourceDate": "2017-02-18",
+      "lyric": {
+        "excerptOrTimestamp": "Look at you, kids, with your vintage music",
+        "lyricSource": "Lust for Life, 2017",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 7 of the top 300 YouTube comments on the song's uploads (6.8K likes between them); also the song's most-voted annotation on Genius (245 votes)."
+      }
+    },
+    {
       "id": "lana-del-rey-love-g6",
       "type": "comment",
       "headline": "The cure and the cause",

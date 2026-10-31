@@ -43,6 +43,26 @@
       "sourceDate": "2022-05-13"
     },
     {
+      "id": "kendrick-lamar-auntie-diaries-g9",
+      "type": "lyric",
+      "headline": "Kendrick picks love for his cousin over the preacher's doctrine",
+      "snippet": "Kendrick stands up to a preacher who singles out his cousin Mary-Ann. The annotation reads it as putting \"the laws of the heart over the laws of the land,\" and as the moment he accepts her as she is.",
+      "context": "One fan, 3,600 likes, says as a Christian with gay and trans relatives, loving above all else is the ultimate practice of the faith.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/25814922/Kendrick-lamar-auntie-diaries/Forcing-me-to-stand-now-i-said-mr-preacherman-should-we-love-thy-neighbor-the-laws-of-the-land-or-the-heart-whats-greater-i-recognize-the-study-she-was-taught-since-birth-but-that-dont-justify-the-feelings-that-my-cousin-preserved-the-building-was-thinking-out-loud-bad-angel-thats-when-you-looked-at-me-and-smiled-said-thank-you-the-day-i-chose-humanity-over-religion",
+      "sourceDate": "2022-05-13",
+      "lyric": {
+        "excerptOrTimestamp": "The day I chose humanity over religion",
+        "lyricSource": "Mr. Morale & the Big Steppers, 2022",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 19 of the top 300 YouTube comments on the song's uploads (15K likes between them); 210 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "kendrick-lamar-auntie-diaries-g5",
       "type": "comment",
       "headline": "The beat grows as his self-criticism does",

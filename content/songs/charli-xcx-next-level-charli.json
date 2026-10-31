@@ -43,6 +43,26 @@
       "sourceDate": "2019-08-16"
     },
     {
+      "id": "charli-xcx-next-level-charli-g9",
+      "type": "lyric",
+      "headline": "A Prius, windows down: the pre-party hype ride",
+      "snippet": "Charli said the line came from riding to parties in a Prius, in the back or front seat, ready to rave. It captures the presesh moment of hyping yourself up before you arrive, which she says the whole song is about.",
+      "context": "Charli nearly cut it: she wasn't sure the Prius line was cool, but once she sang it she thought, \"Yeah, it's cool\".",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/18803604/Charli-xcx-next-level-charli/Turn-the-volume-up-in-your-prius-windows-down-and-just-vibe-bump-bump-in-the-rave-go-forever-and-ever-and",
+      "sourceDate": "2019-09-13",
+      "lyric": {
+        "excerptOrTimestamp": "Turn the volume up in your Prius\nWindows down and just vibe",
+        "lyricSource": "Charli, 2019",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 3 of the top 150 YouTube comments on the song's uploads (897 likes between them); 20 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "charli-xcx-next-level-charli-g5",
       "type": "comment",
       "headline": "A running gag across her whole discography",

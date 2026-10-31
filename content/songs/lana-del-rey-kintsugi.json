@@ -56,6 +56,29 @@
       "sourceDate": "2026-10-13"
     },
     {
+      "id": "lana-del-rey-kintsugi-g9",
+      "type": "lyric",
+      "headline": "A chorus that turns heartbreak into a way for light to enter",
+      "snippet": "Kintsugi is the Japanese art of mending broken pottery with gold. Lana's heart has been put back together that way, so light and hope shine through the golden cracks. It also echoes Leonard Cohen's \"Anthem\": \"There is a crack, a crack in everything.\"",
+      "context": "One listener who lost their mom this week called it the perfect song about grief and hope, and ended their comment with \"that's how the light gets in.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/28104730/Lana-del-rey-kintsugi/Thats-how-the-light-shines-in-thats-how-the-light-shines-in-thats-how-the-light-gets-in-mm-mm",
+      "sourceDate": "2023-03-24",
+      "lyric": {
+        "excerptOrTimestamp": "That’s how the light shines in",
+        "lyricSource": "Did you know that there’s a tunnel under Ocean Blvd, 2023",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 11 of the top 150 YouTube comments on the song's uploads (3.6K likes between them); 50 votes on its Genius annotation.",
+        "reactionCardIds": [
+          "lana-del-rey-kintsugi-g5"
+        ]
+      }
+    },
+    {
       "id": "lana-del-rey-kintsugi-g5",
       "type": "comment",
       "headline": "The song's whole idea in one line",

@@ -43,6 +43,26 @@
       "sourceDate": "2026-10-24"
     },
     {
+      "id": "beyonce-sorry-g9",
+      "type": "lyric",
+      "headline": "A threat that turned a name into a cultural reference point",
+      "snippet": "\"Becky\" is a stereotypical name for an average White woman, and \"good hair\" means straight hair, long held up as a beauty standard. Songwriter Diana Gordon later said Becky points to no exact person.",
+      "context": "One fan says the song healed them and tells him to call Becky. Another jokes they're now the Becky. The phrase also became a meme.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/9043514/Beyonce-sorry/He-better-call-becky-with-the-good-hair-he-better-call-becky-with-the-good-hair",
+      "sourceDate": "2016-04-23",
+      "lyric": {
+        "excerptOrTimestamp": "He better call Becky with the good hair",
+        "lyricSource": "Lemonade, 2016",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 5 of the top 150 YouTube comments on the song's uploads (26K likes between them); also the song's most-voted annotation on Genius (290 votes)."
+      }
+    },
+    {
       "id": "beyonce-sorry-g5",
       "type": "comment",
       "headline": "Revenge, but make it a whole album",

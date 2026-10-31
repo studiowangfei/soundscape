@@ -43,6 +43,29 @@
       "sourceDate": "2026-07-20"
     },
     {
+      "id": "alt-j-breezeblocks-g9",
+      "type": "lyric",
+      "headline": "A plea that hides a threat, borrowed from a children's book",
+      "snippet": "The line reworks the ending of Where The Wild Things Are, where the beasts cry \"Oh, please don't go! We'll eat you whole! We love you so!\" Joe Newman said the song is about wanting someone so much you'd hurt yourself and them.",
+      "context": "One commenter with 7,300 likes joked that their search bar autofills \"please don't go please don't go I love you so I love you so\" on its own.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/1221827/Alt-j-breezeblocks/Please-dont-go-please-dont-go-i-love-you-so-i-love-you-so-please-dont-go-please-dont-go-i-love-you-so-i-love-you-so-please-break-my-heart-hey-please-dont-go-please-dont-go-i-love-you-so-i-love-you-so-please-dont-go-please-dont-go-i-love-you-so-i-love-you-so-please-break-my-heart",
+      "sourceDate": "2012-05-18",
+      "lyric": {
+        "excerptOrTimestamp": "Please don’t go, please don’t go\nI love you so, I love you so",
+        "lyricSource": "An Awesome Wave, 2012",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 13 of the top 150 YouTube comments on the song's uploads (61K likes between them); also the song's most-voted annotation on Genius (352 votes).",
+        "reactionCardIds": [
+          "alt-j-breezeblocks-g5"
+        ]
+      }
+    },
+    {
       "id": "alt-j-breezeblocks-g5",
       "type": "comment",
       "headline": "The song's real chorus, according to everyone",

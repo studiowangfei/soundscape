@@ -58,6 +58,26 @@
       "sourceDate": "2024-10-11"
     },
     {
+      "id": "charli-xcx-sympathy-is-a-knife-feat-ariana-grande-g9",
+      "type": "lyric",
+      "headline": "A confession of insecurity in eight plain words",
+      "snippet": "The line voices dismay at feeling so different from another woman that the singer could never be like her. Per the annotation, it reflects sadness over the situation, set against the song's theme of sympathy that cuts like a knife.",
+      "context": "A top comment (3700 likes) reads it as vulnerability: Charli \"pedestalized\" Taylor rather than dissed her, and it was meant as insecurity, not an insult.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/37232826/Charli-xcx-sympathy-is-a-knife/Couldnt-even-be-her-if-i-tried-oh-no-oh-no",
+      "sourceDate": "2024-06-07",
+      "lyric": {
+        "excerptOrTimestamp": "Couldn’t even be her if I tried",
+        "lyricSource": "Brat and it’s completely different but also still brat, 2024",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 4 of the top 450 YouTube comments on the song's uploads (4.0K likes between them)."
+      }
+    },
+    {
       "id": "charli-xcx-sympathy-is-a-knife-feat-ariana-grande-g5",
       "type": "comment",
       "headline": "YouTube is the real troublemaker here",

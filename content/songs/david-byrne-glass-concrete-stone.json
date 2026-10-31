@@ -43,6 +43,26 @@
       "sourceDate": "2026-08-15"
     },
     {
+      "id": "david-byrne-glass-concrete-stone-g9",
+      "type": "lyric",
+      "headline": "A chorus that says the building is not the point",
+      "snippet": "The line sets hard, lifeless materials against the warmth of a home. A Genius annotator hears it as an echo of Bob Dylan's \"The Ballad of Frankie Lee and Judas Priest,\" where Judas Priest says \"It's not a house, it's a home.\"",
+      "context": "",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/40312611/David-byrne-glass-concrete-and-stone/Glass-and-concrete-and-stone-it-is-just-a-house-not-a-home",
+      "sourceDate": "2004-03-16",
+      "lyric": {
+        "excerptOrTimestamp": "Glass and concrete and stone\nIt is just a house, not a home",
+        "lyricSource": "Grown Backwards, 2004",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 3 of the top 156 YouTube comments on the song's uploads (100 likes between them)."
+      }
+    },
+    {
       "id": "david-byrne-glass-concrete-stone-g5",
       "type": "comment",
       "headline": "A song that hit during a week of grief",

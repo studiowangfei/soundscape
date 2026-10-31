@@ -43,6 +43,26 @@
       "sourceDate": "2017-07-06"
     },
     {
+      "id": "jay-z-the-story-of-o-j-g9",
+      "type": "lyric",
+      "headline": "A plea to stop dying over turf that was never yours",
+      "snippet": "Street gangs fight over territory that is ultimately government owned. Jay-Z, who knew how violent dealing could be, retired from the street life and urges other dealers to do the same, including by owning property.",
+      "context": "Top comment (13,000 likes) quotes the rented-neighborhood twist. Another says he explained how to clean dirty money while stopping gentrification.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/12250432/Jay-z-the-story-of-oj/I-told-him-please-dont-die-over-the-neighborhood-that-your-mama-rentin-take-your-drug-money-and-buy-the-neighborhood-thats-how-you-rinse-it",
+      "sourceDate": "2017-06-30",
+      "lyric": {
+        "excerptOrTimestamp": "I told him, ‘Please don’t die over the neighborhood’",
+        "lyricSource": "4:44, 2017",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 12 of the top 150 YouTube comments on the song's uploads (41K likes between them); 301 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "jay-z-the-story-of-o-j-g5",
       "type": "comment",
       "headline": "Seven words, one flat \"Ok..\"",

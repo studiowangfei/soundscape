@@ -43,6 +43,26 @@
       "sourceDate": "2026-10-04"
     },
     {
+      "id": "oasis-live-forever-g9",
+      "type": "lyric",
+      "headline": "A promise of shared vision that listeners treat as a rallying cry",
+      "snippet": "Genius calls it perhaps the most optimistic thing to come out of Noel's mouth. It ties the fortunes of Oasis and Nirvana: if they focus on the positive, both will survive themselves and survive history.",
+      "context": "One commenter's late girlfriend, Sophia, let them choose it as \"our song.\" They sign off: \"I will always love you.\"",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/2141710/Oasis-live-forever/I-think-youre-the-same-as-me-we-see-things-theyll-never-see-you-and-i-are-gonna-live-forever",
+      "sourceDate": "1994-08-08",
+      "lyric": {
+        "excerptOrTimestamp": "I think you’re the same as me\nWe see things they’ll never see",
+        "lyricSource": "Definitely Maybe, 1994",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 15 of the top 450 YouTube comments on the song's uploads (1.8K likes between them); 44 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "oasis-live-forever-g5",
       "type": "comment",
       "headline": "\"I realized how much I love life\"",

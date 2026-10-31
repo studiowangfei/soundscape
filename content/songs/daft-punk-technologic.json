@@ -43,6 +43,26 @@
       "sourceDate": "2026-02-11"
     },
     {
+      "id": "daft-punk-technologic-g9",
+      "type": "lyric",
+      "headline": "A whole product life cycle in eight words, then the list keeps going",
+      "snippet": "Genius reads it as a jab at taking technology for granted: we buy the latest device, use it hard, break it, pay to fix it, then discard it for next year's model. The second line also nods to computer functions: trash icon, customizing, mail, upgrades.",
+      "context": "One commenter heard \"consumerism in one sentence\", noting it all flies by in under 5 seconds. Others recite the whole verb list from memory.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/22276892/Daft-punk-technologic/Buy-it-use-it-break-it-fix-it-trash-it-change-it-mail-upgrade-it",
+      "sourceDate": "2005-03-14",
+      "lyric": {
+        "excerptOrTimestamp": "Buy it, use it, break it, fix it\nTrash it, change it, mail – upgrade it",
+        "lyricSource": "Human After All, 2005",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 7 of the top 300 YouTube comments on the song's uploads (3.1K likes between them); 16 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "daft-punk-technologic-g5",
       "type": "comment",
       "headline": "The family tree of Daft Punk",

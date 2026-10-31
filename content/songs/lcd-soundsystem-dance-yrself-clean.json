@@ -43,6 +43,26 @@
       "sourceDate": "2011-02-24"
     },
     {
+      "id": "lcd-soundsystem-dance-yrself-clean-g9",
+      "type": "lyric",
+      "headline": "A put-down that turns out to be a plain description",
+      "snippet": "The Genius annotation reads it two ways: Murphy mocking top-100 songs about sex, money and drugs, where artists may really be jerks, or friends who act a part until it becomes their real persona.",
+      "context": "One commenter wrote that their 7th-grade self knew \"sometimes friends are mean\" back then, and still knows it six years later.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/620105/Lcd-soundsystem-dance-yrself-clean/Talking-like-a-jerk-except-you-are-an-actual-jerk-and-living-proof-that-sometimes-friends-are-mean",
+      "sourceDate": "2010-05-17",
+      "lyric": {
+        "excerptOrTimestamp": "Talking like a jerk\nExcept you are an actual jerk",
+        "lyricSource": "This Is Happening, 2010",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 9 of the top 300 YouTube comments on the song's uploads (1.2K likes between them); 39 votes on its Genius annotation."
+      }
+    },
+    {
       "id": "lcd-soundsystem-dance-yrself-clean-g5",
       "type": "comment",
       "headline": "Kicked out of the cyber cafe",
