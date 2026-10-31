@@ -64,7 +64,7 @@ export function youtubeVideoId(url: string): string | null {
 }
 
 // Only one player plays at a time: starting one tells the others (by id) to pause.
-const EVENT = "musimore:play";
+const EVENT = "soundscape:play";
 export const announcePlay = (id: string) => window.dispatchEvent(new CustomEvent(EVENT, { detail: id }));
 export function onOtherPlay(id: string, pause: () => void) {
   const handler = (e: Event) => (e as CustomEvent<string>).detail !== id && pause();

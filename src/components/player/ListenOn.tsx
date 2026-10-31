@@ -22,7 +22,7 @@ const SERVICES = [
 /** The song on Spotify, Apple Music and YouTube Music: three small marks, each opening the song there in a new tab. */
 export function ListenOn({ links, className = "" }: { links: StreamLinks; className?: string }) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-1 min-[400px]:gap-3 ${className}`}>
       {SERVICES.map((s) => (
         <a
           key={s.key}
@@ -31,7 +31,7 @@ export function ListenOn({ links, className = "" }: { links: StreamLinks; classN
           rel="noopener noreferrer"
           aria-label={`Listen on ${s.name}`}
           title={`Listen on ${s.name}`}
-          className="grid size-8 place-items-center rounded-full text-white/55 transition-colors hover:bg-white/15 hover:text-white"
+          className="hit relative grid size-8 place-items-center rounded-full text-white/55 transition-colors hover:bg-white/15 hover:text-white"
         >
           <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" aria-hidden>
             <path d={s.d} />

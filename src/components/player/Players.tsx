@@ -1,38 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import type { Neighbours, SongLink } from "@/content/neighbours";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { PLAYER_HEIGHT, PLAYER_INSET } from "../glass/settings";
 import { ListenOn } from "./ListenOn";
 import type { StreamLinks } from "./stream-links";
-import { announcePlay, clock, onOtherPlay } from "./youtube";
+import { useSoundtrack } from "./Soundtrack";
+import { clock } from "./youtube";
 
 /**
  * The song's official 30-second preview (iTunes, streamed from the store), on a loop, in a 499×68 glass bar: the
  * cover on the left; in the middle previous / play / next, with the position bar under them; and on the right the song
  * on Spotify, Apple Music and YouTube Music. Every control shows a light circle on hover. The cover links to the song on Apple Music (Apple asks previews to credit
  * the store). Previous and next go to the songs either side of this one, in the landing wheel's order. Without a
- * preview the bar stays, its play button disabled.
+ * preview the bar stays, its play button disabled. It plays through the site's soundtrack (Soundtrack.tsx), so music on
+ * from the landing page plays on here without a break, and on into the previous or next song.
  */
 export function PreviewBar({ cover, preview, nav, links }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks }) {
-  const audio = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [time, setTime] = useState(0);
-  const [duration, setDuration] = useState(30);
+  const track = useSoundtrack();
   const { attach, style, filter, look } = useGlass("player");
 
-  useEffect(() => onOtherPlay("preview", () => audio.current?.pause()), []);
-
-  const toggle = () => {
-    const a = audio.current;
-    if (!a) return;
-    if (a.paused) {
-      announcePlay("preview");
-      void a.play();
-    } else a.pause();
-  };
+  const { follow } = track;
+  useEffect(() => follow(preview?.url ?? null), [preview?.url, follow]);
+  const mine = !!preview && track.src === preview.url;
 
   // The cover's corners follow the bar's: its radius is the bar's less the inset, so the gap stays even round the bend.
   const art = (
@@ -41,7 +33,7 @@ export function PreviewBar({ cover, preview, nav, links }: { cover: string; prev
   );
 
   return (
-    <div ref={attach} style={{ ...style, height: PLAYER_HEIGHT, paddingLeft: PLAYER_INSET }} className="glass relative flex w-full max-w-[499px] items-center justify-between gap-4 overflow-hidden pr-4">
+    <div ref={attach} style={{ ...style, height: PLAYER_HEIGHT, paddingLeft: PLAYER_INSET }} className="glass relative flex w-full max-w-[499px] items-center justify-between gap-2 overflow-hidden pr-4 min-[400px]:gap-4">
       {filter}
       {preview ? (
         <a href={preview.link} target="_blank" rel="noopener noreferrer" title="Open in Apple Music" className="relative shrink-0">
@@ -51,21 +43,14 @@ export function PreviewBar({ cover, preview, nav, links }: { cover: string; prev
         <span className="relative shrink-0">{art}</span>
       )}
       <div className="relative flex w-[240px] min-w-0 flex-col items-center gap-0.5">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 min-[400px]:gap-6">
           {nav && <SkipLink to={nav.prev} next={false} />}
-          <PlayButton playing={playing} onClick={toggle} disabled={!preview} />
+          <PlayButton playing={track.on && mine} onClick={track.toggle} disabled={!preview} />
           {nav && <SkipLink to={nav.next} next />}
         </div>
         <div className="flex w-full min-w-0 justify-center">
           {preview ? (
-            <Scrubber
-              value={time}
-              max={duration}
-              onSeek={(s) => {
-                if (audio.current) audio.current.currentTime = s;
-                setTime(s);
-              }}
-            />
+            <Scrubber value={mine ? track.time : 0} max={mine ? track.duration : 30} onSeek={track.seek} />
           ) : (
             <p className="truncate text-[12px] text-white/55">No preview available</p>
           )}
@@ -73,18 +58,6 @@ export function PreviewBar({ cover, preview, nav, links }: { cover: string; prev
       </div>
       {/* Pulled in by the 4px each mark has round it in its target, so the last one meets the padding. */}
       {links && <ListenOn links={links} className="relative -mr-1 shrink-0" />}
-      {preview && (
-        <audio
-          ref={audio}
-          src={preview.url}
-          preload="none"
-          loop
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
-          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 30)}
-        />
-      )}
       <GlassEdge light={look.light} />
     </div>
   );
@@ -98,7 +71,7 @@ function SkipLink({ to, next }: { to: SongLink; next: boolean }) {
       href={`/songs/${to.slug}/`}
       aria-label={label}
       title={label}
-      className="grid size-8 shrink-0 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+      className="hit relative grid size-8 shrink-0 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white"
     >
       <svg viewBox="0 0 16 16" className={`size-6 ${next ? "" : "-scale-x-100"}`} fill="currentColor" aria-hidden>
         <path d="M3 3.6v8.8a.7.7 0 0 0 1.1.6l6.6-4.4a.7.7 0 0 0 0-1.2L4.1 3a.7.7 0 0 0-1.1.6Z" />
@@ -115,7 +88,7 @@ export function PlayButton({ playing, onClick, disabled }: { playing: boolean; o
       onClick={onClick}
       disabled={disabled}
       aria-label={playing ? "Pause" : "Play"}
-      className="grid size-9 shrink-0 place-items-center rounded-full text-white transition-colors hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent"
+      className="hit relative grid size-9 shrink-0 place-items-center rounded-full text-white transition-colors hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent"
     >
       <svg viewBox="0 0 24 24" className="size-8" fill="currentColor" aria-hidden>
         {playing ? (
@@ -136,7 +109,7 @@ export function Scrubber({ value, max, onSeek, disabled }: { value: number; max:
   const end = max || 1;
   const at = Math.min(value, end);
   return (
-    <div className={`flex min-w-0 flex-1 items-center gap-4 text-[12px] text-white/55 tabular-nums ${disabled ? "opacity-40" : ""}`}>
+    <div className={`flex min-w-0 flex-1 items-center gap-2 text-[12px] text-white/55 tabular-nums min-[400px]:gap-4 ${disabled ? "opacity-40" : ""}`}>
       <span>{clock(value)}</span>
       <input
         type="range"
