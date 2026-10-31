@@ -13,7 +13,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/songs/[slug]">): Promise<Metadata> {
   const entry = await getEntry((await params).slug);
-  return entry ? { title: `${entry.title} – ${entry.artist} · Musimore` } : {};
+  return entry ? { title: `${entry.title} – ${entry.artist} · Soundscape` } : {};
 }
 
 export default async function SongPage({ params }: PageProps<"/songs/[slug]">) {
