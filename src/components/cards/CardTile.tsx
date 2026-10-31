@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { EntryCard } from "@/content/schema";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { Attribution } from "./Attribution";
@@ -27,32 +27,37 @@ export function cardMedia(card: EntryCard): { video: string; id: string; start: 
 export const quoted = (s: string) => `“ ${s.trim()} ”`;
 
 /**
- * What a 250×276 card shows, in one of the design's three kinds: Background (headline and the start of the story),
- * People say (the comment), Content (a picture and a headline); the source line at the foot. Also drawn by the open
- * card while it grows out of the tile.
+ * What a 250×250 card shows, in one of the design's kinds: Background (headline and the start of the story), People
+ * say (the comment), Lyric (the line), Content (a picture and a headline); the source line at the foot. Also drawn by
+ * the open card while it grows out of the tile.
  */
 export function TileFace({ card }: { card: EntryCard }) {
-  // A lyric card's tile is the lyric and nothing else: no label, no headline, no source line.
-  if (card.type === "lyric" && card.lyric) {
+  // A lyric card: its label and source line where every card has them, the quoted line centred between.
+  if (card.type === "lyric" && card.lyric)
     return (
-      <div className="absolute inset-0 flex items-center justify-center px-6">
-        <p className={`whitespace-pre-line text-center ${HEADLINE}`}>{quoted(card.lyric.excerptOrTimestamp)}</p>
-      </div>
+      <>
+        <p className={`absolute top-5 left-5 w-[210px] ${LABEL}`}>{TYPE_LABEL[card.type]}</p>
+        <div className="absolute inset-x-5 top-12 bottom-12 flex items-center justify-center">
+          <p className={`line-clamp-5 text-center whitespace-pre-line ${HEADLINE}`}>{quoted(card.lyric.excerptOrTimestamp)}</p>
+        </div>
+        <div className="absolute bottom-5 left-5 w-[210px]">
+          <Attribution card={card} />
+        </div>
+      </>
     );
-  }
   const media = cardMedia(card);
   return (
     <>
       {media ? (
         <>
-          <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-4">
+          <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-3">
             {"video" in media ? (
               // eslint-disable-next-line @next/next/no-img-element -- remote thumbnail, no optimization needed
               <img src={media.video} alt="" className="h-[130px] w-full object-cover" />
             ) : (
               <PosterStage src={media.poster} title={media.title} className="h-[130px] w-full" inset="inset-x-5 inset-y-2.5" />
             )}
-            <h3 className={`line-clamp-3 w-[210px] ${HEADLINE}`}>{card.headline}</h3>
+            <h3 className={`line-clamp-2 w-[210px] ${HEADLINE}`}>{card.headline}</h3>
           </div>
           <p className={`absolute top-5 left-5 w-[210px] ${LABEL}`}>{TYPE_LABEL[card.type]}</p>
         </>
@@ -60,12 +65,9 @@ export function TileFace({ card }: { card: EntryCard }) {
         <div className="absolute inset-x-0 top-0 flex flex-col gap-4 px-5 pt-5">
           <p className={LABEL}>{TYPE_LABEL[card.type]}</p>
           {card.type === "comment" ? (
-            <p className={`line-clamp-6 whitespace-pre-line ${HEADLINE}`}>{quoted(card.snippet)}</p>
+            <p className={`line-clamp-5 whitespace-pre-line ${HEADLINE}`}>{quoted(card.snippet)}</p>
           ) : (
-            <>
-              <h3 className={`line-clamp-3 ${HEADLINE}`}>{card.headline}</h3>
-              <p className="line-clamp-4 text-[15px] leading-[20px] text-white/68">{card.type === "film" ? (card.film?.association ?? card.snippet) : card.snippet}</p>
-            </>
+            <HeadlineAndStory headline={card.headline} story={card.type === "film" ? (card.film?.association ?? card.snippet) : card.snippet} />
           )}
         </div>
       )}
@@ -76,21 +78,58 @@ export function TileFace({ card }: { card: EntryCard }) {
   );
 }
 
-type Props = { card: EntryCard; index: number; hidden: boolean; onOpen: (tile: HTMLElement) => void };
+/**
+ * A headline and the start of its story, sharing five lines: the headline up to three, the story the rest (the design's
+ * three and two). Short headlines leave the story more room, so no card ends with a gap above its source line.
+ */
+function HeadlineAndStory({ headline, story }: { headline: string; story: string }) {
+  const title = useRef<HTMLHeadingElement>(null);
+  const [lines, setLines] = useState(2);
+  useLayoutEffect(() => {
+    const el = title.current;
+    if (!el) return;
+    // The headline's lines, from its height (26px each), measured again if it reflows (a font arriving, Tune → Text).
+    const fit = () => setLines(5 - Math.min(3, Math.max(1, Math.round(el.offsetHeight / 26))));
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <>
+      <h3 ref={title} className={`line-clamp-3 ${HEADLINE}`}>
+        {headline}
+      </h3>
+      <p className="line-clamp-2 text-[15px] leading-[20px] text-white/68" style={{ WebkitLineClamp: lines }}>
+        {story}
+      </p>
+    </>
+  );
+}
+
+/**
+ * Where a tile rests when the row stops scrolling. On phones the cards between the first and the last come to rest in
+ * the middle of the screen, the first against the left margin and the last against the right; elsewhere every card
+ * rests against the left margin.
+ */
+const SNAP = { first: "snap-start", middle: "snap-start phone:snap-center", last: "snap-start phone:snap-end" } as const;
+export type Snap = keyof typeof SNAP;
+
+type Props = { card: EntryCard; index: number; snap?: Snap; hidden: boolean; onOpen: (tile: HTMLElement) => void };
 
 /**
  * A glass card in the row. It rises into place on load, lifts on hover (CSS transitions, so smooth both ways) and,
  * clicked, hands its spot to the open card (CardDetail grows out of it) and hides until that card has shrunk back.
  */
-export function CardTile({ card, index, hidden, onOpen }: Props) {
+export function CardTile({ card, index, snap = "first", hidden, onOpen }: Props) {
   const { attach, style, filter, look } = useGlass("card");
   return (
     <button
       ref={attach}
       onClick={(e) => onOpen(e.currentTarget)}
       style={{ ...style, "--rise-delay": `${index * 45}ms` } as CSSProperties}
-      className={`glass glass-hover glass-rise relative block h-[276px] w-[250px] shrink-0 snap-start overflow-hidden text-left ${hidden ? "invisible" : ""}`}
-      aria-label={`${TYPE_LABEL[card.type]}: ${card.type === "comment" ? card.snippet : card.type === "lyric" ? (card.lyric?.excerptOrTimestamp ?? card.headline) : card.headline}`}
+      className={`glass glass-hover glass-rise relative block h-[250px] w-[250px] shrink-0 ${SNAP[snap]} overflow-hidden text-left select-none [-webkit-touch-callout:none] ${hidden ? "invisible" : ""}`}
+      aria-label={`${TYPE_LABEL[card.type]}: ${card.type === "comment" ? card.snippet : card.type === "lyric" && card.lyric ? card.lyric.excerptOrTimestamp : card.headline}`}
     >
       {filter}
       <TileFace card={card} />

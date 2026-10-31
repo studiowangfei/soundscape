@@ -2,23 +2,30 @@ import type { EntryCard } from "@/content/schema";
 import { attribution } from "./sources";
 
 /**
- * The source line at the foot of a card: the site's icon (public/icons/<domain>.png, on a white disc so dark logos
- * show on the glass) and "Site · author". The
- * expanded card's is larger, adds the date (or likes, or views), and links to the source.
+ * The source line at the foot of a card: the site's mark and "Site · author". The collapsed card draws the mark in the
+ * text's grey, like the player's streaming icons (content/icons/<domain>.mono.png, from generator/scripts/mono-icons.mts).
+ * The expanded card's is larger: the site's colour icon on a white disc, so dark logos show on the glass; it adds
+ * the date (or likes, or views) and links to the source.
  */
 export function Attribution({ card, expanded = false }: { card: EntryCard; expanded?: boolean }) {
   const { domain, inset, text } = attribution(card, expanded);
-  // An inset logo sits whole in the middle of the disc (2px of room at 16px, 3.5px at 24px); the rest fill it.
-  const fit = inset ? `object-contain ${expanded ? "p-[3.5px]" : "p-[2px]"}` : "object-cover";
+  const mono = `url(/icons/${domain}.mono.png) center / contain no-repeat`;
+  const icon = expanded ? (
+    // eslint-disable-next-line @next/next/no-img-element -- static same-origin icon
+    <img
+      src={`/icons/${domain}.png`}
+      alt=""
+      // An inset logo sits whole in the middle of the disc, with 3.5px of room; the rest fill it.
+      className={`size-6 shrink-0 rounded-full bg-white ${inset ? "object-contain p-[3.5px]" : "object-cover"}`}
+      onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+    />
+  ) : (
+    // A site without a mark yet shows nothing here (a mask that doesn't load hides the box).
+    <span aria-hidden className="size-4 shrink-0 bg-current" style={{ mask: mono, WebkitMask: mono }} />
+  );
   const body = (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- static same-origin icon */}
-      <img
-        src={`/icons/${domain}.png`}
-        alt=""
-        className={`shrink-0 rounded-full bg-white ${fit} ${expanded ? "size-6" : "size-4"}`}
-        onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-      />
+      {icon}
       <span className="truncate">{text}</span>
     </>
   );
