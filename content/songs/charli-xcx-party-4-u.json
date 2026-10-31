@@ -50,6 +50,27 @@
       "sourceDate": "2026-10-22"
     },
     {
+      "id": "charli-xcx-party-4-u-g9",
+      "type": "lyric",
+      "headline": "The moment she realizes he isn't coming",
+      "snippet": "Charli has described the moment behind it: standing in the middle of the room as it lands that the one person the party was for isn't ever coming — \"tears briefly fill your eyes but then you wipe them away, pretend you're ok\".",
+      "context": "They hear a second line hiding inside it — \"part of you knew\" — as if part of her knew all along that he wouldn't show.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/35367232",
+      "sourceDate": "2020-05-15",
+      "lyric": {
+        "excerptOrTimestamp": "Party on you, party on you, party on",
+        "lyricSource": "How I'm Feeling Now, 2020",
+        "reusePermission": "Short quotation (1–2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted in 4 of the top 150 YouTube comments across the song's three main uploads; the line's annotation is also the song's most-voted on Genius (80 votes).",
+        "reactionCardIds": []
+      }
+    },
+    {
       "id": "charli-xcx-party-4-u-g3",
       "type": "comment",
       "headline": "Normalize the five-year-late music video",
