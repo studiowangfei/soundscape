@@ -23,7 +23,7 @@ export class WheelMotion {
   private from = 0;
   private t0 = 0;
   private lastTick = 0;
-  private swipe = { at: -Infinity, size: 0, travel: 0, turned: false };
+  private swipe = { at: -Infinity, size: 0, travel: 0, turned: false, trackpad: false };
   private press_: { y: number; start: number; moved: boolean; row: number | null; wasIdle: boolean; samples: { t: number; p: number }[] } | null = null;
 
   constructor(
@@ -32,6 +32,11 @@ export class WheelMotion {
     public opts: { pitch: number; reduced: boolean },
   ) {
     this.pos = this.target = start;
+  }
+
+  /** A finger (or the mouse) is on the wheel and has moved it. */
+  get dragged() {
+    return this.mode === "drag" && !!this.press_?.moved;
   }
 
   /** Needs ticking: on its way somewhere. */
@@ -129,6 +134,22 @@ export class WheelMotion {
       s.turned = true;
       this.goTo(this.aim() + Math.sign(s.travel), now);
     }
+  }
+
+  /**
+   * A wheel event, as wheelAction() read it. A hard trackpad swipe can send a few deltas big enough to read as notches
+   * (at its push or in its momentum): within one gesture (no pause longer than SWIPE_GAP) that has scrolled, they
+   * scroll too, and a notch that started a gesture counts as that swipe's page. So one swipe never turns twice.
+   */
+  wheel(deltaY: number, action: "scroll" | "notch", now: number) {
+    const s = this.swipe;
+    if (action === "notch" && !(s.trackpad && now - s.at <= SWIPE_GAP)) {
+      this.notch(deltaY, now);
+      Object.assign(s, { at: now, size: Math.abs(deltaY), travel: Math.sign(deltaY) * PAGE_DISTANCE, turned: true, trackpad: false });
+      return;
+    }
+    s.trackpad = true;
+    this.scroll(deltaY, now);
   }
 
   /** Mouse wheel: one row per notch; quick notches add up. */

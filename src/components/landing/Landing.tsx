@@ -8,19 +8,30 @@ import { SEARCH_BAR_PARAMS, WHEEL_PARAMS } from "../backdrops/params";
 import { WINDOW_SEED } from "../backdrops/fog-render";
 import { Fog } from "../backdrops/variants";
 import { SiteHeader } from "../SiteHeader";
+import { BackgroundMusic } from "./BackgroundMusic";
 import { TUNING } from "../tuning";
 import { useTypeface } from "../useTypeface";
+import { coarseNow } from "../env";
 import { LANDING_FOCUS_KEY, LANDING_FOG_SPECS, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
 import { SongWheel } from "./SongWheel";
 import { matchIndex, prefetchRows } from "./wheel";
 
-export type LandingSong = { slug: string; title: string; artist: string; aliases: string[]; tags: string[]; cover: { file: string; kind: "album" | "artist" } };
+export type LandingSong = {
+  slug: string;
+  title: string;
+  artist: string;
+  aliases: string[];
+  tags: string[];
+  cover: { file: string; kind: "album" | "artist" };
+  /** The song's 30-second preview, for the page's music; null if it has none. */
+  preview: string | null;
+};
 
 
 /**
  * The landing page: a wheel of song titles in the middle of the screen, over the resting song's album art filling the
- * window under the Fog effect (no writing on the glass), and a search bar round the centred song; while developing, a
- * Tune panel too.
+ * window under the Fog effect (no writing on the glass), a search bar round the centred song, and music (the
+ * background song's preview) to switch on in the corner; while developing, a Tune panel too.
  */
 export function Landing({ songs }: { songs: LandingSong[] }) {
   const router = useRouter();
@@ -78,7 +89,8 @@ export function Landing({ songs }: { songs: LandingSong[] }) {
     sessionSet(LANDING_FOCUS_KEY, songs[i].slug);
   };
   // Search happens in the bar round the centred song. Each letter spins the wheel to the first match; a pause in typing
-  // (or Enter) settles on it, and the bar shows the song again.
+  // (or Enter) settles on it, and the bar shows the song again. On touch screens a pause doesn't: settling closes the
+  // on-screen keyboard, and people pause between letters there; Search on the keyboard (Enter), or tapping away, does.
   const settle = useRef(0);
   const startSearch = () => {
     clearTimeout(settle.current);
@@ -94,14 +106,17 @@ export function Landing({ songs }: { songs: LandingSong[] }) {
     const i = matchIndex(songs, q);
     if (i === null) return;
     setWanted(i);
-    settle.current = window.setTimeout(stopSearch, 1000);
+    if (!coarseNow()) settle.current = window.setTimeout(stopSearch, 1000);
   };
   useEffect(() => () => clearTimeout(settle.current), []);
   const noMatch = query !== null && query.trim() !== "" && matchIndex(songs, query) === null;
+  const lift = useKeyboardLift();
 
+  // The whole page is the wheel's to touch (touch-none: no page scrolling, zooming or pull-to-refresh to fight with).
   return (
-    <main className="fixed inset-0 overflow-hidden">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-[#0d0b0a]">
+    <main className="fixed inset-0 touch-none overflow-hidden select-none">
+      {/* As tall as the window with the browser's toolbars away (h-lvh), so the fog isn't rebuilt as they come and go. */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh bg-[#0d0b0a]">
         {shown && song && <Fog art={shown.art} p={{ ...tune.settings.fog, text: 0 }} song={song} layout="fill" hold={(arrived ?? rest) !== shown.i} seed={WINDOW_SEED} />}
         {/* A soft dim behind the wheel, so titles read on any cover. */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_center,rgba(13,11,10,0.5),transparent)]" />
@@ -111,7 +126,7 @@ export function Landing({ songs }: { songs: LandingSong[] }) {
         <SiteHeader />
       </div>
 
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+      <div className="absolute inset-x-0 top-1/2 transition-transform duration-300 ease-out" style={{ transform: `translateY(calc(-50% + ${lift}px))` }}>
         {start !== null && (
           <SongWheel
             titles={titles}
@@ -136,6 +151,8 @@ export function Landing({ songs }: { songs: LandingSong[] }) {
         )}
       </div>
 
+      <BackgroundMusic src={shownSong ? shownSong.preview : undefined} />
+
       {TUNING && (
         <TunePanel
           sections={[
@@ -149,4 +166,24 @@ export function Landing({ songs }: { songs: LandingSong[] }) {
       )}
     </main>
   );
+}
+
+/**
+ * While an on-screen keyboard is up (phones, tablets), how far to move the wheel so the search bar sits in the middle
+ * of what's still visible rather than at the keyboard's edge: the visible area's centre less the window's, px.
+ */
+function useKeyboardLift() {
+  const [lift, setLift] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setLift(vv.height < window.innerHeight * 0.85 ? Math.round(vv.offsetTop + vv.height / 2 - window.innerHeight / 2) : 0);
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+  return lift;
 }

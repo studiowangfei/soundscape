@@ -11,6 +11,8 @@ export type WheelSettings = {
   drum: number;
   /** Row spacing, as a multiple of the text size. */
   spacing: number;
+  /** Extra room above and below the focused song, px (see focusGap). */
+  focusGap: number;
   /** How much smaller each row away from the centre is. */
   falloff: number;
   /** How much of the window's width the longest title spans at the centre. */
@@ -25,13 +27,36 @@ const MAX_OFFSET = 12;
 /**
  * The wheel's measurements for this window: the centre text size (so the longest title, `longestAt100` px wide at
  * 100 px, plus the bar round it, `barEm` em and `barPx` px wider, spans `longest` of the width; every title uses it),
- * the row spacing, and the drum's radius and the angle between rows on it.
+ * but never under `minSize` (see centreFloor); the row spacing; the drum's radius and the angle between rows on it;
+ * and `maxText`, the widest a title may be inside the bar (where the floor wins, longer titles are fitted by rowFit).
  */
-export function wheelGeometry(s: WheelSettings, view: { w: number; h: number }, longestAt100: number, barEm = 0, barPx = 0) {
-  const centerSize = Math.max(1, s.longest * view.w - barPx) / Math.max(1e-6, longestAt100 / 100 + barEm);
+export function wheelGeometry(s: WheelSettings, view: { w: number; h: number }, longestAt100: number, barEm = 0, barPx = 0, minSize = 0) {
+  const fit = Math.max(1, s.longest * view.w - barPx) / Math.max(1e-6, longestAt100 / 100 + barEm);
+  const centerSize = Math.max(minSize, fit);
   const pitch = s.spacing * centerSize;
   const radius = (s.drum * view.h) / 2;
-  return { centerSize, pitch, radius, stepDeg: (pitch / radius) * (180 / Math.PI) };
+  const maxText = Math.max(1, Math.max(s.longest, 0.92) * view.w - barPx - barEm * centerSize);
+  return { centerSize, pitch, radius, stepDeg: (pitch / radius) * (180 / Math.PI), maxText };
+}
+
+/**
+ * The smallest the centred title may be: sizing every title to fit the longest across the width makes them tiny on
+ * phones (12 px on an iPhone), so ~30 px there, a little more on tablets, at most 40 px. Desktop windows size their
+ * titles bigger than this anyway, so it changes nothing there.
+ */
+export function centreFloor(view: { w: number; h: number }) {
+  return Math.min(40, Math.max(30, 0.045 * Math.min(view.w, view.h)));
+}
+
+/**
+ * How a title `widthAt100` px wide at 100 px type is set: at the centre size if it fits in `maxText`, else smaller to
+ * fit, down to `floor` of the centre size; past that it's cut short (`clip`, shown with an ellipsis). `width` is how
+ * wide it then is on screen at the centre.
+ */
+export function rowFit(widthAt100: number, centerSize: number, maxText: number, floor = 0.5) {
+  const natural = (widthAt100 * centerSize) / 100;
+  const scale = Math.min(1, Math.max(floor, maxText / Math.max(1e-6, natural)));
+  return { size: centerSize * scale, width: Math.min(natural * scale, maxText), clip: natural * scale > maxText + 0.5 };
 }
 
 /**
@@ -48,6 +73,15 @@ export function rowLook(offset: number, look: { stepDeg: number; falloff: number
     opacity: Math.max(0, 1 - Math.abs(angleDeg) / 95) * (look.dim + (1 - look.dim) * near),
     visible: Math.abs(angleDeg) < 90 && Math.abs(offset) <= MAX_OFFSET,
   };
+}
+
+/**
+ * How far a row `offset` rows from the centre is pushed away from it, in px, to give the focused song `px` more room
+ * above and below: in full from one row out (so the rows beyond keep their spacing), easing to nothing at the centre
+ * (so a song turning in closes the gap smoothly).
+ */
+export function focusGap(offset: number, px: number) {
+  return px * Math.max(-1, Math.min(1, offset));
 }
 
 /** The song a wheel row shows: the list loops, so rows past either end are songs from the other end. */
@@ -102,10 +136,15 @@ export function prefetchRows(focused: number, count: number): number[] {
 }
 
 /**
- * What a wheel event does: Ctrl+wheel and trackpad pinches zoom the page (ignored here); small pixel deltas are a
- * trackpad (followed continuously); anything else is a mouse-wheel notch (one row).
+ * What a wheel event does: Ctrl+wheel and trackpad pinches zoom the page (ignored here); a trackpad scrolls (followed
+ * continuously); a mouse wheel's notch steps one row. Chrome and Safari give trackpads a (non-standard) wheelDelta of
+ * exactly −3 × the delta and mouse notches wheelDeltas in 120s; without that, small pixel deltas are a trackpad.
  */
-export function wheelAction(e: { deltaMode: number; deltaY: number; ctrlKey: boolean }): "ignore" | "scroll" | "notch" {
+export function wheelAction(e: { deltaMode: number; deltaY: number; ctrlKey: boolean; wheelDeltaY?: number }): "ignore" | "scroll" | "notch" {
   if (e.ctrlKey || e.deltaY === 0) return "ignore";
-  return e.deltaMode === 0 && Math.abs(e.deltaY) < 50 ? "scroll" : "notch";
+  if (e.deltaMode !== 0) return "notch";
+  const w = e.wheelDeltaY;
+  if (w && Math.abs(w + 3 * e.deltaY) <= 2) return "scroll";
+  if (w && w % 120 === 0) return "notch";
+  return Math.abs(e.deltaY) < 50 ? "scroll" : "notch";
 }
