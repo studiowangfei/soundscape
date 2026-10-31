@@ -98,11 +98,25 @@ export const EntrySchema = z
         sourceUrl: httpUrl.optional(),
       })
       .strict(),
+    // Up to 8 regular cards plus, on top, one lyric card (the 9th card).
     cards: z.array(EntryCardSchema).min(1).max(9),
     // Free-form generation details; never rendered.
     provenance: z.record(z.string(), z.unknown()).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((entry, ctx) => {
+    const lyrics = entry.cards.filter((c) => c.type === "lyric");
+    const regular = entry.cards.length - lyrics.length;
+    if (regular > 8) ctx.addIssue({ code: "custom", path: ["cards"], message: `at most 8 cards plus one lyric card (has ${regular} regular cards)` });
+    if (lyrics.length > 1) ctx.addIssue({ code: "custom", path: ["cards"], message: `only one lyric card per entry (has ${lyrics.length})` });
+    // A lyric card names the comment cards that quote its line.
+    const comments = new Set(entry.cards.filter((c) => c.type === "comment").map((c) => c.id));
+    entry.cards.forEach((c, i) => {
+      for (const id of c.lyric?.reactionCardIds ?? []) {
+        if (!comments.has(id)) ctx.addIssue({ code: "custom", path: ["cards", i, "lyric", "reactionCardIds"], message: `"${id}" is not a comment card in this entry` });
+      }
+    });
+  });
 
 export type CardType = (typeof CARD_TYPES)[number];
 export type EntryCard = z.infer<typeof EntryCardSchema>;
