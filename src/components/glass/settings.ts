@@ -5,14 +5,16 @@
 import { defaults, type Param, type Params } from "../backdrops/params";
 import { LENS_POWER } from "./map";
 
-export const GLASS_STORE = "musimore.glass";
+export const GLASS_STORE = "soundscape.glass";
 
 /**
  * An inline script for <head>: marks Chromium (<html class="svg-glass">) before the first paint. Only Chromium runs SVG
- * filters on the backdrop, which the refraction needs; elsewhere the glass is frost alone.
+ * filters on the backdrop, which the refraction needs; elsewhere the glass is frost alone. Touch screens (Android
+ * phones) get frost too: refracting every card's backdrop as the row scrolls is heavy for a phone, and this way
+ * phones look alike whatever their browser.
  */
 export const glassBoot = () =>
-  `try{var b=navigator.userAgentData&&navigator.userAgentData.brands;if(b&&b.some(function(x){return /Chrom|Edge|Opera|Brave/.test(x.brand)}))document.documentElement.classList.add("svg-glass")}catch(e){}`;
+  `try{var b=navigator.userAgentData&&navigator.userAgentData.brands;if(b&&!matchMedia("(pointer: coarse)").matches&&b.some(function(x){return /Chrom|Edge|Opera|Brave/.test(x.brand)}))document.documentElement.classList.add("svg-glass")}catch(e){}`;
 
 export const GLASS_PARAMS: Param[] = [
   // 1 bends the rim as far as it goes before the view folds over (see map.ts); above that, a mirrored sliver.
