@@ -20,7 +20,7 @@ export const TYPEFACES = [
   { key: "instrument-serif", label: "Instrument Serif", variable: "--font-instrument-serif" },
 ] as const;
 
-export const TYPEFACE_STORE = "musimore.typeface";
+export const TYPEFACE_STORE = "soundscape.typeface";
 
 const find = (key: string) => TYPEFACES.find((t) => t.key === key);
 
