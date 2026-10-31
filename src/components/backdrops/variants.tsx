@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { accentOf, BG, coverFrame, fillDropScale, fitCanvas, holdTransform, luminance, palette, rgb, sampleSquare, useResizeDraw, zoomOrigin, type Layout, type LoadedArt, type RGB, type Song } from "./art";
+import { accentOf, backdropSize, BG, coverFrame, fillDropScale, fitCanvas, holdTransform, luminance, palette, rgb, sampleSquare, useResizeDraw, zoomOrigin, type Layout, type LoadedArt, type RGB, type Song } from "./art";
+import { coarseNow, wideNow } from "../env";
+import { claim, HOLD_MS, HOLD_SLOP, release } from "../gesture";
 import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, oneInThree, pathDrops, segmentDistance, sweepRadii, TRAIL_HALF, TRAIL_SOFT, type Drip } from "./drip";
 import { createFogRenderer } from "./fog-client";
 import type { FogResult } from "./fog-job";
@@ -671,6 +673,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed }: V &
   const { density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, glow, bleed, edgeSoft, thickMax } = p;
   const thickOn = p.thicken > 0;
   const buildGen = useRef(0);
+  const sized = useRef<{ W: number; H: number; dpr: number; wide: boolean } | null>(null); // what the last build was for
   const lastCover = useRef<{ art: LoadedArt | null; at: number }>({ art: null, at: 0 }); // the latest cover asked for, and when
   const held = useRef(hold);
   const released = useRef<(() => void)[]>([]); // new covers made and waiting for `hold` to go off
@@ -693,13 +696,16 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed }: V &
     const build = async () => {
       const r = renderers.current;
       if (!r) return;
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      const f = coverFrame(W, H, layout);
-      // Full screen: no edge bleed (the cover already fills the window), at most ~1600 px a side, and droplets drawn to
-      // look as they do on song pages.
+      // The backdrop's own size (100lvh tall: steady on phones as the toolbars come and go), and the layout CSS uses.
+      const { W, H } = backdropSize(baseRef.current!);
       const dpr = window.devicePixelRatio || 1;
-      const q = f.fill ? Math.min(1.5, dpr, 1600 / f.side) : Math.min(1.5, dpr);
+      sized.current = { W, H, dpr, wide: wideNow() };
+      const f = coverFrame(W, H, layout, sized.current.wide);
+      // Full screen: no edge bleed (the cover already fills the window), at most ~1600 px a side, and droplets drawn to
+      // look as they do on song pages. Touch screens (phones, tablets) render the soft fog at most 1 px per CSS px: a
+      // third of the pixels of a 1.5× pane, so far less memory and work, and it still reads as mist.
+      const qMax = coarseNow() ? 1 : 1.5;
+      const q = f.fill ? Math.min(qMax, dpr, 1600 / f.side) : Math.min(qMax, dpr);
       const coverPx = Math.round(f.side * q);
       const edge = f.fill ? 0 : bleed; // CSS px: the fogged pane runs this far past the cover and fades out
       const pad = Math.round(edge * q);
@@ -815,19 +821,44 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed }: V &
     if (art !== lastCover.current.art) lastCover.current = { art, at: now };
     if (built.current && !coverNow) schedule();
     else void build();
-    window.addEventListener("resize", schedule);
+    // Rebuilt only when the backdrop really changes: its size (a window resized, a device turned), the layout, or the
+    // screen's pixel density (a window moved to another display). Not as a phone's toolbars come and go.
+    const resized = () => {
+      const s = sized.current;
+      const { W, H } = baseRef.current ? backdropSize(baseRef.current) : { W: 0, H: 0 };
+      if (!s || s.W !== W || s.H !== H || s.dpr !== (window.devicePixelRatio || 1) || s.wide !== wideNow()) schedule();
+    };
+    const observer = new ResizeObserver(resized);
+    if (baseRef.current?.parentElement) observer.observe(baseRef.current.parentElement);
+    let dppx = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+    const onDppx = () => {
+      dppx.removeEventListener("change", onDppx);
+      dppx = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+      dppx.addEventListener("change", onDppx);
+      resized();
+    };
+    dppx.addEventListener("change", onDppx);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("resize", schedule);
+      observer.disconnect();
+      dppx.removeEventListener("change", onDppx);
     };
   }, [art, layout, compose, write, updateHaze, freeze, thaw, density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, pane, glow, bleed, edgeSoft, thickOn, thickMax]);
 
-  // Wiping: click and drag. The backdrop ignores the pointer, so follow it at the window and map it onto the fog.
+  // Wiping. With a mouse: click and drag. With a finger (or pen): press and hold still for a moment (HOLD_MS), then
+  // drag; a quick drag stays the page's (it scrolls a song page, it turns the landing wheel). A hold works over the
+  // song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
+  // follow it at the window and map it onto the fog.
   useEffect(() => {
     let last: { x: number; y: number } | null = null;
-    let wiping = false;
+    let wiping: number | null = null; // the pointer that's wiping
+    let hold: { id: number; x: number; y: number; timer: number; at: PointerEvent; due: number } | null = null;
+    // A finger wiping after a hold: where it pressed, and when (event time) the hold was complete. A busy page can handle
+    // a drag's first moves late, after the hold's timer; their own timestamps still tell that the finger moved before
+    // the hold was up, so it was a drag after all: the wipe stands down and the page (or the wheel) has the touch.
+    let held: { x: number; y: number; due: number } | null = null;
     const root = document.documentElement;
-    const locate = (e: PointerEvent) => {
+    const locate = (e: { clientX: number; clientY: number }) => {
       const c = fogRef.current;
       const m = mask.current;
       if (!c || !m) return null;
@@ -837,7 +868,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed }: V &
       const inside = x >= 0 && y >= 0 && x <= m.size && y <= m.size;
       return { m, x, y, r: (p.brush / 2) * (m.size / rect.width), inside };
     };
-    const onControls = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("button, input, select, a, [role=dialog], [data-backdrop-ui]");
+    const onControls = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("button, input, select, textarea, a, [role=dialog], [data-backdrop-ui]");
     const stamp = (m: FadingLayer, x: number, y: number, r: number) => {
       const ctx = m.mark();
       const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -863,40 +894,107 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed }: V &
       }
       compose();
     };
-    const onDown = (e: PointerEvent) => {
-      if (e.button !== 0 || onControls(e)) return;
-      const at = locate(e);
-      if (!at?.inside) return;
-      e.preventDefault(); // no text selection while wiping
-      wiping = true;
-      root.style.cursor = "grabbing";
-      wipeTo(at);
+    const noSelect = (on: boolean) => {
+      root.style.userSelect = on ? "none" : "";
+      root.style.webkitUserSelect = on ? "none" : "";
     };
-    const onMove = (e: PointerEvent) => {
-      const at = locate(e);
-      if (!wiping) {
-        // A grab hand over the fog says it can be wiped.
-        root.style.cursor = at?.inside && !onControls(e) ? "grab" : "";
+    const endHold = () => {
+      if (hold) clearTimeout(hold.timer);
+      hold = null;
+      if (wiping === null) noSelect(false);
+    };
+    const movedEarly = (x: number, y: number, t: number) => !!held && t <= held.due && Math.hypot(x - held.x, y - held.y) > HOLD_SLOP;
+    const standDown = () => {
+      if (wiping !== null) release(wiping);
+      wiping = null;
+      held = null;
+      last = null;
+      noSelect(false);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (onControls(e)) return;
+      if (e.pointerType === "mouse") {
+        if (e.button !== 0) return;
+        const at = locate(e);
+        if (!at?.inside) return;
+        e.preventDefault(); // no text selection while wiping
+        wiping = e.pointerId;
+        root.style.cursor = "grabbing";
+        wipeTo(at);
         return;
       }
+      if (!e.isPrimary || hold || wiping !== null || !locate(e)?.inside) return;
+      noSelect(true); // a held finger mustn't start selecting the title instead
+      const id = e.pointerId;
+      // Timed from the touch itself (its timestamp), not from when the page got round to handling it.
+      const due = e.timeStamp + HOLD_MS;
+      const timer = window.setTimeout(() => {
+        const h = hold;
+        hold = null;
+        if (!h || !claim(id, "fog")) return noSelect(false); // the wheel took it (a drag) first
+        wiping = id;
+        held = { x: h.x, y: h.y, due: h.due };
+        navigator.vibrate?.(8); // a tick where there's one to give (Android): wiping has begun
+        const at = locate(h.at);
+        if (at) wipeTo(at);
+      }, Math.max(0, due - performance.now()));
+      hold = { id, x: e.clientX, y: e.clientY, timer, at: e, due };
+    };
+    const onMove = (e: PointerEvent) => {
+      if (hold && e.pointerId === hold.id) {
+        if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > HOLD_SLOP) endHold(); // a drag: scrolling, or the wheel
+        else hold.at = e;
+        return;
+      }
+      if (wiping === null) {
+        // A grab hand over the fog says it can be wiped.
+        if (e.pointerType === "mouse") root.style.cursor = locate(e)?.inside && !onControls(e) ? "grab" : "";
+        return;
+      }
+      if (e.pointerId !== wiping) return;
+      if (movedEarly(e.clientX, e.clientY, e.timeStamp)) return standDown();
+      const at = locate(e);
       if (at) wipeTo(at);
     };
-    const onUp = () => {
-      if (!wiping) return;
-      wiping = false;
+    const onUp = (e: PointerEvent) => {
+      if (hold && e.pointerId === hold.id) endHold();
+      if (e.pointerId !== wiping) return;
+      wiping = null;
+      held = null;
       last = null;
-      root.style.cursor = "grab";
+      if (e.pointerType === "mouse") root.style.cursor = "grab";
+      else {
+        release(e.pointerId);
+        noSelect(false);
+      }
+    };
+    // While a finger wipes, the page mustn't scroll under it (the browser would take the touch away): its touchmoves are
+    // cancelled. Such a listener has to say so up front (passive: false); it only cancels while wiping.
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (wiping !== null && t && movedEarly(t.clientX, t.clientY, e.timeStamp)) return standDown();
+      if (wiping !== null && e.cancelable) e.preventDefault();
+    };
+    // A long press can bring up the browser's menu (Android) or a text selection: not while holding or wiping.
+    const onContextMenu = (e: Event) => {
+      if (hold || wiping !== null) e.preventDefault();
     };
     window.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("contextmenu", onContextMenu);
     return () => {
+      endHold();
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("contextmenu", onContextMenu);
       root.style.cursor = "";
+      noSelect(false);
     };
   }, [compose, endDrip, p.brush, p.softness]);
 

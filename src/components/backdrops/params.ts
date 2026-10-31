@@ -79,16 +79,16 @@ export const PARAMS = {
   fog: [
     { key: "density", label: "Mist thickness", min: 0, max: 1, step: 0.02, value: 0.08 },
     { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0 },
-    { key: "blur", label: "Mist blur", min: 2, max: 120, step: 1, value: 16, unit: "px" },
+    { key: "blur", label: "Mist blur", min: 2, max: 120, step: 1, value: 10, unit: "px" },
     { key: "bloom", label: "Light bloom", min: 0, max: 1, step: 0.05, value: 0.5 },
-    { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0.5 },
+    { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0 },
     { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.35, unit: "×" },
-    { key: "dropSize", label: "Droplet size", min: 0.4, max: 2.5, step: 0.05, value: 0.55, unit: "×" },
+    { key: "dropSize", label: "Droplet size", min: 0.4, max: 2.5, step: 0.05, value: 0.7, unit: "×" },
     { key: "refraction", label: "Droplet refraction", min: 1, max: 6, step: 0.1, value: 3, unit: "×" },
     { key: "trails", label: "Drip trails", min: 0, max: 30, step: 1, value: 0 },
     { key: "brush", label: "Wipe size", min: 10, max: 240, step: 2, value: 90, unit: "px" },
     { key: "softness", label: "Wipe softness", min: 0, max: 1, step: 0.05, value: 0.5 },
-    { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 40, unit: "s" },
+    { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 30, unit: "s" },
     // While a song is shown the pane keeps fogging up, from the settings above to the thickest fog, over `thicken`.
     { key: "thicken", label: "Fog thickens over (0 = never)", min: 0, max: 600, step: 10, value: 60, unit: "s" },
     shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.7 }),
@@ -118,7 +118,7 @@ export const PARAMS = {
     { key: "edgeSoft", label: "Edge softness", min: 0, max: 200, step: 5, value: 20, unit: "px" },
     brightness(0.62),
     { key: "glow", label: "Ambient glow", min: 0, max: 0.8, step: 0.05, value: 0.3 },
-    ...zoom(15, 20),
+    ...zoom(20, 20),
   ],
   echo: [
     { key: "size", label: "Cover size", min: 30, max: 95, step: 1, value: 70, unit: "%" },
@@ -140,10 +140,11 @@ export const zoomStyle = (p: Params) =>
 /** The landing page's song wheel (landing/settings.ts wheelSettings turns these into WheelSettings). */
 export const WHEEL_PARAMS: Param[] = [
   { key: "drum", label: "Drum diameter", min: 50, max: 250, step: 5, value: 100, unit: "% height" },
-  { key: "spacing", label: "Row spacing", min: 1, max: 3, step: 0.05, value: 1.75, unit: "× text" }, // clears the search bar (2.15 × text tall)
+  { key: "spacing", label: "Row spacing", min: 1, max: 3, step: 0.05, value: 1.6, unit: "× text" }, // the focus gap keeps the search bar (2.15 × text tall) clear
+  { key: "focusGap", label: "Room around the focused song", min: 0, max: 40, step: 1, value: 24, unit: "px" },
   { key: "falloff", label: "Size falloff", min: 0, max: 0.2, step: 0.01, value: 0.08 },
   { key: "dim", label: "Other songs' opacity", min: 0.1, max: 1, step: 0.05, value: 0.2 },
-  { key: "longest", label: "Longest title width", min: 40, max: 95, step: 1, value: 75, unit: "% width" },
+  { key: "longest", label: "Longest title width", min: 40, max: 95, step: 1, value: 80, unit: "% width" },
 ];
 
 /** A colour setting: the value is 0xRRGGBB, picked with a colour well. */
@@ -161,7 +162,7 @@ export const SEARCH_BAR_PARAMS: Param[] = [
   { key: "padX", label: "Padding, sides", min: 0, max: 2, step: 0.02, value: 1, unit: "× text" },
   { key: "padY", label: "Padding, top and bottom", min: 0, max: 1, step: 0.02, value: 0.3, unit: "× text" },
   { key: "gap", label: "Space between text and icons", min: 0, max: 2, step: 0.02, value: 0.86, unit: "× text" },
-  { key: "icon", label: "Icon size", min: 0.2, max: 1.2, step: 0.02, value: 0.48, unit: "× text" },
+  { key: "iconHeight", label: "Icon size", min: 0.5, max: 2, step: 0.05, value: 1, unit: "× title height" }, // 1: as tall as the title's capitals
   colour("iconColor", "Icon colour", 0xffffff),
   { key: "searchOpacity", label: "Search icon opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },
   { key: "arrowOpacity", label: "Arrow icon opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },

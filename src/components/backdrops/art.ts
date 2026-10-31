@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isWide } from "../env";
 
 export type Song = { title: string; artist: string; cover: string; coverKind: "album" | "artist" };
 export type LoadedArt = { img: HTMLImageElement; kind: "album" | "artist"; src: string };
 
-/** Matches Tailwind `lg`, where the content column moves left of the cover. */
-export const WIDE_MIN = 1024;
 export const BG: [number, number, number] = [13, 11, 10];
 
 /**
@@ -35,11 +34,11 @@ export function useArtwork(src: string, kind: "album" | "artist"): LoadedArt | n
 export type Layout = "beside" | "fill";
 
 /**
- * Where the cover sits. Beside: a square on the right on wide screens, across the top on narrow ones. Fill: a square
- * as big as the window's longer side, centred, so the window crops it.
+ * Where the cover sits. Beside: a square on the right in the wide layout (landscape screens; see env.ts), across the
+ * top in the stacked one. Fill: a square as big as the window's longer side, centred, so the window crops it. `wide`:
+ * the browser's own answer (wideNow()), which is exactly what CSS lays out by; from the size when not given.
  */
-export function coverFrame(W: number, H: number, layout: Layout = "beside") {
-  const wide = W >= WIDE_MIN;
+export function coverFrame(W: number, H: number, layout: Layout = "beside", wide = isWide(W, H)) {
   if (layout === "fill") {
     const side = Math.max(W, H);
     return { wide, fill: true, side, ox: Math.round((W - side) / 2), oy: Math.round((H - side) / 2) };
@@ -118,10 +117,18 @@ export const rgb = (c: RGB, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 export const luminance = lum;
 export const saturation = sat;
 
-/** Fit a canvas to the viewport at device resolution (capped at 2x) and return a CSS-pixel context. */
+/**
+ * The size of the backdrop (the box a canvas fills). Backdrops are as tall as the window with the browser's toolbars
+ * tucked away (100lvh), so on phones they don't change size, and redraw, as the toolbars come and go while scrolling.
+ */
+export function backdropSize(c: HTMLElement) {
+  const box = c.parentElement;
+  return { W: box?.clientWidth || window.innerWidth, H: box?.clientHeight || window.innerHeight };
+}
+
+/** Fit a canvas to its backdrop at device resolution (capped at 2x) and return a CSS-pixel context. */
 export function fitCanvas(c: HTMLCanvasElement) {
-  const W = window.innerWidth;
-  const H = window.innerHeight;
+  const { W, H } = backdropSize(c);
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   c.width = Math.round(W * dpr);
   c.height = Math.round(H * dpr);

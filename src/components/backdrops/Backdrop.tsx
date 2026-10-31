@@ -20,8 +20,8 @@ export const VARIANTS = [
 export type VariantKey = (typeof VARIANTS)[number]["key"];
 export type AllParams = Record<VariantKey, Params>;
 
-const STORE = "musimore.backdrop";
-const PARAM_STORE = "musimore.backdrop.params";
+const STORE = "soundscape.backdrop";
+const PARAM_STORE = "soundscape.backdrop.params";
 
 const initialParams = () => Object.fromEntries(VARIANTS.map((v) => [v.key, defaults(PARAMS[v.key])])) as AllParams;
 
@@ -80,12 +80,15 @@ export function useBackdropParams() {
   return { params: all, setParam, reset };
 }
 
-/** Full-screen backdrop for the current song in the chosen style, cross-fading between styles. */
+/**
+ * Full-screen backdrop for the current song in the chosen style, cross-fading between styles. As tall as the window
+ * with the browser's toolbars away (h-lvh): on phones it doesn't resize (and rebuild) as they come and go on scroll.
+ */
 export function Backdrop({ song, variant, params }: { song: Song; variant: VariantKey; params: Params }) {
   const art = useArtwork(song.cover, song.coverKind);
   const V = VARIANTS.find((x) => x.key === variant)!;
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-[#0d0b0a]">
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh bg-[#0d0b0a]">
       <AnimatePresence>
         {art && (
           <motion.div key={variant} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
@@ -94,7 +97,7 @@ export function Backdrop({ song, variant, params }: { song: Song; variant: Varia
         )}
       </AnimatePresence>
       {/* Keep the content side calm whatever the style. */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_35%,rgba(13,11,10,0.55))] lg:bg-[linear-gradient(to_right,rgba(13,11,10,0.5),transparent_55%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_35%,rgba(13,11,10,0.55))] wide:bg-[linear-gradient(to_right,rgba(13,11,10,0.5),transparent_55%)]" />
     </div>
   );
 }
