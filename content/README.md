@@ -37,7 +37,7 @@ If the result is still over 250 KB, lower `formatOptions` (for example 50).
   `preview.link`, they're where the player's Spotify, Apple Music and YouTube Music icons go; a missing one searches
   that service for the song instead.
 - `cover`: `{ file, kind: "album" | "artist" (default "album"), album?, sourceUrl? }`
-- `cards`: 1 to 8 cards, see below.
+- `cards`: 1 to 9 cards: up to 8 regular cards plus at most one lyric card (see Lyric card below).
 - `provenance` (object, optional): free-form generation details, never rendered.
 
 ## Card fields
@@ -58,7 +58,20 @@ Card ID convention: `<slug>-<suffix>` (for example `a-song-comment-1`), unique a
 ## Rules
 
 - Card IDs are permanent and unique across all files. Never rename or reuse one.
-- Cards render in file order.
+- Cards render in file order: Background → Lyric → Comments → Version → Film. New entries number their card ids in that
+  order (`<slug>-g1`, `-g2`, …); existing ids are never renumbered.
+
+## Lyric card
+
+The optional 9th card highlights one line listeners keep quoting. It doesn't take any other card's slot.
+
+- Only on observed evidence: `selectionBasis: "observed_frequency"`, with `selectionNote` saying what was seen (e.g. how many
+  top comments quote the line) and `reactionCardIds` listing the comment cards in this entry that quote it (checked: each must
+  be a comment card here).
+- `excerptOrTimestamp` is the quoted line: a short excerpt only. `lyricSource` says where it's from (stored, not shown).
+- The collapsed card shows the "Lyric" label, the quoted line and the source line; the expanded card shows the line, then
+  `snippet` (the story or meaning behind it) and `context` (a fan reaction or another take; may be empty), then the source
+  line. `headline` is stored, not shown. Never say where the line sits in the song (verse, chorus, opening line…).
 - `cover.file` must be `<slug>.jpg`; `slug` is ASCII kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`). Covers live in `content/covers/<slug>.jpg`, must exist, and must be at most 250 KB.
 - `film.poster.file` must be `<card id>.jpg`. Posters live in `content/posters/<card id>.jpg`, must exist, and must be at most 250 KB. Make one like a cover.
 - Run `npm run content:check` before pushing.
