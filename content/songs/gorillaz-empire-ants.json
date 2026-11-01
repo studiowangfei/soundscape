@@ -10,15 +10,15 @@
  "spotifyId": "2NZ87trfvU01p9Uv5m5QiY",
  "youtubeMusicId": "5XZGVcHysNk",
  "preview": {
-  "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/21/41/5b/21415b12-bdaf-0eda-5d0b-15d76fa8bd6a/mzaf_13667519581343237582.plus.aac.p.m4a",
+  "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5a/e5/ff/5ae5ff35-3210-fbaa-7d2c-5a8ba41e443f/mzaf_823279889826419689.plus.aac.p.m4a",
   "source": "itunes",
-  "link": "https://music.apple.com/us/album/empire-ants/1517690676?i=1517690677&uo=4"
+  "link": "https://music.apple.com/us/album/empire-ants-feat-little-dragon/850569437?i=850569471&uo=4"
  },
  "cover": {
   "file": "gorillaz-empire-ants.jpg",
   "kind": "album",
   "album": "Plastic Beach",
-  "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/7d/8a/ca/7d8acab8-408a-8242-8f96-cbf2e8744624/672985291843.png/1200x1200bb.jpg"
+  "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/b8/f9/b9/b8f9b9f8-a609-bde2-0302-349436ffc508/825646291038.jpg/1200x1200bb.jpg"
  },
  "cards": [
   {
@@ -231,6 +231,7 @@
   },
   "spotifyIdNote": "Track ID from kworb.net's Gorillaz Spotify chart page, which links the track directly as open.spotify.com/track/2NZ87trfvU01p9Uv5m5QiY (229M streams); Spotify connector not connected.",
   "lyricStage": "No lyric card: across 450 pooled top comments (3 uploads), no Genius-annotated line reached the >=3 quoting threshold (best: 1 each for three lines); the chorus lines are quoted only as whole-section pastes, which do not count. See the run's lyric-design3-evidence.md.",
-  "coverSource": "Apple/iTunes album artwork (1200px), downscaled to 800px JPEG."
+  "coverSource": "Apple/iTunes artwork for Plastic Beach (collection 850569437), downscaled to 800px JPEG.",
+  "correction20261031": "First publish used iTunes collection 1517690676, which is a 2020 single titled 'Empire Ants' by the artist coriander. — not Gorillaz; its artwork and preview were wrong. Fixed the same day at Fei's direction to the Plastic Beach album listing (collection 850569437, track 850569471), matching the YouTube Music upload 5XZGVcHysNk he specified."
  }
 }
