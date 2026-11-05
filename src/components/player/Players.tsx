@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Neighbours, SongLink } from "@/content/neighbours";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { PLAYER_HEIGHT, PLAYER_INSET } from "../glass/settings";
@@ -18,7 +18,7 @@ import { clock } from "./youtube";
  * preview the bar stays, its play button disabled. It plays through the site's soundtrack (Soundtrack.tsx), so music on
  * from the landing page plays on here without a break, and on into the previous or next song.
  */
-export function PreviewBar({ cover, preview, nav, links }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks }) {
+export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks; onSkip?: (href: string) => void }) {
   const track = useSoundtrack();
   const { attach, style, filter, look } = useGlass("player");
 
@@ -42,15 +42,18 @@ export function PreviewBar({ cover, preview, nav, links }: { cover: string; prev
       ) : (
         <span className="relative shrink-0">{art}</span>
       )}
-      <div className="relative flex w-[240px] min-w-0 flex-col items-center gap-0.5">
-        <div className="flex items-center gap-3 min-[400px]:gap-6">
-          {nav && <SkipLink to={nav.prev} next={false} />}
+      {/* The controls and the position bar fill the cover's height, less 4px at the top, so they sit as far in from the
+          bar's bottom as it does and 4px further from its top: the icons' and the scrubber's own boxes (their hover
+          circles, the touch target) overflow their rows, centred, without moving them. */}
+      <div className="relative mt-[4px] flex h-[44px] w-[240px] min-w-0 flex-col items-center justify-between">
+        <div className="flex h-5 items-center gap-3 min-[400px]:gap-6">
+          {nav && <SkipLink to={nav.prev} next={false} onSkip={onSkip} />}
           <PlayButton playing={track.on && mine} onClick={track.toggle} disabled={!preview} />
-          {nav && <SkipLink to={nav.next} next />}
+          {nav && <SkipLink to={nav.next} next onSkip={onSkip} />}
         </div>
-        <div className="flex w-full min-w-0 justify-center">
+        <div className="flex h-3 w-full min-w-0 items-center justify-center">
           {preview ? (
-            <Scrubber value={mine ? track.time : 0} max={mine ? track.duration : 30} onSeek={track.seek} />
+            <Scrubber value={mine ? track.time : 0} max={mine ? track.duration : 30} onSeek={track.seek} knobOnDrag />
           ) : (
             <p className="truncate text-[12px] text-white/55">No preview available</p>
           )}
@@ -58,17 +61,26 @@ export function PreviewBar({ cover, preview, nav, links }: { cover: string; prev
       </div>
       {/* Pulled in by the 4px each mark has round it in its target, so the last one meets the padding. */}
       {links && <ListenOn links={links} className="relative -mr-1 shrink-0" />}
-      <GlassEdge light={look.light} />
+      <GlassEdge look={look} />
     </div>
   );
 }
 
-/** Previous or next song (⏮ / ⏭): a quiet icon link either side of the play button. */
-function SkipLink({ to, next }: { to: SongLink; next: boolean }) {
+/**
+ * Previous or next song (⏮ / ⏭): a quiet icon link either side of the play button. `onSkip` takes the in-app
+ * navigation over (the page plays its way out first); a ⌘-click or middle click still opens a new tab.
+ */
+function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: (href: string) => void }) {
   const label = `${next ? "Next" : "Previous"} song: ${to.title}`;
+  const href = `/songs/${to.slug}/`;
   return (
     <Link
-      href={`/songs/${to.slug}/`}
+      href={href}
+      onNavigate={(e) => {
+        if (!onSkip) return;
+        e.preventDefault();
+        onSkip(href);
+      }}
       aria-label={label}
       title={label}
       className="hit relative grid size-8 shrink-0 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white"
@@ -104,10 +116,25 @@ export function PlayButton({ playing, onClick, disabled }: { playing: boolean; o
   );
 }
 
-/** The players' slim position bar, elapsed time on the left and the length on the right. */
-export function Scrubber({ value, max, onSeek, disabled }: { value: number; max: number; onSeek: (s: number) => void; disabled?: boolean }) {
+/**
+ * The players' slim position bar, elapsed time on the left and the length on the right. `knobOnDrag`: its knob shows
+ * only while it's pressed and dragged (or focused from the keyboard).
+ */
+export function Scrubber({ value, max, onSeek, disabled, knobOnDrag }: { value: number; max: number; onSeek: (s: number) => void; disabled?: boolean; knobOnDrag?: boolean }) {
   const end = max || 1;
   const at = Math.min(value, end);
+  const [dragging, setDragging] = useState(false);
+  // Let go anywhere (the pointer can leave the bar mid-drag).
+  useEffect(() => {
+    if (!dragging) return;
+    const up = () => setDragging(false);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [dragging]);
   return (
     <div className={`flex min-w-0 flex-1 items-center gap-2 text-[12px] text-white/55 tabular-nums min-[400px]:gap-4 ${disabled ? "opacity-40" : ""}`}>
       <span>{clock(value)}</span>
@@ -120,6 +147,8 @@ export function Scrubber({ value, max, onSeek, disabled }: { value: number; max:
         disabled={disabled}
         onChange={(e) => onSeek(Number(e.target.value))}
         aria-label="Position"
+        onPointerDown={knobOnDrag ? () => setDragging(true) : undefined}
+        data-knob={knobOnDrag ? (dragging ? "shown" : "hidden") : undefined}
         className="scrub min-w-0 flex-1"
         style={{ "--p": `${(at / end) * 100}%` } as CSSProperties}
       />

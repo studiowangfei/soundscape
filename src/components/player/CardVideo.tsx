@@ -40,6 +40,9 @@ export function CardVideo({ id, start, url, thumb, title, ref }: Props) {
     // YouTube swaps this element for its iframe, so React never manages it.
     const el = document.createElement("div");
     host.current.appendChild(el);
+    // YouTube turns captions on by itself (often auto-generated ones, which on a song are mostly "[Music]"), and with
+    // its controls hidden there'd be no way to turn them off: they're unloaded each time the player loads them.
+    const noCaptions = () => player.current?.unloadModule?.("captions");
     loadYouTube().then(
       (YT) => {
         if (!alive) return;
@@ -48,17 +51,19 @@ export function CardVideo({ id, start, url, thumb, title, ref }: Props) {
           host: "https://www.youtube-nocookie.com",
           width: "100%",
           height: "100%",
-          playerVars: { controls: 0, rel: 0, playsinline: 1, iv_load_policy: 3, origin: window.location.origin, enablejsapi: 1, ...(start > 0 ? { start: Math.floor(start) } : {}) },
+          playerVars: { controls: 0, rel: 0, playsinline: 1, iv_load_policy: 3, cc_load_policy: 0, origin: window.location.origin, enablejsapi: 1, ...(start > 0 ? { start: Math.floor(start) } : {}) },
           events: {
             onReady: () => {
               if (!alive) return;
               setDuration(player.current?.getDuration() ?? 0);
               setState("ready");
             },
+            onApiChange: noCaptions,
             onStateChange: (e) => {
               setPlaying(e.data === YT.PlayerState.PLAYING || e.data === YT.PlayerState.BUFFERING);
               if (e.data === YT.PlayerState.PLAYING) {
                 announcePlay("video"); // the preview stops
+                noCaptions();
                 setStarted(true);
                 setDuration(player.current?.getDuration() ?? 0);
               } else if (e.data === YT.PlayerState.ENDED) {

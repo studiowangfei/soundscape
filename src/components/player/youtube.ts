@@ -7,6 +7,8 @@ export type YTPlayer = {
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   getCurrentTime(): number;
   getDuration(): number;
+  /** Unloads one of the player's modules ("captions"); undocumented, but part of the player for years. */
+  unloadModule?(name: string): void;
   destroy(): void;
 };
 type YTNamespace = {
@@ -20,6 +22,8 @@ type YTNamespace = {
       playerVars?: Record<string, string | number>;
       events?: {
         onReady?: () => void;
+        /** A module (captions, say) has loaded. */
+        onApiChange?: () => void;
         onStateChange?: (e: { data: number }) => void;
         onError?: (e: { data: number }) => void;
       };
