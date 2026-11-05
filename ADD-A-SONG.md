@@ -1,8 +1,20 @@
 # Adding a song
 
-You're adding songs to the Soundscape site. This repo is the whole site: a static Next.js app that Vercel rebuilds and
+You're adding songs to the Soundscape site. This repo is the whole site: a Next.js app that Vercel rebuilds and
 publishes on every push. Songs are data, never code or HTML: adding one means adding files to `content/` and pushing.
 Nothing else in the repo changes.
+
+## Visitor comments: never overwrite
+
+`content/visitor-comments/` holds comments visitors left on song pages and the site's owner approved. They exist
+**only in this repo**: the site's packages (`dist.zip`) never contain that folder.
+
+- When you apply a new `dist.zip`, keep the repo's `content/visitor-comments/` exactly as it is. Never delete, replace
+  or empty it.
+- Don't edit, move or delete a visitor comment unless the owner asks. To take a published comment down, delete its
+  file (`content/visitor-comments/<slug>/<id>.json`) in a commit of its own.
+- Pull requests from `visitor/…` branches, labelled `visitor-comment`, are visitors' comments waiting for the owner.
+  Don't merge, close or change them yourself.
 
 How to research the song and write its cards is in the design doc you were given (`card-generation-design.md`). This
 brief covers what to deliver here and how to check it.
@@ -28,7 +40,11 @@ file and the cover. Look in `content/songs/` first: if the song is already there
 Fields, rules and a complete example: `content/README.md`. The exact schema: `src/content/schema.ts`. Unknown keys are
 errors. In short:
 
-- `slug`, `title`, `artist`, `aliases`, `tags`, `releaseYear`, and `addedAt` (today, `YYYY-MM-DD`).
+- `slug`, `title`, `artist`, `aliases`, `tags`, `releaseYear`, and `addedAt` (today, `YYYY-MM-DD`). `releaseYear` is
+  the year the song's album came out, the album on its cover (Four Tet's "Teenage Birdsong" is 2020, Sixteen Oceans,
+  not 2019, its single); a song on no album gets the year it first came out. Never a reissue's or a compilation's year;
+  MusicBrainz's first-release date for the album is a good start, checked against what you know. The landing page's sort
+  menu orders songs by it; a song without one sorts last.
 - `cover`: `{ file: "<slug>.jpg", kind: "album" | "artist", album?, sourceUrl? }`.
 - `preview`: `{ url, source: "itunes", link }`, the song's 30-second Apple Music preview (design doc §9.3).
 - `spotifyId`, `youtubeMusicId` (an 11-character video id) and `youtubeUrl`: null when not found (the player then
@@ -78,10 +94,12 @@ entry (the live site keeps its last good version), but catch problems here.
 ## Pushing
 
 - One song per commit, titled `Add <Artist> – <Title>`.
-- Only add files under `content/`. Don't change `src/`, the configs, `package*.json` or other songs.
+- Only add files under `content/`. Don't change `src/`, the configs, `package*.json`, other songs or
+  `content/visitor-comments/` (see Visitor comments).
 - Never rename, renumber or reuse a card id, and never change a published song's slug: posters are filed by card id,
   and pages by slug.
-- To take a song down, revert its commit.
+- To take a song down, revert its commit, and in the same commit delete its visitor comments
+  (`content/visitor-comments/<slug>/`, if there is one): they belong to the song.
 
 ## What to skip in the design doc
 

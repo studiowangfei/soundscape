@@ -7,7 +7,7 @@
     "dev": "next dev",
     "prebuild": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts",
     "build": "next build",
-    "start": "python3 -m http.server 3200 -d out",
+    "start": "next start -p 3200",
     "lint": "eslint",
     "content:check": "tsx scripts/check-content.mts"
   },
