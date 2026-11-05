@@ -3,7 +3,7 @@
   "title": "ONCE IN A LIFETIME",
   "artist": "Ryuichi Sakamoto",
   "aliases": [],
-  "releaseYear": null,
+  "releaseYear": 1981,
   "addedAt": "2026-10-24",
   "tags": [],
   "youtubeUrl": "https://www.youtube.com/watch?v=Qnax_q-Tu-g",
@@ -181,5 +181,10 @@
         }
       ]
     }
+  },
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/f2/82/a7/f282a729-45cf-906f-8d55-3a797bb827b2/mzaf_18150652396562546399.plus.aac.ep.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/once-in-a-lifetime/1404723428?i=1404724458"
   }
 }
