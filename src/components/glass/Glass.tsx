@@ -11,7 +11,9 @@ import { fillColor, GLASS_PARAMS, GLASS_STORE, glassDefaults, glassLook, glassTo
  * through an SVG filter (Chromium; see glassBoot) that bends the view towards the rounded edge like a lens (the map
  * from map.ts), building gradually from the middle, then frosts it all evenly, lets it glow a little towards the rim
  * and lifts the colours. Other browsers get frost alone. Panes put the filter inside themselves and a GlassEdge (the light on the rim) last. No blend modes anywhere:
- * in Chrome they pull layers in front of the open card.
+ * in Chrome they pull layers in front of the open card. With Canvas UI's glass on (Tune → Glass, cards only) a pane is
+ * plain CSS in every browser instead: its backdrop blurred (and lifted, if set), under a tint, a hairline border for its
+ * GlassEdge.
  */
 
 const Settings = createContext<Params>(glassDefaults());
@@ -111,7 +113,7 @@ export function useGlass(kind: GlassKind, { sync = false }: { sync?: boolean } =
     if (w > 0 && h > 0) setSize({ w, h }); // before the first paint, so the first frame has the map
   }, [sync]);
 
-  const map = size ? mapUrl(size.w, size.h, look.radius, look.bezel) : null;
+  const map = size && !look.canvas ? mapUrl(size.w, size.h, look.radius, look.bezel) : null;
 
   // Every displacement pass (three with dispersion: red, green and blue bend by slightly different amounts) takes the
   // bend times its own share, data-k.
@@ -139,21 +141,34 @@ export function useGlass(kind: GlassKind, { sync = false }: { sync?: boolean } =
     return () => cancelAnimationFrame(raf);
   }, [map, look.refraction, sync, bend]);
 
+  // Canvas UI's glass: a plain blur, then what it blurs brightened and saturated (both 1 at its own values).
+  const canvas = look.canvas;
+  const { lift: brighten, vibrancy: saturate } = look;
+  const canvasFilter = useCallback((frost: number) => `blur(${frost.toFixed(2)}px) brightness(${brighten}) saturate(${saturate})`, [brighten, saturate]);
   const live = useCallback(
     (v: { frost: number; refraction: number; fill: number }) => {
-      frost.current?.setAttribute("stdDeviation", v.frost.toFixed(2));
-      bend(v.refraction);
+      if (canvas) {
+        el.current?.style.setProperty("--glass-filter", canvasFilter(v.frost));
+        el.current?.style.setProperty("--glass-fallback", canvasFilter(v.frost));
+      } else {
+        frost.current?.setAttribute("stdDeviation", v.frost.toFixed(2));
+        bend(v.refraction);
+      }
       el.current?.style.setProperty("--glass-fill", fillColor(v.fill));
     },
-    [bend],
+    [bend, canvas, canvasFilter],
   );
 
   const style = {
     borderRadius: look.radius,
     "--glass-fill": fillColor(look.fill),
     "--glass-fill-hover": fillColor(look.fill + 0.035),
-    "--glass-filter": `url(#${id})`,
-    "--glass-fallback": `blur(${(8 + look.frost * 2).toFixed(1)}px) saturate(${look.vibrancy}) brightness(${(1 - 0.3 * look.shade).toFixed(2)})`,
+    ...((canvas
+      ? { "--glass-filter": canvasFilter(look.frost), "--glass-fallback": canvasFilter(look.frost), "--glass-shadow": "none", "--glass-shadow-hover": "none" }
+      : {
+          "--glass-filter": `url(#${id})`,
+          "--glass-fallback": `blur(${(8 + look.frost * 2).toFixed(1)}px) saturate(${look.vibrancy}) brightness(${(1 - 0.3 * look.shade).toFixed(2)})`,
+        }) as Record<string, string>),
   } as CSSProperties;
 
   // feDisplacementMap's scale is the full swing of the map's channels (0…255 → −½…+½ of it), so twice the bend.
@@ -167,7 +182,7 @@ export function useGlass(kind: GlassKind, { sync = false }: { sync?: boolean } =
     .map((v) => v.toFixed(4))
     .join(" ");
   // Bent first, then frosted all over: one even frost from rim to middle, so nothing marks where the bend begins.
-  const filter = (
+  const filter = canvas ? null : (
     <svg aria-hidden="true" focusable="false" width="0" height="0" className="pointer-events-none absolute">
       <filter ref={svgFilter} id={id} colorInterpolationFilters="sRGB" {...(size ? { x: 0, y: 0, width: size.w, height: size.h, filterUnits: "userSpaceOnUse" } : {})}>
         {map && size ? (
@@ -218,7 +233,11 @@ export function useGlass(kind: GlassKind, { sync = false }: { sync?: boolean } =
   return { attach, style, filter, look, live };
 }
 
-/** The light caught along the rim: brightest top left, a fainter catch bottom right. Render it last in the pane. */
-export function GlassEdge({ light }: { light: number }) {
-  return <span aria-hidden className="glass-edge" style={{ "--edge": light } as CSSProperties} />;
+/**
+ * The light caught along the rim: brightest top left, a fainter catch bottom right; with Canvas UI's glass, a plain
+ * hairline border. Render it last in the pane.
+ */
+export function GlassEdge({ look }: { look: GlassLook }) {
+  if (look.canvas) return <span aria-hidden className="glass-ring" style={{ "--ring": look.ring } as CSSProperties} />;
+  return <span aria-hidden className="glass-edge" style={{ "--edge": look.light } as CSSProperties} />;
 }
