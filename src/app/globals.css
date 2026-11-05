@@ -16,11 +16,15 @@
   --background: #0d0b0a;
   --foreground: #f3eee8;
   color-scheme: dark;
-  /* The page's side margin; never less than a notched phone's safe area (held sideways). */
+  /* The page's side margin; never less than a notched phone's safe area (held sideways). 20px on phones held upright,
+     80 held sideways, 64 on desktops and tablets (the song's name as far in from the left as from the top). */
   --page-x: 1.25rem;
 }
 @media (min-width: 640px) {
   :root { --page-x: 5rem; }
+}
+@media (min-width: 640px) and (min-height: 501px) {
+  :root { --page-x: 4rem; }
 }
 
 /* Side padding (and the matching scroll-snap padding) that keeps clear of the notch and rounded corners. */
@@ -86,11 +90,11 @@ body {
   background-color: var(--glass-fill);
   -webkit-backdrop-filter: var(--glass-fallback);
   backdrop-filter: var(--glass-fallback);
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--glass-shadow, 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6));
 }
 .svg-glass .glass { backdrop-filter: var(--glass-filter); }
 /* The open card carries its glass in a layer under its content (see CardDetail), so its shadow goes on the card. */
-.glass-shadow { box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6); }
+.glass-shadow { box-shadow: var(--glass-shadow, 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6)); }
 
 /* A card's hover: it lifts a little, its fill and rim light brighten. All transitions, so on and off are smooth. Only
    where there is hover (a mouse or trackpad): on touch screens a tapped card would stay lifted. The press works on all. */
@@ -101,7 +105,7 @@ body {
   .glass-hover:hover {
     transform: translateY(-3px) scale(1.012);
     background-color: var(--glass-fill-hover);
-    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 28px 50px -22px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--glass-shadow-hover, 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 28px 50px -22px rgba(0, 0, 0, 0.7));
   }
 }
 .glass-hover:active { transform: translateY(-1px) scale(0.996); transition-duration: 140ms; }
@@ -133,11 +137,23 @@ body {
   .glass-hover:hover .glass-edge { opacity: 1; }
 }
 
-/* Cards rise into place on load (one after another via --rise-delay). Not "forwards": once done, hover owns transform. */
-@keyframes glass-rise {
-  from { opacity: 0; transform: translateY(26px); }
+/* Canvas UI's glass (Tune → Glass) has a plain hairline border, the same all round, in place of the rim light. */
+.glass-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgb(255 255 255 / var(--ring));
+  pointer-events: none;
 }
-.glass-rise { animation: glass-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--rise-delay, 0ms) backwards; }
+
+/* Cards rise into place on load (one after another via --rise-delay), from partly below the window's bottom edge (the
+   row clips them there): solid by 40% of the way, so most of the rise is seen. Not "forwards": once done, hover owns
+   transform. */
+@keyframes glass-rise {
+  from { opacity: 0; transform: translateY(56px); }
+  40% { opacity: 1; }
+}
+.glass-rise { animation: glass-rise 900ms cubic-bezier(0.22, 0.75, 0.25, 1) var(--rise-delay, 0ms) backwards; }
 @media (prefers-reduced-motion: reduce) {
   .glass-rise { animation: none; }
   .glass-hover, .glass-hover:hover, .glass-hover:active { transform: none; }
@@ -181,6 +197,12 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .scrub:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.5); outline-offset: 4px; border-radius: 999px; }
+/* The song page player's knob shows only while the bar is pressed and dragged (Scrubber knobOnDrag), or focused from
+   the keyboard; it grows in from the track. */
+.scrub[data-knob]::-webkit-slider-thumb { transition: opacity 150ms ease, transform 150ms ease; }
+.scrub[data-knob]::-moz-range-thumb { transition: opacity 150ms ease, transform 150ms ease; }
+.scrub[data-knob="hidden"]:not(:focus-visible)::-webkit-slider-thumb { opacity: 0; transform: scale(0.4); }
+.scrub[data-knob="hidden"]:not(:focus-visible)::-moz-range-thumb { opacity: 0; transform: scale(0.4); }
 /* On touch screens: a taller target and a bigger knob, the track as slim as before. */
 @media (pointer: coarse) {
   .scrub { height: 32px; }
@@ -191,24 +213,62 @@ body {
 .scrollbar-hide { scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* Where the cover sits (mirrors coverFrame in components/backdrops/art.ts): a square across the top in the stacked
-   layout, on the right in the wide one (the `wide` variant's rule). .cover-feather fades its edges, longest towards
-   the content. Backdrops are 100lvh tall, so the square is sized against that. */
+/* Where the cover sits (mirrors coverFrame in components/backdrops/art.ts): a square covering the window's top 70%
+   in the stacked layout, centred in that band; on the right in the wide one (the `wide` variant's rule).
+   .cover-feather fades its edges, longest towards the content. Backdrops are 100lvh tall, so the square is sized
+   against that. */
 .cover-box {
-  --s: 100vw;
+  --s: max(100vw, 70lvh);
   position: absolute;
   width: var(--s);
   height: var(--s);
-  right: 0;
-  top: 0;
+  left: calc(50% - var(--s) / 2);
+  top: calc(35% - var(--s) / 2);
 }
-.cover-feather { mask-image: linear-gradient(to bottom, #000 50%, transparent); }
+.cover-feather { mask-image: linear-gradient(to bottom, #000 90%, transparent); }
 @media (orientation: landscape) and (min-width: 640px) {
-  .cover-box { --s: min(92lvh, 52vw); top: calc(50% - var(--s) / 2); }
+  .cover-box { --s: min(92lvh, 52vw); left: auto; right: 0; top: calc(50% - var(--s) / 2); }
   .cover-feather {
     mask-image: linear-gradient(to right, transparent, #000 30%), linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
     mask-composite: intersect;
   }
+}
+
+/* A page's own text and controls coming up (backdrops/Stage.tsx Entrance): a short fade up, after --enter-delay (partway
+   into the cover's move when arriving from another page). */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+}
+.page-enter { animation: page-enter 400ms ease-out var(--enter-delay, 0ms) both; }
+/* Held at their start (hidden) until the page lets them go: a song page arriving from another song, until the cover's
+   crossfade is over (SongView). The cards' rise too. */
+.entrance-hold .page-enter, .entrance-hold .glass-rise { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+}
+
+/* The moving cover's glow (backdrops/Stage.tsx): soft all round, as the fog's blurred bleed is. */
+.glow-fade {
+  mask-image: linear-gradient(to right, transparent, #000 30%, #000 70%, transparent), linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-composite: intersect;
+}
+
+/* The moving cover's edge fade (backdrops/Stage.tsx), grown or shrunk smoothly from one page's to the other's: the
+   fog's own fade (variants.tsx fadeStops) as stops across (--x0…--x3: transparent → opaque → opaque → transparent)
+   and down (--y0…--y3), in % of the moving picture (stage-model.ts edgeStops). 0 0 100 100 is no fade at all. */
+@property --x0 { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --x1 { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --x2 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@property --x3 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@property --y0 { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --y1 { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --y2 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@property --y3 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+.cover-edge-anim {
+  mask-image:
+    linear-gradient(to right, transparent var(--x0), #000 var(--x1), #000 var(--x2), transparent var(--x3)),
+    linear-gradient(to bottom, transparent var(--y0), #000 var(--y1), #000 var(--y2), transparent var(--y3));
+  mask-composite: intersect;
 }
 
 @keyframes slow-zoom {
@@ -217,15 +277,17 @@ body {
 }
 .animate-slow-zoom { animation: slow-zoom 36s ease-in-out infinite alternate; }
 
-/* Slow push-in for the still styles (Blur, Glass, Pixel glass), centred on the cover so it grows in place. Amount
-   and duration come from the Tune panel via --zoom-to and inline animation timing (see backdrops/params.ts). */
+/* Slow push-in for the still styles (Blur, Glass, Pixel glass) and Fog, centred on the cover so it grows in place:
+   the centre of the band it covers on portrait screens (the top 70%), the cover's on the right on wide ones; the
+   landing page's full-screen fog sets the window's centre (zoomOrigin). Amount and duration come from the Tune panel
+   via --zoom-to and inline animation timing (see backdrops/params.ts). */
 @keyframes subtle-zoom {
   from { transform: scale(1); }
   to { transform: scale(var(--zoom-to, 1.1)); }
 }
 .animate-subtle-zoom {
   animation: subtle-zoom 20s ease-in-out -4s infinite alternate;
-  transform-origin: 50% 50vw;
+  transform-origin: 50% 35%;
 }
 @media (orientation: landscape) and (min-width: 640px) {
   .animate-subtle-zoom { transform-origin: calc(100% - min(92lvh, 52vw) / 2) 50%; }
@@ -241,8 +303,8 @@ body {
   .animate-slow-zoom, .animate-subtle-zoom, .animate-breathe { animation: none; }
 }
 
-/* The open card's stage (cards/CardDetail.tsx): centred with 16 px round it; on phones held upright, a sheet along the
-   foot of the screen, 8 px in from the edges, clear of the home indicator, leaving room above to tap away. */
+/* The open card's stage (cards/CardDetail.tsx): centred in the window with 16 px round it; on phones held upright, 8 px
+   in from the sides and clear of the notch and the home indicator. */
 .card-stage {
   --stage-t: 1rem;
   --stage-b: 1rem;
@@ -252,10 +314,9 @@ body {
 }
 @media (max-width: 639px) {
   .card-stage {
-    --stage-t: max(3rem, calc(env(safe-area-inset-top) + 1.5rem));
-    --stage-b: max(0.5rem, env(safe-area-inset-bottom));
+    --stage-t: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
+    --stage-b: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
     --stage-x: 0.5rem;
-    align-items: flex-end;
   }
 }
 .card-stage-content {

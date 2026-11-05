@@ -16,6 +16,7 @@ import {
 import { glassBoot } from "@/components/glass/settings";
 import { typefaceBoot } from "@/components/typeface";
 import { SoundtrackProvider } from "@/components/player/Soundtrack";
+import { StageProvider } from "@/components/backdrops/Stage";
 import "./globals.css";
 import { legacyStorageBoot } from "@/components/legacy-storage";
 
@@ -76,8 +77,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: legacyStorageBoot() + typefaceBoot() + glassBoot() }} />
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Above the pages, so the music plays on from page to page (components/player/Soundtrack.tsx). */}
-        <SoundtrackProvider>{children}</SoundtrackProvider>
+        {/* Above the pages, so the music plays on from page to page (components/player/Soundtrack.tsx), and the backdrop
+            stays as one window behind them all (components/backdrops/Stage.tsx). */}
+        <SoundtrackProvider>
+          <StageProvider>{children}</StageProvider>
+        </SoundtrackProvider>
       </body>
     </html>
   );

@@ -3,7 +3,7 @@ import { Landing } from "@/components/landing/Landing";
 
 export default async function Home() {
   const entries = await loadEntries();
-  const songs = entries.map(({ slug, title, artist, aliases, tags, cover, preview }) => ({
+  const songs = entries.map(({ slug, title, artist, aliases, tags, cover, preview, releaseYear }) => ({
     slug,
     title,
     artist,
@@ -11,6 +11,7 @@ export default async function Home() {
     tags,
     cover: { file: cover.file, kind: cover.kind },
     preview: preview?.url ?? null,
+    year: releaseYear ?? null,
   }));
   return (
     <>
