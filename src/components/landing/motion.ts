@@ -4,7 +4,7 @@
  * left it, and the list loops. Positions are unbounded rows (row k shows song wrap(k, count)). SongWheel feeds it
  * events and ticks it every frame while `moving`.
  */
-import { flickTarget, nearestEquivalent, springStep, wrap } from "./wheel";
+import { flickTarget, nearestEquivalent, rollSecs, rollTarget, springStep, wrap } from "./wheel";
 
 export type Mode = "idle" | "drag" | "spring" | "ease";
 
@@ -22,6 +22,7 @@ export class WheelMotion {
   mode: Mode = "idle";
   private from = 0;
   private t0 = 0;
+  private easeMs = 150;
   private lastTick = 0;
   private swipe = { at: -Infinity, size: 0, travel: 0, turned: false, trackpad: false };
   private press_: { y: number; start: number; moved: boolean; row: number | null; wasIdle: boolean; samples: { t: number; p: number }[] } | null = null;
@@ -63,11 +64,25 @@ export class WheelMotion {
   goTo(k: number, now: number) {
     this.target = Math.round(k);
     this.lastTick = now;
-    if (this.opts.reduced) {
-      this.mode = "ease";
-      this.from = this.pos;
-      this.t0 = now;
-    } else this.mode = "spring";
+    if (this.opts.reduced) this.ease(150, now);
+    else this.mode = "spring";
+  }
+
+  /**
+   * The 🎲: a spin to a random other song (rollTarget; `rand` is Math.random's [0, 1)), off at full speed and slowing
+   * to a stop on it like a wheel spun by hand, in about a second (rollSecs); a short ease with reduced motion.
+   */
+  roll(rand: number, now: number) {
+    this.target = rollTarget(this.aim(), this.count, rand);
+    this.lastTick = now;
+    this.ease(this.opts.reduced ? 150 : rollSecs(this.target - this.pos) * 1000, now);
+  }
+
+  private ease(ms: number, now: number) {
+    this.mode = "ease";
+    this.from = this.pos;
+    this.t0 = now;
+    this.easeMs = ms;
   }
 
   /** Off to song `i`, the short way round the loop. */
@@ -178,7 +193,7 @@ export class WheelMotion {
       // At rest as soon as it looks still: well under a pixel from its row, barely moving.
       if (Math.abs(this.pos - this.target) < 0.01 && Math.abs(this.vel) < 0.1) return this.rest();
     } else if (this.mode === "ease") {
-      const t = Math.min(1, (now - this.t0) / 150);
+      const t = Math.min(1, (now - this.t0) / this.easeMs);
       this.pos = this.from + (this.target - this.from) * (1 - (1 - t) ** 3);
       if (t >= 1) return this.rest();
     }

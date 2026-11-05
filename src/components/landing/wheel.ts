@@ -3,15 +3,13 @@
  * looks at a given offset from the centre (on a drum, like the iOS inline picker), the loop, and how a release
  * settles. Positions and offsets are in rows; velocities in rows per second.
  */
-import { normalize, searchEntries, type Searchable } from "../../content/search";
-
 /** Tunable in the landing Tune panel's Wheel group (params.ts WHEEL_PARAMS uses the same keys). */
 export type WheelSettings = {
   /** Drum diameter, as a multiple of the window height. */
   drum: number;
   /** Row spacing, as a multiple of the text size. */
   spacing: number;
-  /** Extra room above and below the focused song, px (see focusGap). */
+  /** Extra room above and below the focused song, as a multiple of the text size (see focusGap). */
   focusGap: number;
   /** How much smaller each row away from the centre is. */
   falloff: number;
@@ -123,12 +121,23 @@ export function springStep(pos: number, vel: number, target: number, dt: number)
   return { pos: pos + v * dt, vel: v };
 }
 
-/** The wheel position of the first song matching `query`, or null (an empty or punctuation-only query, or no match). */
-export function matchIndex<T extends Searchable>(songs: T[], query: string): number | null {
-  if (!normalize(query)) return null;
-  const first = searchEntries(songs, query)[0];
-  return first ? songs.indexOf(first) : null;
+/** How far a random spin (the 🎲) turns the wheel, in songs: at least four, so it reads as a spin, at most twelve. */
+const ROLL = { min: 4, max: 12 };
+
+/**
+ * Where a random spin (the 🎲) sends the wheel from row `from` (of a loop of `count` songs): ROLL.min to
+ * ROLL.max songs on down the list, each as likely (`rand` is Math.random's [0, 1)); never round to the song it's on.
+ * With one song there's nowhere to go.
+ */
+export function rollTarget(from: number, count: number, rand: number) {
+  if (count < 2) return from;
+  const max = Math.min(ROLL.max, count - 1);
+  const min = Math.min(ROLL.min, max);
+  return from + min + Math.min(max - min, Math.floor(rand * (max - min + 1)));
 }
+
+/** How long a spin of `rows` rows takes, s: about a second, longer the further it goes. */
+export const rollSecs = (rows: number) => Math.min(1.2, 0.5 + 0.06 * Math.abs(rows));
 
 /** The rows whose covers to prefetch: two either side of the focused one, round the loop. */
 export function prefetchRows(focused: number, count: number): number[] {

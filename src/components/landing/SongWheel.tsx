@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { claim, HOLD_SLOP, onClaim, release } from "../gesture";
 import { WheelMotion } from "./motion";
-import { barChrome, SearchBar, type SearchBarProps } from "./SearchBar";
-import { CAP_EM, wheelOwnsKeys } from "./settings";
-import { centreFloor, focusGap, rowFit, rowLook, travelling, wheelAction, wheelGeometry, wrap, type WheelSettings } from "./wheel";
+import { SearchBar } from "./SearchBar";
+import { wheelOwnsKeys, type SearchBarLook } from "./settings";
+import type { SortKey } from "./sort";
+import type { WheelLayout } from "./useWheelLayout";
+import { focusGap, rowFit, rowLook, travelling, wheelAction, wrap, type WheelSettings } from "./wheel";
 
 type Props = {
   titles: string[];
-  /** The song the wheel should be on (search, restore): when it changes, the wheel turns there the short way. */
+  /** The song the wheel should be on (restore, rest): when it changes, the wheel turns there the short way. */
   index: number;
   settings: WheelSettings;
   /** The song nearest the centre changed. */
@@ -21,10 +23,17 @@ type Props = {
   /** The wheel came to rest on a song. */
   onRest: (i: number) => void;
   onOpen: (i: number, newTab: boolean) => void;
-  /** The serif typeface's key: when it changes, titles are measured again in the new face. */
-  fontKey?: string;
-  /** A search bar round the centred song (see SearchBar): its look, what's typed and what to do with it. */
-  search?: Omit<SearchBarProps, "size" | "titleWidth" | "titleSize" | "cap" | "font" | "hidden" | "onGo" | "compact" | "maxText">;
+  /** The wheel's measurements for this window (useWheelLayout, with the same titles, settings and search bar look). */
+  layout: WheelLayout;
+  /** The bar round the centred song (see SearchBar): its look, and the order its sort menu shows and changes; no bar without it. */
+  bar?: { look: SearchBarLook; sort: SortKey; onSort: (key: SortKey) => void };
+  /** For a spin to a random song (the landing page's 🎲): `ref.current.roll()`. */
+  ref?: React.Ref<WheelHandle>;
+};
+
+export type WheelHandle = {
+  /** Spin to a random song, 4 to 12 songs on. */
+  roll: () => void;
 };
 
 /**
@@ -37,55 +46,17 @@ type Props = {
  * where it is. On small screens titles are at least ~30 px (centreFloor), and those too long for the width at that
  * size are set smaller to fit (rowFit).
  */
-export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, onRest, onOpen, fontKey, search }: Props) {
+export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, onRest, onOpen, layout, bar, ref }: Props) {
   const count = titles.length;
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Measurements: the window, and the longest title at 100 px in the wheel's typeface (it decides the text size).
-  const [view, setView] = useState({ w: 0, h: 0, font: "", loads: 0 });
-  useLayoutEffect(() => {
-    const root = rootRef.current!;
-    const measure = () => setView((v) => ({ ...v, w: window.innerWidth, h: window.innerHeight, font: getComputedStyle(root).fontFamily }));
-    measure();
-    // Measure again once the typeface has loaded (until then the fallback's widths would be measured).
-    void document.fonts
-      .load(`400 100px ${getComputedStyle(root).fontFamily}`)
-      .catch(() => [])
-      .then(() => setView((v) => ({ ...v, loads: v.loads + 1 })));
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [fontKey]);
-  const widthsAt100 = useMemo(() => {
-    if (!view.font) return titles.map(() => 1000);
-    const g = document.createElement("canvas").getContext("2d")!;
-    g.font = `400 100px ${view.font}`;
-    return titles.map((t) => g.measureText(t).width);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-measure once the typeface has loaded
-  }, [titles, view.font, view.loads]);
-  // The typeface's capitals ("H"): their height, and how far their middle sits below the middle of a title's line (one
-  // line, line-height 1), in em. The search bar's icons are as tall as them and level with them.
-  const cap = useMemo(() => {
-    if (!view.font) return { em: CAP_EM, shift: 0 };
-    const g = document.createElement("canvas").getContext("2d")!;
-    g.font = `400 100px ${view.font}`;
-    const m = g.measureText("H");
-    const em = m.actualBoundingBoxAscent / 100;
-    const ascent = m.fontBoundingBoxAscent / 100;
-    const descent = m.fontBoundingBoxDescent / 100;
-    if (!(em > 0) || !Number.isFinite(ascent + descent)) return { em: CAP_EM, shift: 0 };
-    return { em, shift: (ascent - descent) / 2 - em / 2 };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-measure once the typeface has loaded
-  }, [view.font, view.loads]);
-  const size = view.w ? view : { w: 1440, h: 900 };
-  const compact = size.w < 640;
-  const bar = search ? barChrome(search.look, compact, cap.em) : { em: 0, px: 0 };
-  const geo = wheelGeometry(settings, size, Math.max(...widthsAt100), bar.em, bar.px, centreFloor(size));
+  const { view, widthsAt100, compact, geo } = layout;
   const fitOf = (k: number) => rowFit(widthsAt100[wrap(k, count)], geo.centerSize, geo.maxText);
 
   const motion = useRef<WheelMotion | null>(null);
   if (motion.current == null) motion.current = new WheelMotion(count, index, { pitch: geo.pitch, reduced: false });
   const [pos, setPos] = useState(index);
-  // Travelling through several songs at once (see travelling()): the search bar fades out until the wheel arrives at its
+  // Travelling through several songs at once (see travelling()): the bar fades out until the wheel arrives at its
   // song (onArrive), which becomes where the next move sets off from. A single step never fades it, however it's made.
   const [spun, setSpun] = useState(false);
   const from = useRef(index);
@@ -109,7 +80,9 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     const tick = (now: number) => {
       const m = motion.current!;
       const aim = wrap(m.target, m.count);
-      if (m.moving && aim !== aimed.current) callbacks.current.onAim((aimed.current = aim));
+      if (m.moving && aim !== aimed.current) {
+        callbacks.current.onAim((aimed.current = aim));
+      }
       const { rested } = m.tick(now);
       if (Math.abs(m.pos - m.target) < 0.1 && aim !== arrived.current) callbacks.current.onArrive((arrived.current = aim));
       setPos(m.pos);
@@ -124,7 +97,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
   };
   useEffect(() => () => cancelAnimationFrame(loop.current), []);
 
-  // Outside requests (search, restore).
+  // Outside requests (restore, rest).
   useEffect(() => {
     const m = motion.current!;
     if (index !== wrap(m.target, count)) {
@@ -264,20 +237,24 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     kick();
   };
 
+  // A random spin (the page's 🎲).
+  const roll = () => {
+    motion.current!.roll(Math.random(), performance.now());
+    // A spin always travels (several songs, however few songs there are): the bar fades until it lands.
+    setSpun(true);
+    kick();
+  };
+  useImperativeHandle(ref, () => ({ roll }));
+
   const id = useId();
-  const typing = search?.query != null;
   // The centred title's width, eased between the two rows nearest the centre as the wheel turns (the bar follows it).
   const below = Math.floor(pos);
   const widthAt = (k: number) => fitOf(k).width;
   const titleWidth = widthAt(below) + (widthAt(below + 1) - widthAt(below)) * (pos - below);
-  const sizeAt = (k: number) => fitOf(k).size;
-  const titleSize = sizeAt(below) + (sizeAt(below + 1) - sizeAt(below)) * (pos - below);
   const rows = [];
   for (let k = Math.floor(pos) - 12; k <= Math.ceil(pos) + 12; k++) {
     const look = rowLook(k - pos, { stepDeg: geo.stepDeg, falloff: settings.falloff, dim: settings.dim });
     if (!look.visible) continue;
-    // While typing, what's typed takes the centre: titles fade out as they turn into the bar, and are gone inside it.
-    if (typing) look.opacity *= Math.min(1, Math.max(0, Math.abs(k - pos) * 2 - 1));
     const song = wrap(k, count);
     const fit = fitOf(k);
     rows.push(
@@ -295,9 +272,9 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
           fontSize: fit.size,
           ...(fit.clip ? { maxWidth: geo.maxText, overflow: "hidden", textOverflow: "ellipsis" } : {}),
           opacity: look.opacity,
-          // The focused song gets focusGap px more room above and below; the rest keep their spacing. The push is made
-          // in the row's own depth on the drum, so it's scaled up to undo the perspective (3 × radius): 8 px on screen.
-          transform: `translate(-50%, calc(-50% + ${focusGap(k - pos, settings.focusGap) * (1 + (1 - Math.cos((look.angleDeg * Math.PI) / 180)) / 3)}px)) translateZ(${-geo.radius}px) rotateX(${-look.angleDeg}deg) translateZ(${geo.radius}px) scale(${look.scale})`,
+          // The focused song gets focusGap × text more room above and below; the rest keep their spacing. The push is
+          // made in the row's own depth on the drum, so it's scaled up to undo the perspective (3 × radius).
+          transform: `translate(-50%, calc(-50% + ${focusGap(k - pos, settings.focusGap * geo.centerSize) * (1 + (1 - Math.cos((look.angleDeg * Math.PI) / 180)) / 3)}px)) translateZ(${-geo.radius}px) rotateX(${-look.angleDeg}deg) translateZ(${geo.radius}px) scale(${look.scale})`,
           backfaceVisibility: "hidden",
         }}
       >
@@ -323,17 +300,15 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       style={{ height: Math.min(2 * geo.radius, view.h || 900), perspective: geo.radius * 3 }}
     >
       {rows}
-      {search && (
+      {bar && (
         <SearchBar
-          {...search}
+          look={bar.look}
+          sort={bar.sort}
+          onSort={bar.onSort}
           size={geo.centerSize}
           titleWidth={titleWidth}
-          titleSize={titleSize}
-          cap={cap}
-          font={view.font}
           compact={compact}
-          maxText={geo.maxText}
-          hidden={spun && !typing}
+          hidden={spun}
           onGo={(newTab) => callbacks.current.onOpen(motion.current!.chosen(), newTab)}
         />
       )}

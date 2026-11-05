@@ -12,8 +12,8 @@ const SONG_PAGES_STORE = "soundscape.backdrop.params";
 
 export type LandingSettings = { fog: Params; wheel: Params; bar: Params };
 
-/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-10-30). */
-const LANDING_FOG: Params = { density: 0, opacity: 0.16, refraction: 6, refog: 20, thicken: 80, thickMax: 0.75, dripEvery: 10, zoomSecs: 15 };
+/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-11-04). */
+const LANDING_FOG: Params = { opacity: 0.3, blur: 10, dripEvery: 10, edgeSoft: 0, brightness: 0.68, glow: 0.3, zoomSecs: 15 };
 
 /** No finger-written title on this page (the titles are on the wheel); its own Fog defaults. */
 export const LANDING_FOG_SPECS: Param[] = PARAMS.fog
@@ -36,13 +36,28 @@ export function seedLanding(savedSongPages: unknown): LandingSettings {
   return settle(isObject(savedSongPages) ? numbersIn(savedSongPages.fog) : {}, {});
 }
 
-/** Bumped when the wheel's settings change meaning or defaults, so wheel values saved before are set aside. */
-const WHEEL_VERSION = 3;
+/**
+ * Bumped when the wheel's settings change meaning or defaults, so wheel values saved before are set aside (4: the room
+ * round the focused song in em of the text, no longer px).
+ */
+const WHEEL_VERSION = 4;
+/** The same for the search bar's (2: sized as in the Figma design, node 196:2058; 3: its icons at 50%). */
+const BAR_VERSION = 3;
+const without = (values: Params, ...keys: string[]): Params => Object.fromEntries(Object.entries(values).filter(([k]) => !keys.includes(k)));
 
-/** The landing settings from what's saved: this page's own (wheel values only if current), else seeded from the song pages'. */
+/**
+ * The landing settings from what's saved: this page's own (wheel and bar values if current; from the version before,
+ * all but those that changed), else seeded from the song pages'.
+ */
 export function readLanding(own: unknown, songPages: unknown): LandingSettings {
   if (!isObject(own)) return seedLanding(songPages);
-  return settle(numbersIn(own.fog), own.wheelVersion === WHEEL_VERSION ? numbersIn(own.wheel) : {}, numbersIn(own.bar));
+  const wheel = numbersIn(own.wheel);
+  const bar = numbersIn(own.bar);
+  return settle(
+    numbersIn(own.fog),
+    own.wheelVersion === WHEEL_VERSION ? wheel : own.wheelVersion === 3 ? without(wheel, "focusGap") : {},
+    own.barVersion === BAR_VERSION ? bar : own.barVersion === 2 ? without(bar, "searchOpacity", "arrowOpacity") : {},
+  );
 }
 
 /** What's saved: only what differs from the defaults, so later changes to the defaults still reach you. */
@@ -53,6 +68,7 @@ export function toSaved(s: LandingSettings) {
     wheel: changed(s.wheel, defaults(WHEEL_PARAMS)),
     wheelVersion: WHEEL_VERSION,
     bar: changed(s.bar, defaults(SEARCH_BAR_PARAMS)),
+    barVersion: BAR_VERSION,
   };
 }
 
@@ -89,7 +105,10 @@ export function wheelSettings(values: Params): WheelSettings {
   return { drum: p.drum / 100, spacing: p.spacing, focusGap: p.focusGap, falloff: p.falloff, longest: p.longest / 100, dim: p.dim };
 }
 
-/** How the search bar round the centred song looks: px, em of the wheel's text, CSS rgb channels and 0–1 opacities. */
+/**
+ * How the search bar round the centred song looks: px, em of the wheel's text, CSS rgb channels and 0–1 opacities. As in
+ * the Figma design, the stroke is inside the outline and the padding is measured from the outline itself.
+ */
 export type SearchBarLook = {
   stroke: number;
   strokeColor: string;
@@ -97,41 +116,46 @@ export type SearchBarLook = {
   padX: number;
   padY: number;
   gap: number;
-  /** The icons' height, as a multiple of the title's capitals. */
-  iconHeight: number;
+  /** Each icon's box, square, in em of the title (the drawing is 13/16 of it, as Phosphor draws it). */
+  icon: number;
   iconColor: string;
   searchOpacity: number;
   arrowOpacity: number;
 };
 
 /**
- * On narrow screens (phones held upright) the bar's padding, icons and gaps are set in px: in em of the small type
- * there, the icons would be too small to see or tap, and the padding would take width the titles need.
+ * On narrow screens (phones held upright) the bar's side padding and the gaps between icons and text are set in px: in
+ * em of the type there, they'd take width the titles need. Measured to the icons' boxes, like the design's; the drawings
+ * sit a few px inside them. The padding above and below the icons is the same as at the sides.
  */
-export const COMPACT_BAR = { padX: 12, gap: 10 };
-
-/** The icons' width for their height (SearchBar draws each in a box that hugs its stroke). */
-export const ICON_ASPECT = { search: 1, arrow: 18.75 / 15.75 };
-/** A serif's capital height in em, for when the typeface can't be measured. */
-export const CAP_EM = 0.7;
+export const COMPACT_BAR = { padX: 10, gap: 16 };
 
 /**
- * The bar's side padding, icon height and the gaps between text and icons, in px, at type size `size`. The icons are as
- * tall as the title's capitals, `capPx`, times Icon size, on every screen.
+ * Every icon's box on the site, px, for the wheel's centre text size `size`: the search bar's two, and the corner ones
+ * (music, Close) drawn as big (see components/icon.tsx). One size for every title, however a long one is set to fit.
  */
-export function barParts(look: SearchBarLook, size: number, compact: boolean, capPx = CAP_EM * size) {
-  const icon = look.iconHeight * capPx;
-  return compact ? { ...COMPACT_BAR, icon } : { padX: look.padX * size, icon, gap: look.gap * size };
+export const iconBox = (look: SearchBarLook, size: number) => look.icon * size;
+
+/** The text's line, in em (the Figma design's 60 px at 48 px): the bar is never shorter than this plus its padding. */
+const LINE = 60 / 48;
+
+/**
+ * The bar's side padding, icon size, the gaps between text and icons, and its height (the icons or the text's line,
+ * whichever is taller, plus the padding above and below), in px, at the wheel's text size `size`.
+ */
+export function barParts(look: SearchBarLook, size: number, compact: boolean) {
+  const icon = iconBox(look, size);
+  const inner = Math.max(icon, LINE * size);
+  return compact
+    ? { ...COMPACT_BAR, icon, height: inner + 2 * COMPACT_BAR.padX }
+    : { padX: look.padX * size, icon, gap: look.gap * size, height: inner + 2 * look.padY * size };
 }
 
-/**
- * How much wider the bar is than the text in it: `em` of the wheel's text plus `px` (the stroke; compact padding and
- * gaps). `capEm` is the title's capital height in em.
- */
-export function barChromeOf(look: SearchBarLook, compact: boolean, capEm = CAP_EM) {
-  const icons = look.iconHeight * capEm * (ICON_ASPECT.search + ICON_ASPECT.arrow);
+/** How much wider the bar is than the text in it: `em` of the wheel's text plus `px` (compact padding and gaps). */
+export function barChromeOf(look: SearchBarLook, compact: boolean) {
+  const icons = 2 * look.icon;
   const c = COMPACT_BAR;
-  return compact ? { em: icons, px: 2 * (c.padX + c.gap + look.stroke) } : { em: 2 * (look.padX + look.gap) + icons, px: 2 * look.stroke };
+  return compact ? { em: icons, px: 2 * (c.padX + c.gap) } : { em: 2 * (look.padX + look.gap) + icons, px: 0 };
 }
 
 /** The Search bar group's values as its look; anything missing comes from the defaults. */
@@ -145,7 +169,7 @@ export function searchBarLook(values: Params): SearchBarLook {
     padX: p.padX,
     padY: p.padY,
     gap: p.gap,
-    iconHeight: p.iconHeight,
+    icon: p.icon,
     iconColor: rgb(p.iconColor),
     searchOpacity: p.searchOpacity / 100,
     arrowOpacity: p.arrowOpacity / 100,
