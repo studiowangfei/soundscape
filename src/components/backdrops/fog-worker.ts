@@ -5,5 +5,5 @@ const scope = self as unknown as { onmessage: ((e: MessageEvent<FogJob>) => void
 
 scope.onmessage = (e) => {
   const r = runFogJob(e.data);
-  scope.postMessage(r, [r.fog.buffer, r.mist.buffer, r.clear.buffer]);
+  scope.postMessage(r, [r.scene.buffer, r.lenses.buffer, r.mist.buffer, r.clear.buffer]);
 };

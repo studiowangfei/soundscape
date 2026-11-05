@@ -30,29 +30,54 @@ export function useArtwork(src: string, kind: "album" | "artist"): LoadedArt | n
   return art;
 }
 
-/** "beside": the song pages' cover next to the content; "fill": the cover fills the whole window (the landing page). */
+/**
+ * "beside": the song pages' cover next to the content (wide layout), or across the top of the window (stacked layout);
+ * "fill": the cover fills the whole window (the landing page).
+ */
 export type Layout = "beside" | "fill";
 
+/** The stacked layout's cover covers the window's top 70% (globals.css .cover-box and .animate-subtle-zoom mirror it). */
+export const STACK = 0.7;
+
 /**
- * Where the cover sits. Beside: a square on the right in the wide layout (landscape screens; see env.ts), across the
- * top in the stacked one. Fill: a square as big as the window's longer side, centred, so the window crops it. `wide`:
- * the browser's own answer (wideNow()), which is exactly what CSS lays out by; from the size when not given.
+ * Where the cover sits. Beside: a square on the right in the wide layout (landscape screens; see env.ts); in the
+ * stacked one (portrait screens: phones, iPads held upright) a square covering the window's top 70% (the window's
+ * width, or that band's height if more), centred in it, its edge bleed fading on down into the rest. Fill: a square as
+ * big as the window's longer side, centred, so the window crops it. `wide`: the browser's own answer (wideNow()), which
+ * is exactly what CSS lays out by; from the size when not given.
  */
 export function coverFrame(W: number, H: number, layout: Layout = "beside", wide = isWide(W, H)) {
   if (layout === "fill") {
     const side = Math.max(W, H);
     return { wide, fill: true, side, ox: Math.round((W - side) / 2), oy: Math.round((H - side) / 2) };
   }
-  const side = wide ? Math.round(Math.min(H * 0.92, W * 0.52)) : W;
-  return { wide, fill: false, side, ox: wide ? W - side : 0, oy: wide ? Math.round((H - side) / 2) : 0 };
+  if (!wide) {
+    const band = H * STACK;
+    const side = Math.round(Math.max(W, band));
+    return { wide, fill: false, side, ox: Math.round((W - side) / 2) || 0, oy: Math.round((band - side) / 2) || 0 }; // || 0: no -0
+  }
+  const side = Math.round(Math.min(H * 0.92, W * 0.52));
+  return { wide, fill: false, side, ox: W - side, oy: Math.round((H - side) / 2) };
 }
 
 /**
- * How much smaller droplets must be drawn on the full-screen pane to look as they do on a song page's (cover plus
+ * How far (CSS px) a song page's fogged pane runs past its cover, fading out (the tuned Edge bleed): none on the
+ * full-screen pane; on the stacked layout no further than 60% of the way down the window's part below the cover (its
+ * top and sides are off screen), so the cover only spills a little way into it.
+ */
+export function edgeBleed(f: { wide: boolean; fill: boolean; side: number; oy: number }, H: number, bleed: number) {
+  if (f.fill) return 0;
+  if (f.wide) return bleed;
+  return Math.round(Math.min(bleed, Math.max(0, H - f.oy - f.side) * 0.6));
+}
+
+/**
+ * How much smaller droplets must be drawn on a full-screen pane to look as they do on a song page's cover (plus its
  * edge bleed) in the same window: the ratio of the two panes' sizes on screen.
  */
 export function fillDropScale(W: number, H: number, bleed: number) {
-  return (coverFrame(W, H).side + 2 * bleed) / Math.max(W, H);
+  const f = coverFrame(W, H);
+  return (f.side + 2 * edgeBleed(f, H, bleed)) / Math.max(W, H);
 }
 
 /** Centre-crops to a square and area-averages down to n×n (halving in steps, so no aliasing). Returns RGBA. */
@@ -163,4 +188,31 @@ export function holdTransform(style: { transform: string; transformOrigin: strin
 /** Where the scene pushes in towards: the centre on the full-screen pane; song pages keep the style's own origin. */
 export function zoomOrigin(layout: Layout): string | undefined {
   return layout === "fill" ? "50% 50%" : undefined;
+}
+
+/**
+ * How far the scene is pushed in `t` seconds after it appeared, as a scale: in to 1 + `zoom`% over `secs`, then back out,
+ * eased (CSS ease-in-out), starting a fifth of the way in. The same timing as the subtle-zoom animation the other styles
+ * use (globals.css), worked out here because the Fog style moves its mist in step with the scene.
+ */
+export function zoomAt(t: number, zoom: number, secs: number) {
+  if (!zoom || !(secs > 0)) return 1;
+  const run = t / secs + 0.2;
+  const lap = Math.floor(run);
+  const along = lap % 2 === 0 ? run - lap : 1 - (run - lap); // alternate: out on every other lap
+  return 1 + (zoom / 100) * easeInOut(along);
+}
+
+/** CSS ease-in-out, cubic-bezier(0.42, 0, 0.58, 1): solved for the curve's x by Newton's method, then its y. */
+function easeInOut(x: number) {
+  const curve = (t: number, a: number, b: number) => 3 * (1 - t) * (1 - t) * t * a + 3 * (1 - t) * t * t * b + t * t * t;
+  const slope = (t: number, a: number, b: number) => 3 * (1 - t) * (1 - t) * a + 6 * (1 - t) * t * (b - a) + 3 * t * t * (1 - b);
+  let t = x;
+  for (let i = 0; i < 8; i++) {
+    const err = curve(t, 0.42, 0.58) - x;
+    const d = slope(t, 0.42, 0.58);
+    if (Math.abs(err) < 1e-7 || !d) break;
+    t = Math.min(1, Math.max(0, t - err / d));
+  }
+  return curve(t, 0, 1);
 }

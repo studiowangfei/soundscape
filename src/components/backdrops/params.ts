@@ -1,9 +1,10 @@
 /** Tunable settings per backdrop style, shown as sliders in the switcher's Tune panel. */
 /**
- * A slider; a dropdown when `options` is given (the value is then the option's index); a switch when it runs 0–1 in
- * steps of 1. `when` names another setting: this one is only shown while that one is on (non-zero).
+ * A slider; a dropdown when `options` is given (the value is then the option's index), radio buttons instead with
+ * `radio`; a switch when it runs 0–1 in steps of 1. `when` names another setting: this one is only shown while that one
+ * is on (non-zero).
  */
-export type Param = { key: string; label: string; min: number; max: number; step: number; value: number; unit?: string; options?: string[]; when?: string; color?: boolean };
+export type Param = { key: string; label: string; min: number; max: number; step: number; value: number; unit?: string; options?: string[]; radio?: boolean; when?: string; color?: boolean };
 export type Params = Record<string, number>;
 
 /** Sizes are for wide screens; narrow screens use 3/4 of them. */
@@ -77,9 +78,9 @@ export const PARAMS = {
     ...zoom(10, 20),
   ],
   fog: [
-    { key: "density", label: "Mist thickness", min: 0, max: 1, step: 0.02, value: 0.08 },
-    { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0 },
-    { key: "blur", label: "Mist blur", min: 2, max: 120, step: 1, value: 10, unit: "px" },
+    { key: "density", label: "Mist thickness", min: 0, max: 1, step: 0.02, value: 0 },
+    { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0.16 },
+    { key: "blur", label: "Mist blur", min: 2, max: 120, step: 1, value: 6, unit: "px" },
     { key: "bloom", label: "Light bloom", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0 },
     { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.35, unit: "×" },
@@ -115,9 +116,9 @@ export const PARAMS = {
       { key: "textRefog", label: "Text fogs over (0 = never)", min: 0, max: 120, step: 1, value: 30, unit: "s" },
     ].map(shownWhen("text")),
     { key: "bleed", label: "Edge bleed", min: 0, max: 300, step: 5, value: 300, unit: "px" },
-    { key: "edgeSoft", label: "Edge softness", min: 0, max: 200, step: 5, value: 20, unit: "px" },
-    brightness(0.62),
-    { key: "glow", label: "Ambient glow", min: 0, max: 0.8, step: 0.05, value: 0.3 },
+    { key: "edgeSoft", label: "Edge softness", min: 0, max: 200, step: 5, value: 200, unit: "px" },
+    brightness(0.7),
+    { key: "glow", label: "Ambient glow", min: 0, max: 0.8, step: 0.05, value: 0 },
     ...zoom(20, 20),
   ],
   echo: [
@@ -139,9 +140,9 @@ export const zoomStyle = (p: Params) =>
 
 /** The landing page's song wheel (landing/settings.ts wheelSettings turns these into WheelSettings). */
 export const WHEEL_PARAMS: Param[] = [
-  { key: "drum", label: "Drum diameter", min: 50, max: 250, step: 5, value: 100, unit: "% height" },
-  { key: "spacing", label: "Row spacing", min: 1, max: 3, step: 0.05, value: 1.6, unit: "× text" }, // the focus gap keeps the search bar (2.15 × text tall) clear
-  { key: "focusGap", label: "Room around the focused song", min: 0, max: 40, step: 1, value: 24, unit: "px" },
+  { key: "drum", label: "Drum diameter", min: 50, max: 250, step: 5, value: 125, unit: "% height" },
+  { key: "spacing", label: "Row spacing", min: 1, max: 3, step: 0.05, value: 1.5, unit: "× text" }, // the focus gap keeps the search bar (2.33 × text tall) clear
+  { key: "focusGap", label: "Room around the focused song", min: 0, max: 1.5, step: 0.05, value: 0.5, unit: "× text" },
   { key: "falloff", label: "Size falloff", min: 0, max: 0.2, step: 0.01, value: 0.08 },
   { key: "dim", label: "Other songs' opacity", min: 0.1, max: 1, step: 0.05, value: 0.2 },
   { key: "longest", label: "Longest title width", min: 40, max: 95, step: 1, value: 80, unit: "% width" },
@@ -152,18 +153,20 @@ const colour = (key: string, label: string, value: number): Param => ({ key, lab
 
 /**
  * The landing page's search bar round the centred song (landing/settings.ts searchBarLook turns these into its look).
- * Defaults as tuned on 2026-10-29, starting from the Figma design (52 px text: 4 px stroke at 25% white; 44 px from the
- * stroke to each icon, 20 px from the stroke to the text above and below, 48 px from the text to each icon).
+ * Defaults from the Figma design (node 196:2058, 48 px text): a 2 px stroke at 25% white, inside the outline; 24 px from
+ * the outline to each icon's 64 px box, above and below as at the sides; 40 px from each icon's box to the text; the
+ * icons white (at 50%, like every icon on the site, rather than the design's 30%). Sizes are in em of the wheel's text (× text), so the bar keeps those proportions at any size.
+ * Tuned on 2026-11-04 from there: the stroke at 30%, 1 × text between the text and each icon, the icons at 70%.
  */
 export const SEARCH_BAR_PARAMS: Param[] = [
-  { key: "stroke", label: "Stroke weight", min: 0, max: 8, step: 0.5, value: 1.5, unit: "px" },
+  { key: "stroke", label: "Stroke weight", min: 0, max: 8, step: 0.5, value: 2, unit: "px" },
   colour("strokeColor", "Stroke colour", 0xffffff),
-  { key: "strokeOpacity", label: "Stroke opacity", min: 0, max: 100, step: 5, value: 20, unit: "%" },
-  { key: "padX", label: "Padding, sides", min: 0, max: 2, step: 0.02, value: 1, unit: "× text" },
-  { key: "padY", label: "Padding, top and bottom", min: 0, max: 1, step: 0.02, value: 0.3, unit: "× text" },
-  { key: "gap", label: "Space between text and icons", min: 0, max: 2, step: 0.02, value: 0.86, unit: "× text" },
-  { key: "iconHeight", label: "Icon size", min: 0.5, max: 2, step: 0.05, value: 1, unit: "× title height" }, // 1: as tall as the title's capitals
+  { key: "strokeOpacity", label: "Stroke opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },
+  { key: "padX", label: "Padding, sides", min: 0, max: 2, step: 0.01, value: 24 / 48, unit: "× text" },
+  { key: "padY", label: "Padding, top and bottom", min: 0, max: 1, step: 0.01, value: 24 / 48, unit: "× text" },
+  { key: "gap", label: "Space between text and icons", min: 0, max: 2, step: 0.01, value: 1, unit: "× text" },
+  { key: "icon", label: "Icon size", min: 0.5, max: 3, step: 0.01, value: 64 / 48, unit: "× text" }, // the icon's box; the drawing is 13/16 of it
   colour("iconColor", "Icon colour", 0xffffff),
-  { key: "searchOpacity", label: "Search icon opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },
-  { key: "arrowOpacity", label: "Arrow icon opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },
+  { key: "searchOpacity", label: "Sort icon opacity", min: 0, max: 100, step: 5, value: 70, unit: "%" },
+  { key: "arrowOpacity", label: "Arrow icon opacity", min: 0, max: 100, step: 5, value: 70, unit: "%" },
 ];

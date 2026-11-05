@@ -20,7 +20,7 @@ export type Drip = {
   dur: number;
   stops: number; // it moves in spurts: speed drops to zero this many times
   amp: number;
-  freq: number;
+  freq: number; // cycles over the run: at most half, so it bends one way once at most, never weaving
   phase: number; // of its sideways wander
   rests: boolean; // stops on the glass and stays there as a drop; false: runs off the bottom edge
   e: number; // the droplet's own shape (fogDrops): elongation, outline wobble and its phase
@@ -37,7 +37,7 @@ export type PathDrop = { i: number; s: number; x: number; y: number; rx: number;
 export function newDrip(x0: number, y0: number, r: number, len: number, start: number, cover: number, rests = true, shape = { e: 1, wob: 0, ph: 0 }): Drip {
   const stops = 2 + Math.floor(Math.random() * 2);
   const dur = Math.min(rests ? 8000 : 11000, 2200 + (len / cover) * 12000); // a run off the bottom may take longer
-  return { x0, y0, r, len, start, dur, stops, amp: r * (0.2 + Math.random() * 0.3), freq: 1 + Math.random() * 2, phase: Math.random() * 6.3, rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
+  return { x0, y0, r, len, start, dur, stops, amp: r * (0.05 + Math.random() * 0.07), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
 }
 
 /** How much the drop stretches downward right now: none at rest, up to ~25% at the height of a spurt. */
@@ -65,7 +65,7 @@ export function dripProgress(d: Drip, now: number) {
   return u - Math.sin(2 * Math.PI * k * u) / (2 * Math.PI * k);
 }
 
-/** The drop at progress s: nearly straight down with a gentle wander, shrinking a little as it wets the glass. */
+/** The drop at progress s: straight down but for a slight lean, shrinking a little as it wets the glass. */
 export function dripAt(d: Drip, s: number) {
   const wander = (t: number) => Math.sin(t * d.freq * 2 * Math.PI + d.phase) * d.amp;
   return { x: d.x0 + wander(s) - wander(0), y: d.y0 + s * d.len, r: d.r * (1 - 0.2 * s) };

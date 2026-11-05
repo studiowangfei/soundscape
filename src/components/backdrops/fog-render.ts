@@ -319,7 +319,7 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
           // Inverted, wider view of the clear scene. Tiny drops are too small to show an image: a darker speck of mist
           // with a hint of the sharper scene, which is what gives fog its texture up close.
           const seen =
-            rx > 1.5
+            rx > LENS_PX
               ? sampleClear(cx - (x + 0.5 - cx) * view, cy - (y + 0.5 - cy) * view, c) * 1.08
               : (over ? (out[o + c] / Math.max(0.01, b)) * 0.62 : 0) + sampleClear(cx, cy, c) * 0.3;
           const hazy = seen + (veil[c] - seen) * hide * 0.5; // drops on opaque mist see through the haze too
@@ -332,13 +332,18 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
   };
 }
 
+/** Droplets wider than this (radius, px) are lenses, showing an image of the scene; smaller ones are specks of mist. */
+export const LENS_PX = 1.5;
+
 /** Droplets smaller than this (the first size class) read as the mist's texture rather than as droplets. */
 export const TEXTURE_DROP = 0.0013;
 
 /**
- * Renders the fog layer (RGBA with alpha: mist, trails, droplets), the same with only the tiniest droplets (`mist`,
- * what a running drop's trail fogs back to) and the clear view beneath (RGBA), all `size`×`size`, from the cover sampled at that
- * size. `scale` is render px per CSS px (for the blur radius).
+ * Renders the fog (RGBA with alpha: mist, trails, droplets) in two parts, `scene` (the mist, which shows the scene and so
+ * moves with it) and `lenses` (the droplets big enough to show an image, which are on the glass; fogOf puts them
+ * together), plus the mist with only the tiniest droplets (`mist`, what a running drop's trail fogs back to) and the
+ * clear view beneath (RGBA), all `size`×`size`, from the cover sampled at that size. `scale` is render px per CSS px (for
+ * the blur radius).
  */
 export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
   const fog = new Uint8ClampedArray(size * size * 4);
@@ -412,17 +417,35 @@ export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
   }
 
   // Droplets, small to large: each a little inverted lens onto the clear scene. The tiniest are the mist's own texture,
-  // so `mist` (what a run's trail fogs back to) keeps them and leaves out the rest.
+  // so `mist` (what a run's trail fogs back to) keeps them and leaves out the rest. The other droplets wider than LENS_PX
+  // go on a layer of their own, `lenses`: they're on the glass and stay put, while `scene` (the mist with its texture and
+  // specks, the scene seen through it) moves with the scene behind. The two together are the fog (fogOf).
   const S = size * p.dropSize;
   const paint = dropPainter(src, size, p);
+  const lenses = new Uint8ClampedArray(size * size * 4);
   let mist: Uint8ClampedArray | null = null;
   for (const dr of bySize) {
     if (!mist && dr.r >= TEXTURE_DROP) mist = fog.slice();
     const rx = Math.max(0.5, dr.r * S);
-    paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, fog, size, size, 0, 0, true);
+    paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, dr.r >= TEXTURE_DROP && rx > LENS_PX ? lenses : fog, size, size, 0, 0, true);
   }
   mist ??= fog.slice();
-  return { fog: fog as Uint8ClampedArray<ArrayBuffer>, mist: mist as Uint8ClampedArray<ArrayBuffer>, clear: clear as Uint8ClampedArray<ArrayBuffer> };
+  const done = (b: Uint8ClampedArray) => b as Uint8ClampedArray<ArrayBuffer>;
+  return { scene: done(fog), lenses: done(lenses), mist: done(mist), clear: done(clear) };
+}
+
+/** The whole fog as one image: the lenses laid over the scene layer (the page draws the two apart). */
+export function fogOf(scene: Uint8ClampedArray, lenses: Uint8ClampedArray) {
+  const fog = scene.slice();
+  for (let i = 0; i < fog.length; i += 4) {
+    const a = lenses[i + 3] / 255;
+    if (!a) continue;
+    const ma = fog[i + 3] / 255;
+    const out = a + ma * (1 - a);
+    for (let c = 0; c < 3; c++) fog[i + c] = (lenses[i + c] * a + fog[i + c] * ma * (1 - a)) / out;
+    fog[i + 3] = out * 255;
+  }
+  return fog;
 }
 
 /** The same pane after more condensation: denser, more opaque, blurrier and more even mist, same droplets. `a` is 0–1. */

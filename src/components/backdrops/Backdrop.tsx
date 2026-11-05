@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { useArtwork, type Song } from "./art";
 import { defaults, PARAMS, type Param, type Params } from "./params";
 import { Blur, Echo, Fog, Glass, Halftone, Mosaic, PixelGlass, Zoom } from "./variants";
 import { TUNING } from "../tuning";
@@ -80,28 +79,6 @@ export function useBackdropParams() {
   return { params: all, setParam, reset };
 }
 
-/**
- * Full-screen backdrop for the current song in the chosen style, cross-fading between styles. As tall as the window
- * with the browser's toolbars away (h-lvh): on phones it doesn't resize (and rebuild) as they come and go on scroll.
- */
-export function Backdrop({ song, variant, params }: { song: Song; variant: VariantKey; params: Params }) {
-  const art = useArtwork(song.cover, song.coverKind);
-  const V = VARIANTS.find((x) => x.key === variant)!;
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh bg-[#0d0b0a]">
-      <AnimatePresence>
-        {art && (
-          <motion.div key={variant} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
-            <V.C art={art} p={params} song={song} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {/* Keep the content side calm whatever the style. */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_35%,rgba(13,11,10,0.55))] wide:bg-[linear-gradient(to_right,rgba(13,11,10,0.5),transparent_55%)]" />
-    </div>
-  );
-}
-
 type SwitcherProps = {
   value: VariantKey;
   onChange: (v: VariantKey) => void;
@@ -143,11 +120,12 @@ export function BackdropSwitcher({ value, onChange, params, onParam, onReset, ex
 export type TuneSection = { title: string; specs: Param[]; values: Params; onParam: (key: string, value: number) => void; onReset?: () => void };
 
 /**
- * The Tune button, small and round (top left unless `className` places it elsewhere), and the panel it opens below
- * it: the page's own picker first if it has one (`children`, e.g. the background styles), then headed groups of
- * settings (a slider, dropdown or switch each; see params.ts), a setting hidden while the switch it depends on is off.
+ * The Tune button, small and round (top left, just right of Next's dev-tools button, a 32 px circle 20 px into the
+ * corner, its middle level with it; unless `className` places it elsewhere), and the panel it opens below it: the page's own picker first if it has one (`children`, e.g. the background styles), then headed groups of
+ * settings (a slider, dropdown, radio buttons or switch each; see params.ts), a setting hidden while the switch it
+ * depends on is off.
  */
-export function TunePanel({ sections, onReset, children, className = "top-5 left-5" }: { sections: TuneSection[]; onReset: () => void; children?: React.ReactNode; className?: string }) {
+export function TunePanel({ sections, onReset, children, className = "top-[18px] left-[60px]" }: { sections: TuneSection[]; onReset: () => void; children?: React.ReactNode; className?: string }) {
   const [tuning, setTuning] = useState(false);
   return (
     <div data-backdrop-ui className={`fixed z-30 flex flex-col items-start gap-2 text-[12px] ${className}`}>
@@ -215,6 +193,21 @@ function Slider({ spec, value, onChange }: { spec: Param; value: number; onChang
           className="h-6 w-9 shrink-0 cursor-pointer rounded-md bg-transparent"
         />
       </label>
+    );
+  }
+  if (spec.options && spec.radio) {
+    return (
+      <fieldset>
+        <legend className="mb-1.5 text-white/60">{spec.label}</legend>
+        <div className="space-y-1.5">
+          {spec.options.map((o, i) => (
+            <label key={o} className="flex cursor-pointer items-center gap-2 text-white/85">
+              <input type="radio" name={spec.key} checked={value === i} onChange={() => onChange(i)} className="size-3.5 accent-white" />
+              {o}
+            </label>
+          ))}
+        </div>
+      </fieldset>
     );
   }
   if (spec.options) {
