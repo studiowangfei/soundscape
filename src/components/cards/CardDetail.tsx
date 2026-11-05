@@ -8,62 +8,84 @@ import { GlassEdge, useGlass, useGlassSettings } from "../glass/Glass";
 import { glassLook } from "../glass/settings";
 import { CardVideo } from "../player/CardVideo";
 import { Attribution } from "./Attribution";
-import { cardMedia, TileFace } from "./CardTile";
-import { TYPE_LABEL } from "./meta";
+import { cardMedia, RowTileFace } from "./CardTile";
+import { formatDate, ROW_LABEL, TYPE_LABEL } from "./meta";
 import { flip, morphFrame, type Box, type Flip } from "./morph";
 import { PosterStage } from "./PosterStage";
+import { isEntryCard, rowCardLabel, type RowCard } from "./row";
+import { DETAIL_BODY as BODY, DETAIL_HEADLINE as HEADLINE, DETAIL_LABEL as LABEL } from "./styles";
+import type { VisitorComment } from "@/content/visitors";
+import { keyStaysInForm, startsInField } from "./form";
+import { VisitorForm } from "./VisitorForm";
 
 type Props = {
-  card: EntryCard;
+  /** One of the entry's cards, a visitor's comment, or the end card (its form). */
+  card: RowCard;
   /** Where the tile is now (it's measured again for the way back). */
   tile: () => Box;
   /** Called once the card has shrunk back into its tile. */
   onClosed: () => void;
+  /** The tile is the short variant on phones (Tune → Cards). */
+  short?: boolean;
+  /** The cards either side in the row, if there are any, and how to move to one: swiping the card sideways (touch) or
+   * the arrow keys move to them. */
+  step?: { prev: boolean; next: boolean; go: (dir: -1 | 1) => void };
+  /** Arrived by a swipe from this side (1: from the right, -1: from the left): it slides in, rather than growing out of
+   * its tile, and takes the last card's place in the history. */
+  enter?: -1 | 0 | 1;
 };
 
-// The expanded card's type, as the design sets it: a 12px capital label, a 25px headline, 18px body text, in its greys.
-const LABEL = "text-[12px] leading-[14px] font-semibold tracking-[1.2px] text-[#888] uppercase";
-const HEADLINE = "font-serif text-[25px] leading-[34px] text-white";
-const BODY = "text-[18px] leading-[26px] text-[#bbb]";
-
 /** How tall the design draws each kind of open card, at the least (a card with more to say grows). */
-const minHeight = (card: EntryCard, media: boolean) => (media ? 598 : card.type === "lyric" ? 458 : card.type === "comment" ? 470 : 476);
+// (A visitor's comment and the end card are set as a comment card.)
+const minHeight = (card: RowCard, media: boolean) =>
+  media ? 598 : card.type === "lyric" ? 458 : card.type === "comment" || card.type === "visitor" || card.type === "end" ? 470 : 476;
 
 const OPEN = { type: "spring", stiffness: 260, damping: 30, mass: 1 } as const;
 const CLOSE = { type: "spring", stiffness: 340, damping: 36, mass: 1 } as const;
+// Moving to the next or previous card: the card slides out to one side and the other slides in from the other.
+const SLIDE_OUT = { type: "tween", duration: 0.2, ease: [0.4, 0, 1, 1] } as const;
+const SLIDE_IN = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
+const SPRING_BACK = { type: "spring", stiffness: 500, damping: 40 } as const;
+/** How far a sideways swipe must go (px), or how fast (px/s), to move to the next card. */
+const SWIPE_DISTANCE = 80;
+const SWIPE_SPEED = 500;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * The expanded card: 600 wide and at least as tall as the design draws its kind, centred above everything (a portal on <body>), the whole page
- * dimmed and blurred behind it; on phones held upright, a sheet along the foot of the screen (globals.css
- * .card-stage). It grows out of its tile and shrinks back into it (morph.ts): laid out in place, drawn over the tile,
- * and eased there, its glass one pane throughout (nothing cross-fades, so nothing flashes). The tile's face fades out
- * as the card's own content fades in. Closes on Escape, a click outside, the browser's Back (an open card is a step
- * in the history, so Android's back and iOS's swipe back close it rather than leave the song), or, by touch, dragging
- * it down from the top of its content. The page behind is out of reach meanwhile (inert).
+ * The expanded card: 600 wide and at least as tall as the design draws its kind, centred in the window above
+ * everything (a portal on <body>), the whole page dimmed and blurred behind it; on phones, 8 px in from the sides
+ * (globals.css .card-stage). It grows out of its tile and shrinks back into it (morph.ts): laid out in place, drawn
+ * over the tile, and eased there, its glass one pane throughout (nothing cross-fades, so nothing flashes). The tile's
+ * face fades out as the card's own content fades in. Swiped sideways (touch), or with the arrow keys, it slides away
+ * and the next or previous card in the row slides in (the row scrolls to its tile, so closing goes back there). Closes
+ * on Escape, a click outside, the browser's Back (an open card is a step in the history, so Android's back and iOS's
+ * swipe back close it rather than leave the song), or, by touch, dragging it down from the top of its content. The page
+ * behind is out of reach meanwhile (inert).
  */
-export function CardDetail({ card, tile, onClosed }: Props) {
+export function CardDetail({ card, tile, onClosed, short = false, step, enter = 0 }: Props) {
   const glass = useGlass("expanded", { sync: true });
   const settings = useGlassSettings();
   const [revealed, setRevealed] = useState(false);
-  const media = cardMedia(card);
+  const entry = isEntryCard(card) ? card : null;
+  const media = entry && cardMedia(entry);
   // Background, version and comment cards keep their context in the data but don't show it. A lyric card shows its
   // line, then the story behind it and how fans take it (its context, when there is one), run together as one
   // paragraph (its headline and album line stay in the data).
-  const lyric = card.type === "lyric" ? card.lyric : undefined;
-  const context = card.type === "background" || card.type === "version" || card.type === "comment" ? null : card.context;
-  const parts = [card.type === "film" ? (card.film?.association ?? card.snippet) : card.type === "comment" ? null : card.snippet, context].filter(Boolean);
+  const lyric = entry?.type === "lyric" ? entry.lyric : undefined;
+  const context = !entry || entry.type === "background" || entry.type === "version" || entry.type === "comment" ? null : entry.context;
+  const parts = entry ? [entry.type === "film" ? (entry.film?.association ?? entry.snippet) : entry.type === "comment" ? null : entry.snippet, context].filter(Boolean) : [];
   const body = lyric && parts.length ? [parts.join(" ")] : parts;
 
   const pane = useRef<HTMLDivElement | null>(null);
   const face = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
   const video = useRef<{ pause(): void }>(null);
   const progress = useMotionValue(0);
   const dragY = useMotionValue(0); // how far a finger has pulled the card down (px)
+  const dragX = useMotionValue(0); // how far the card is slid sideways: by a finger, or moving to the next card (px)
   const flipRef = useRef<Flip | null>(null);
   const closing = useRef(false);
 
@@ -75,9 +97,10 @@ export function CardDetail({ card, tile, onClosed }: Props) {
       const el = pane.current;
       if (!f || !el) return;
       const m = morphFrame(p, f, glass.look.radius);
-      // A pull-down rides on top, fading as the card goes back into its tile.
+      // A pull-down or a sideways slide rides on top, fading as the card goes back into its tile.
       const pull = dragY.get() * Math.min(1, Math.max(0, p));
-      el.style.transform = `translate(${m.x}px, ${m.y + pull}px) scale(${m.sx}, ${m.sy})`;
+      const slide = dragX.get() * Math.min(1, Math.max(0, p));
+      el.style.transform = `translate(${m.x + slide}px, ${m.y + pull}px) scale(${m.sx}, ${m.sy})`;
       el.style.borderRadius = `${m.rx}px / ${m.ry}px`;
       if (face.current) {
         face.current.style.opacity = String(m.face);
@@ -101,7 +124,7 @@ export function CardDetail({ card, tile, onClosed }: Props) {
         fill: lerp(from.fill, glass.look.fill, t),
       });
     },
-    [glass, settings, dragY],
+    [glass, settings, dragY, dragX],
   );
 
   const measure = () => {
@@ -109,16 +132,31 @@ export function CardDetail({ card, tile, onClosed }: Props) {
     return flip(tile(), { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight });
   };
 
-  // Open: measure where the card ends up, draw it over the tile before the first paint, then ease it into place.
+  // Open: measure where the card ends up, draw it over the tile before the first paint, then ease it into place. Or,
+  // arriving by a swipe, already open and just off the side it comes from, sliding in.
   useLayoutEffect(() => {
     if (!pane.current) return;
     flipRef.current = measure();
-    draw(0);
     const unsubscribe = progress.on("change", draw);
-    const controls = reducedMotion() ? (progress.set(1), null) : animate(progress, 1, OPEN);
-    closeButton.current?.focus({ preventScroll: true });
+    const unslide = dragX.on("change", () => draw(progress.get()));
+    let controls: { stop(): void } | null = null;
+    if (enter) {
+      dragX.set(enter * window.innerWidth);
+      progress.set(1);
+      if (reducedMotion()) dragX.set(0);
+      else controls = animate(dragX, 0, SLIDE_IN);
+    } else {
+      draw(0);
+      if (reducedMotion()) progress.set(1);
+      else controls = animate(progress, 1, OPEN);
+    }
+    // Focus goes into the card itself (no outline), not onto its Close button: focused there, the browser shows Close
+    // whenever a key was the last thing pressed (opening a card with Enter, arriving by the arrow keys, after an
+    // Escape). Tab reaches Close, which shows then; Escape closes from anywhere.
+    dialog.current?.focus({ preventScroll: true });
     return () => {
       unsubscribe();
+      unslide();
       controls?.stop();
     };
     // Runs once, when the card opens; `draw` reads the latest settings through its own closure.
@@ -135,15 +173,39 @@ export function CardDetail({ card, tile, onClosed }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClosed, progress]);
 
+  // Slides away to the side opposite `dir` (1: on to the next card, so out to the left), then the row moves on to it.
+  const moveOn = useCallback(
+    (dir: -1 | 1) => {
+      if (closing.current || !step || !(dir > 0 ? step.next : step.prev)) return;
+      closing.current = true;
+      video.current?.pause();
+      if (reducedMotion()) return step.go(dir);
+      animate(dragX, -dir * window.innerWidth, { ...SLIDE_OUT, onComplete: () => step.go(dir) });
+    },
+    [step, dragX],
+  );
+
   // The open card is a step in the history: Back closes it. Closing it any other way takes that step back too, and
-  // the card goes when the history says so (popstate), so the two never disagree. (Pushed once, even when React runs
-  // this twice in development.)
+  // the card goes when the history says so (popstate), so the two never disagree. A card arrived at by a swipe takes
+  // the last one's step rather than adding one, so Back still closes. (Once, even when React runs this twice in
+  // development.) Never again for a page re-rendering: a Back (or a click outside) makes Next re-render the page before
+  // the popstate arrives, with its own history state in place of ours, and running this again then put the card's
+  // step straight back, so the card never closed. `dismiss` is read through a ref for that reason.
+  const dismissRef = useRef(dismiss);
   useEffect(() => {
-    if (history.state?.soundscapeCard !== card.id) history.pushState({ soundscapeCard: card.id }, "");
-    const onPop = () => dismiss();
+    dismissRef.current = dismiss;
+  });
+  useEffect(() => {
+    if (history.state?.soundscapeCard !== card.id) {
+      if (enter) history.replaceState({ soundscapeCard: card.id }, "");
+      else history.pushState({ soundscapeCard: card.id }, "");
+    }
+    const onPop = () => dismissRef.current();
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [card.id, dismiss]);
+    // Runs again only if the card changes, which it doesn't (a new card is a new CardDetail).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card.id]);
   const close = useCallback(() => {
     if (history.state?.soundscapeCard === card.id) history.back();
     else dismiss();
@@ -159,19 +221,22 @@ export function CardDetail({ card, tile, onClosed }: Props) {
     };
   }, []);
 
-  // Touch: drag the card down to put it away, like a sheet. From the top of its content (scrolled right up), a
+  // Touch: a sideways swipe moves to the next or previous card: the card follows the finger (with a little give and
+  // no further at either end of the row) and, let go far or fast enough, slides away as the other slides in; else it
+  // springs back. And a drag down puts it away, like a sheet: from the top of its content (scrolled right up), a
   // downward drag pulls the whole card; let go far or fast enough and it goes back into its tile, else it springs back.
   useEffect(() => {
     const el = pane.current;
     const scroller = content.current;
     if (!el || !scroller) return;
-    let start: { x: number; y: number } | null = null;
-    let pulling = false;
-    let samples: { t: number; y: number }[] = [];
+    let start: { x: number; y: number; top: boolean } | null = null;
+    let mode: "pull" | "slide" | null = null;
+    let samples: { t: number; v: number }[] = [];
     const onStart = (e: TouchEvent) => {
       const t = e.touches[0];
-      start = !closing.current && e.touches.length === 1 && scroller.scrollTop <= 0 ? { x: t.clientX, y: t.clientY } : null;
-      pulling = false;
+      // A touch in one of the end card's fields is the field's (moving its caret, scrolling its text).
+      start = !closing.current && e.touches.length === 1 && !startsInField(e.target) ? { x: t.clientX, y: t.clientY, top: scroller.scrollTop <= 0 } : null;
+      mode = null;
       samples = [];
     };
     const onMove = (e: TouchEvent) => {
@@ -179,29 +244,43 @@ export function CardDetail({ card, tile, onClosed }: Props) {
       const t = e.touches[0];
       const dx = t.clientX - start.x;
       const dy = t.clientY - start.y;
-      if (!pulling) {
+      if (!mode) {
         if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-        if (dy <= Math.abs(dx) || scroller.scrollTop > 0) {
-          start = null; // scrolling the card, or sideways: not a pull
+        if (Math.abs(dx) > Math.abs(dy) && step) {
+          mode = "slide";
+          dragX.stop();
+        } else if (dy > Math.abs(dx) && start.top && scroller.scrollTop <= 0) {
+          mode = "pull";
+          dragY.stop();
+        } else {
+          start = null; // scrolling the card: not ours
           return;
         }
-        pulling = true;
-        dragY.stop();
       }
       if (e.cancelable) e.preventDefault();
-      dragY.set(Math.max(0, dy));
-      samples.push({ t: e.timeStamp, y: dy });
+      const v = mode === "pull" ? dy : dx;
+      if (mode === "pull") dragY.set(Math.max(0, dy));
+      else dragX.set((dx < 0 ? step?.next : step?.prev) ? dx : dx * 0.25);
+      samples.push({ t: e.timeStamp, v });
       if (samples.length > 6) samples.shift();
     };
     const onEnd = () => {
-      const was = pulling;
+      const was = mode;
       start = null;
-      pulling = false;
+      mode = null;
       if (!was) return;
       const [a, b] = [samples[0], samples[samples.length - 1]];
-      const speed = a && b && b.t > a.t ? ((b.y - a.y) / (b.t - a.t)) * 1000 : 0; // px/s, downward
-      if (dragY.get() > 120 || speed > 700) close();
-      else animate(dragY, 0, { type: "spring", stiffness: 500, damping: 40 });
+      const speed = a && b && b.t > a.t ? ((b.v - a.v) / (b.t - a.t)) * 1000 : 0; // px/s, downward or rightward
+      if (was === "pull") {
+        if (dragY.get() > 120 || speed > 700) close();
+        else animate(dragY, 0, SPRING_BACK);
+        return;
+      }
+      const dx = dragX.get();
+      const dir = dx < 0 ? 1 : -1; // a swipe to the left moves on to the next card
+      const far = Math.abs(dx) > SWIPE_DISTANCE || (Math.abs(speed) > SWIPE_SPEED && Math.sign(speed) === Math.sign(dx));
+      if (far && (dir > 0 ? step?.next : step?.prev)) moveOn(dir);
+      else animate(dragX, 0, SPRING_BACK);
     };
     const redraw = dragY.on("change", () => draw(progress.get()));
     el.addEventListener("touchstart", onStart, { passive: true });
@@ -215,11 +294,20 @@ export function CardDetail({ card, tile, onClosed }: Props) {
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", onEnd);
     };
-  }, [close, draw, dragY, progress]);
+  }, [close, draw, dragY, dragX, progress, step, moveOn]);
 
   useEffect(() => {
-    // Escape while a video is full screen only leaves full screen (the browser's own), not the card too.
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !document.fullscreenElement && close();
+    // Escape while a video is full screen only leaves full screen (the browser's own), not the card too. The arrow keys
+    // move to the next or previous card. Typing in the end card's fields, the arrows move the caret and Escape leaves
+    // the field (a second Escape closes).
+    const onKey = (e: KeyboardEvent) => {
+      if (keyStaysInForm(e)) {
+        if (e.key === "Escape") (e.target as HTMLElement).blur();
+        return;
+      }
+      if (e.key === "Escape" && !document.fullscreenElement) close();
+      else if (e.key === "ArrowRight" || e.key === "ArrowLeft") moveOn(e.key === "ArrowRight" ? 1 : -1);
+    };
     window.addEventListener("keydown", onKey);
     const root = document.documentElement;
     const overflow = root.style.overflow;
@@ -228,7 +316,7 @@ export function CardDetail({ card, tile, onClosed }: Props) {
       window.removeEventListener("keydown", onKey);
       root.style.overflow = overflow;
     };
-  }, [close]);
+  }, [close, moveOn]);
 
   const setPane = useCallback(
     (node: HTMLDivElement | null) => {
@@ -239,7 +327,7 @@ export function CardDetail({ card, tile, onClosed }: Props) {
   );
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000]" role="dialog" aria-modal="true" aria-label={card.type === "comment" ? card.snippet : card.type === "lyric" && card.lyric ? card.lyric.excerptOrTimestamp : card.headline}>
+    <div ref={dialog} tabIndex={-1} className="fixed inset-0 z-[1000] outline-none" role="dialog" aria-modal="true" aria-label={!entry ? rowCardLabel(card) : entry.type === "comment" ? entry.snippet : entry.type === "lyric" && entry.lyric ? entry.lyric.excerptOrTimestamp : entry.headline}>
       <div
         ref={overlay}
         className="absolute inset-0 touch-none"
@@ -259,71 +347,89 @@ export function CardDetail({ card, tile, onClosed }: Props) {
             ref={content}
             style={{ opacity: 0, transformOrigin: "0 0", "--card-min-h": `${minHeight(card, !!media)}px` } as CSSProperties}
             className="card-stage-content relative flex flex-col overflow-y-auto overscroll-contain">
-            {/* On phones (a sheet): a grab handle says it can be pulled down. It stays at the top as the card scrolls. */}
-            <div aria-hidden className="pointer-events-none sticky top-0 z-10 flex h-5 shrink-0 justify-center pt-2 sm:hidden">
-              <span className="h-[5px] w-9 rounded-full bg-white/35" />
-            </div>
             {/* For keyboard and screen-reader users; the design has no visible close control (click outside or Escape). */}
             <button
-              ref={closeButton}
               onClick={close}
               className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:top-4 focus-visible:right-4 focus-visible:z-10 focus-visible:rounded-full focus-visible:bg-white/15 focus-visible:px-3 focus-visible:py-1 focus-visible:text-[13px] focus-visible:text-white"
             >
               Close
             </button>
 
-            {media &&
-              ("video" in media ? (
-                // Played right here, with no label (nothing may sit over YouTube's player, and the video says what it is).
-                <CardVideo ref={video} id={media.id} start={media.start} url={card.url} thumb={media.video} title={card.headline} />
-              ) : (
-                <div className="relative shrink-0">
-                  <PosterStage src={media.poster} title={media.title} className="h-[300px] w-full" inset="inset-6" />
-                  {/* On the Content kind the label sits on the picture, as on the card. */}
-                  <p className={`pointer-events-none absolute top-8 left-8 ${LABEL}`}>{TYPE_LABEL[card.type]}</p>
-                </div>
-              ))}
-
-            <div className={`flex flex-col gap-5 px-8 ${media && !("video" in media) ? "pt-6" : media ? "pt-3" : "pt-8"}`}>
-              {!media && <p className={LABEL}>{TYPE_LABEL[card.type]}</p>}
-              {card.type === "comment" ? (
-                <Quote text={card.snippet} />
-              ) : lyric ? (
-                <LyricQuote text={lyric.excerptOrTimestamp} />
-              ) : (
-                <h2 className={HEADLINE}>{card.headline}</h2>
-              )}
-              {card.comment?.replies?.length ? <Replies replies={card.comment.replies} /> : null}
-              {body.map((text, i) => (
-                <p key={i} className={BODY}>
-                  {text}
-                </p>
-              ))}
-              {card.film?.plotDetails &&
-                (revealed ? (
-                  <p className={BODY}>{card.film.plotDetails}</p>
+            {entry ? (
+              <>
+              {media &&
+                ("video" in media ? (
+                  // Played right here, with no label (nothing may sit over YouTube's player, and the video says what it is).
+                  <CardVideo ref={video} id={media.id} start={media.start} url={entry.url} thumb={media.video} title={entry.headline} />
                 ) : (
-                  <button onClick={() => setRevealed(true)} className="self-start text-[16px] text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white/75">
-                    Reveal plot details (spoilers)
-                  </button>
+                  <div className="relative shrink-0">
+                    <PosterStage src={media.poster} title={media.title} className="h-[300px] w-full" inset="inset-6" />
+                    {/* On the Content kind the label sits on the picture, as on the card. */}
+                    <p className={`pointer-events-none absolute top-8 left-8 ${LABEL}`}>{TYPE_LABEL[entry.type]}</p>
+                  </div>
                 ))}
-            </div>
 
-            <div className="mt-auto px-8 pt-8 pb-8">
-              <Attribution card={card} expanded />
-            </div>
+              <div className={`flex flex-col gap-5 px-8 ${media && !("video" in media) ? "pt-6" : media ? "pt-3" : "pt-8"}`}>
+                {!media && <p className={LABEL}>{TYPE_LABEL[entry.type]}</p>}
+                {entry.type === "comment" ? (
+                  <Quote text={entry.snippet} />
+                ) : lyric ? (
+                  <LyricQuote text={lyric.excerptOrTimestamp} />
+                ) : (
+                  <h2 className={HEADLINE}>{entry.headline}</h2>
+                )}
+                {entry.comment?.replies?.length ? <Replies replies={entry.comment.replies} /> : null}
+                {body.map((text, i) => (
+                  <p key={i} className={BODY}>
+                    {text}
+                  </p>
+                ))}
+                {entry.film?.plotDetails &&
+                  (revealed ? (
+                    <p className={BODY}>{entry.film.plotDetails}</p>
+                  ) : (
+                    <button onClick={() => setRevealed(true)} className="self-start text-[16px] text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white/75">
+                      Reveal plot details (spoilers)
+                    </button>
+                  ))}
+              </div>
+
+              <div className="mt-auto px-8 pt-8 pb-8">
+                <Attribution card={entry} expanded />
+              </div>
+              </>
+            ) : card.type === "visitor" ? (
+              <VisitorDetail comment={card.comment} />
+            ) : card.type === "end" ? (
+              <VisitorForm song={card.song} />
+            ) : null}
           </div>
 
           {/* The tile's face, at the tile's size, while the card grows out of it. */}
-          <div ref={face} aria-hidden style={{ transformOrigin: "0 0" }} className="pointer-events-none absolute top-0 left-0 h-[250px] w-[250px]">
-            <TileFace card={card} />
+          <div ref={face} aria-hidden style={{ transformOrigin: "0 0" }} className={`pointer-events-none absolute top-0 left-0 h-[250px] w-[250px] ${short ? "phone:h-[182px]" : ""}`}>
+            <RowTileFace card={card} short={short} />
           </div>
 
-          <GlassEdge light={glass.look.light} />
+          <GlassEdge look={glass.look} />
         </div>
       </div>
     </div>,
     document.body,
+  );
+}
+
+/** A visitor's comment, opened: the label, the comment quoted as a comment card's is, and their name and the day. */
+function VisitorDetail({ comment }: { comment: VisitorComment }) {
+  return (
+    <>
+      <div className="flex flex-col gap-5 px-8 pt-8">
+        <p className={LABEL}>{ROW_LABEL.visitor}</p>
+        <Quote text={comment.text} />
+      </div>
+      <p className="mt-auto truncate px-8 pt-8 pb-8 text-[16px] text-[#888]">
+        {comment.name ?? "Anonymous"} · {formatDate(comment.date)}
+      </p>
+    </>
   );
 }
 

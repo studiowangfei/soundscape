@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { EntryCard } from "@/content/schema";
 import { CardDetail } from "./CardDetail";
 import { CardTile } from "./CardTile";
+import type { RowCard } from "./row";
+import type { MobileCard } from "./variants";
 import { wheelAction } from "../landing/wheel";
+import { useStage } from "../backdrops/Stage";
 
 /** A tile's width plus the gap after it: one step along the row. */
 const STEP = 250 + 13;
@@ -14,11 +16,19 @@ const STEP = 250 + 13;
  * card). One card opens at a time: its tile hides while the open card (CardDetail) grows out of it and shrinks back.
  * Fingers and sideways trackpad swipes scroll the row natively; a swipe past either end never turns into the
  * browser's back/forward (overscroll-x-contain). A vertical mouse wheel moves the row a card per notch, a vertical
- * trackpad swipe moves it along with the fingers, until it reaches an end and the page scrolls on.
+ * trackpad swipe moves it along with the fingers, until it reaches an end and the page scrolls on. `cards`: the
+ * song's own, then visitors' comments, then the end card (row.ts). `mobile`: the cards' variant on phones (Tune → Cards).
  */
-export function CardGrid({ cards, className = "" }: { cards: EntryCard[]; className?: string }) {
-  const [openId, setOpenId] = useState<string | null>(null);
-  const open = cards.find((c) => c.id === openId);
+export function CardGrid({ cards, mobile = "standard", className = "" }: { cards: RowCard[]; mobile?: MobileCard; className?: string }) {
+  const short = mobile === "short";
+  // The cards rise once the page's arrival has got going (partway into the cover's move, coming from another page).
+  const { entranceDelay } = useStage();
+  const [delay] = useState(entranceDelay);
+  // The open card, and the side it came in from when it was swiped to (0: opened from its tile).
+  const [opened, setOpened] = useState<{ id: string; enter: -1 | 0 | 1 } | null>(null);
+  const openId = opened?.id ?? null;
+  const at = cards.findIndex((c) => c.id === openId);
+  const open = at >= 0 ? cards[at] : undefined;
   const row = useRef<HTMLDivElement>(null);
   const tiles = useRef(new Map<string, HTMLElement>());
 
@@ -44,19 +54,21 @@ export function CardGrid({ cards, className = "" }: { cards: EntryCard[]; classN
 
   return (
     <>
-      {/* On phones the row starts the cards' own gap (13px) under the player, and the cards between the first and the last
-          come to rest in the middle of the screen (CardTile's snap). */}
+      {/* The row starts about the cards' own gap under the player (12px; 13 on phones), and on phones the cards between
+          the first and the last come to rest in the middle of the screen (CardTile's snap). */}
       <div ref={row} className={`scrollbar-hide flex snap-x snap-mandatory scroll-px-page gap-[13px] overflow-x-auto overscroll-x-contain px-page py-3 phone:pt-[13px] ${className}`}>
         {cards.map((card, i) => (
           <CardTile
             key={card.id}
             card={card}
             index={i}
+            delay={delay}
             snap={i === 0 ? "first" : i === cards.length - 1 ? "last" : "middle"}
+            short={short}
             hidden={card.id === openId}
             onOpen={(el) => {
               tiles.current.set(card.id, el);
-              setOpenId(card.id);
+              setOpened({ id: card.id, enter: 0 });
             }}
           />
         ))}
@@ -66,9 +78,28 @@ export function CardGrid({ cards, className = "" }: { cards: EntryCard[]; classN
           key={open.id}
           card={open}
           tile={tileBox}
+          short={short}
+          enter={opened?.enter}
+          step={{
+            prev: at > 0,
+            next: at < cards.length - 1,
+            // On to the card either side: its tile is brought into view in the row (behind the open card), so closing
+            // goes back to it.
+            go: (dir) => {
+              const to = cards[at + dir];
+              const el = row.current?.children[at + dir];
+              if (!to) return;
+              if (el instanceof HTMLElement && row.current) {
+                tiles.current.set(to.id, el);
+                const [r, t] = [row.current.getBoundingClientRect(), el.getBoundingClientRect()];
+                row.current.scrollBy({ left: t.left - r.left - (r.width - t.width) / 2, behavior: "instant" });
+              }
+              setOpened({ id: to.id, enter: dir });
+            },
+          }}
           onClosed={() => {
             const el = tiles.current.get(open.id);
-            setOpenId(null);
+            setOpened(null);
             requestAnimationFrame(() => el?.focus({ preventScroll: true })); // once it's visible again
           }}
         />

@@ -9,6 +9,12 @@ export const TYPE_LABEL: Record<CardType, string> = {
   lyric: "Lyric",
 };
 
+/** The labels of the cards after the song's own: visitors' comments, and the end card where a visitor leaves one. */
+export const ROW_LABEL = { visitor: "From visitors", end: "Your take" } as const;
+
+/** What the end card asks. */
+export const END_PROMPT = "Say something about this song";
+
 export function youtubeId(url: string): string | null {
   try {
     const u = new URL(url);
