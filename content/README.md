@@ -26,7 +26,9 @@ If the result is still over 250 KB, lower `formatOptions` (for example 50).
 - `slug` (string): must equal the file name without `.json`.
 - `title`, `artist` (string)
 - `aliases` (string[], default `[]`)
-- `releaseYear` (integer or null, optional)
+- `releaseYear` (integer or null, optional): the year the song's album came out (the album on its cover; a song on no
+  album: the year it first came out). Not a reissue or a compilation. The landing page's sort menu orders songs by it. The
+  generator fills it (design doc §9.5).
 - `addedAt` (`YYYY-MM-DD`): newest entries are listed first.
 - `summary` (string, optional)
 - `tags` (string[], default `[]`)
@@ -75,6 +77,20 @@ The optional 9th card highlights one line listeners keep quoting. It doesn't tak
 - `cover.file` must be `<slug>.jpg`; `slug` is ASCII kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`). Covers live in `content/covers/<slug>.jpg`, must exist, and must be at most 250 KB.
 - `film.poster.file` must be `<card id>.jpg`. Posters live in `content/posters/<card id>.jpg`, must exist, and must be at most 250 KB. Make one like a cover.
 - Run `npm run content:check` before pushing.
+
+## Visitor comments
+
+Comments visitors left on a song's end card and the site's owner approved (by merging the pull request the site opened
+for each). They aren't cards in the entry: the song page shows them after the entry's cards, newest first, as "From
+visitors" cards, then the end card. One file each, `content/visitor-comments/<slug>/<id>.json`:
+
+```json
+{ "id": "20261104-k3x9q2", "song": "a-song", "text": "Plays every winter.", "name": null, "date": "2026-11-04" }
+```
+
+`id` is `YYYYMMDD-` and six base-36 characters, and names the file; `song` names its folder and must be a song here;
+`text` is 1–600 characters; `name` is up to 40 characters or `null` (shown as "Anonymous"). `npm run content:check`
+checks them; a bad one is only a warning, and the site leaves it out. They exist only in the deploy repo: packages never contain this folder.
 
 ## Example
 
