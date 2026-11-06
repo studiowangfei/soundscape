@@ -122,7 +122,7 @@ export function springStep(pos: number, vel: number, target: number, dt: number)
 }
 
 /** How far a random spin (the 🎲) turns the wheel, in songs: at least four, so it reads as a spin, at most twelve. */
-const ROLL = { min: 4, max: 12 };
+const ROLL = { min: 2, max: 15 };
 
 /**
  * Where a random spin (the 🎲) sends the wheel from row `from` (of a loop of `count` songs): ROLL.min to

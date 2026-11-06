@@ -3,17 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useArtwork, type Song } from "../backdrops/art";
-import { TunePanel } from "../backdrops/Backdrop";
+import { savedSongScene, TunePanel } from "../backdrops/Backdrop";
 import { SEARCH_BAR_PARAMS, WHEEL_PARAMS } from "../backdrops/params";
-import { WINDOW_SEED } from "../backdrops/fog-render";
 import { Entrance, useStage, useStageScene } from "../backdrops/Stage";
 import { TIMING } from "../backdrops/stage-model";
-import { SiteHeader } from "../SiteHeader";
-import { BOTTOM_LEFT, EmojiButton } from "../icon";
+import { EmojiButton, LANDING_DICE, LANDING_DROP } from "../icon";
+import { AutoRotate } from "./AutoRotate";
 import { BackgroundMusic } from "./BackgroundMusic";
+import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
 import { useTypeface } from "../useTypeface";
-import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
+import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
 import { SongWheel, type WheelHandle } from "./SongWheel";
 import { isSortKey, newShuffleSeed, SHUFFLE_STORE, shuffleSongs, SORT_STORE, sortSongs, type SortKey } from "./sort";
 import { useWheelLayout } from "./useWheelLayout";
@@ -36,8 +36,9 @@ export type LandingSong = {
 /**
  * The landing page: a wheel of song titles in the middle of the screen, over the resting song's album art filling the
  * window under the Fog effect (no writing on the glass), a bar round the centred song (a funnel opening the sort menu,
- * an arrow to open the song), a 🎲 in the bottom left corner to spin to a random song, and music (the background song's
- * preview) to switch on in the bottom right; while developing, a Tune panel too.
+ * an arrow to open the song), the app's name, a 💧 to let a drop fall down the glass, a 🎲 to spin to a random song, and
+ * music (the background song's preview) to switch on (placed as the design has them on desktops and on phones: see
+ * Wordmark and icon.tsx LANDING_*); while developing, a Tune panel too.
  */
 export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   const router = useRouter();
@@ -53,6 +54,9 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   const look = searchBarLook(tune.settings.bar);
   const layout = useWheelLayout(titles, typeface.key, wheel, look);
   const wheelRef = useRef<WheelHandle>(null);
+  // When the visitor last turned the wheel themselves (AutoRotate stops for a while after).
+  const userAt = useRef(0);
+  const onUser = () => void (userAt.current = performance.now());
   const box = layout.ready ? iconBox(look, layout.geo.centerSize) : null;
   // The wheel mounts once the starting song is known (it lives in sessionStorage, so not in the static HTML).
   const [start, setStart] = useState<number | null>(null);
@@ -102,6 +106,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   }, [sort]);
   const reorder = (next: SortKey) => {
     if (next === sort) return;
+    onUser();
     const old = wheelBox.current?.querySelector("[role='listbox']");
     if (old && ghostBox.current) {
       fadeOutCopy(old, ghostBox.current);
@@ -136,11 +141,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   const song: Song | null = shownSong && { title: shownSong.title, artist: shownSong.artist, cover: `/covers/${shownSong.cover.file}`, coverKind: shownSong.cover.kind };
   // The backdrop is the site's one window (backdrops/Stage.tsx): the landing's pane on it, one for the whole visit, its
   // cover changing in place as the wheel rests.
-  useStageScene(
-    shown && song
-      ? { mode: "landing", key: "landing", song, variant: "fog", params: { ...tune.settings.fog, text: 0 }, layout: "fill", seed: WINDOW_SEED, hold: (arrived ?? rest) !== shown.i }
-      : null,
-  );
+  useStageScene(shown && song ? landingScene(song, tune.settings.fog, (arrived ?? rest) !== shown.i) : null);
 
   // Covers either side of the focused song load ahead, so wherever the wheel stops its background is ready sooner.
   const fetched = useRef(new Set<string>());
@@ -168,7 +169,9 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
     if (newTab) return void window.open(url, "_blank", "noopener");
     if (leaving) return;
     // The page changes once the wheel has faded and the cover is moving (its rendering then can't hold the move up).
-    const moving = stage.leave({ mode: "song", song: { title: s.title, artist: s.artist, cover: `/covers/${s.cover.file}`, coverKind: s.cover.kind } });
+    const target = { title: s.title, artist: s.artist, cover: `/covers/${s.cover.file}`, coverKind: s.cover.kind };
+    // The song page's fog starts building now, under the moving cover, so it's ready to mist over as the cover lands.
+    const moving = stage.leave({ mode: "song", song: target, scene: savedSongScene(s.slug, target) });
     setLeaving(true);
     void Promise.all([moving, new Promise((r) => window.setTimeout(r, TIMING.landingExit))]).then(() => !gone.current && router.push(url));
   };
@@ -185,10 +188,6 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
           the way to one. */}
       <Entrance className="absolute inset-0">
         <div className={`absolute inset-0 transition-[opacity,scale] duration-200 ease-out ${leaving ? "pointer-events-none scale-[0.98] opacity-0" : ""}`}>
-          <div className="absolute top-0 left-0 px-5 pt-5">
-            <SiteHeader />
-          </div>
-
           <div ref={wheelBox} className="absolute inset-x-0 top-1/2 -translate-y-1/2">
             {/* The old order's rows fading out after a new one is chosen (filled in by fadeOutCopy, not React). */}
             <div ref={ghostBox} aria-hidden inert className="pointer-events-none absolute inset-0" />
@@ -204,6 +203,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
                 onArrive={setArrived}
                 onRest={onRest}
                 onOpen={open}
+                onUser={onUser}
                 layout={layout}
                 bar={{ look, sort, onSort: reorder }}
                 ref={wheelRef}
@@ -211,9 +211,13 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
             )}
           </div>
 
-          {/* A random song: in the bottom left corner, opposite the music. */}
-          <EmojiButton emoji="🎲" box={start !== null ? box : null} onClick={() => wheelRef.current?.roll()} aria-label="Random song" title="Random song" className={BOTTOM_LEFT} />
+          {/* The emoji, placed for desktops and phones (icon.tsx LANDING_*). A drop: one of the big droplets on the glass
+              falls, clearing a trail (backdrops/variants.tsx, FogHandle.drip). A random song. */}
+          <EmojiButton emoji="💧" box={start !== null ? box : null} onClick={() => stage.drip("landing")} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
+          <EmojiButton emoji="🎲" box={start !== null ? box : null} onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="Random song" title="Random song" className={LANDING_DICE} />
           <BackgroundMusic src={shownSong ? shownSong.preview : undefined} box={box} />
+          <Wordmark leaving={leaving} />
+          <AutoRotate wheel={wheelRef} ready={start !== null && !leaving} song={rest} preview={songs[rest].preview} userAt={userAt} />
         </div>
       </Entrance>
 

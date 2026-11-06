@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { BOTTOM_RIGHT, EmojiButton } from "../icon";
+import { EmojiButton, LANDING_MUSIC } from "../icon";
 import { useSoundtrack } from "../player/Soundtrack";
 
 /**
@@ -24,7 +24,7 @@ export function BackgroundMusic({ src, box }: { src: string | null | undefined; 
       aria-pressed={on}
       aria-label={on ? "Mute the music" : "Play the music"}
       title={on ? "Mute the music" : "Play the music"}
-      className={BOTTOM_RIGHT}
+      className={LANDING_MUSIC}
     />
   );
 }

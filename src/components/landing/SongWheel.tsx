@@ -27,13 +27,17 @@ type Props = {
   layout: WheelLayout;
   /** The bar round the centred song (see SearchBar): its look, and the order its sort menu shows and changes; no bar without it. */
   bar?: { look: SearchBarLook; sort: SortKey; onSort: (key: SortKey) => void };
+  /** Told whenever someone turns the wheel themselves: a press or tap on it, a drag, a scroll, a key. */
+  onUser?: () => void;
   /** For a spin to a random song (the landing page's 🎲): `ref.current.roll()`. */
   ref?: React.Ref<WheelHandle>;
 };
 
 export type WheelHandle = {
-  /** Spin to a random song, 4 to 12 songs on. */
+  /** Spin to a random song, 2 to 15 songs on. */
   roll: () => void;
+  /** On to the next song, as the ↓ key does (the page turning it by itself: not told to onUser). */
+  step: () => void;
 };
 
 /**
@@ -46,7 +50,7 @@ export type WheelHandle = {
  * where it is. On small screens titles are at least ~30 px (centreFloor), and those too long for the width at that
  * size are set smaller to fit (rowFit).
  */
-export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, onRest, onOpen, layout, bar, ref }: Props) {
+export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, onRest, onOpen, onUser, layout, bar, ref }: Props) {
   const count = titles.length;
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -63,9 +67,9 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
   const loop = useRef(0);
   const aimed = useRef(index);
   const arrived = useRef(index);
-  const callbacks = useRef({ onFocus, onAim, onArrive, onRest, onOpen });
+  const callbacks = useRef({ onFocus, onAim, onArrive, onRest, onOpen, onUser });
   useEffect(() => {
-    callbacks.current = { onFocus, onAim, onArrive, onRest, onOpen };
+    callbacks.current = { onFocus, onAim, onArrive, onRest, onOpen, onUser };
   });
   useEffect(() => {
     const m = motion.current!;
@@ -118,6 +122,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     if (e.key === "Enter") callbacks.current.onOpen(m.chosen(), e.metaKey || e.ctrlKey);
     else if (m.key(e.key, performance.now())) kick();
     else return;
+    callbacks.current.onUser?.();
     e.preventDefault();
   };
 
@@ -130,6 +135,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       const action = wheelAction(e);
       if (action === "ignore") return;
       e.preventDefault();
+      callbacks.current.onUser?.();
       motion.current!.wheel(e.deltaY, action, performance.now());
       kick();
     };
@@ -164,6 +170,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       const ui = t?.closest("[data-backdrop-ui]");
       if ((ui && ui !== rootRef.current) || t?.closest("button, input, select, textarea, a, [role=dialog]")) return;
       const row = t?.closest("[data-row]");
+      callbacks.current.onUser?.();
       cancelAnimationFrame(loop.current);
       loop.current = 0;
       touch = e.pointerId;
@@ -213,6 +220,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     const hit = e.target instanceof Element ? e.target.closest("[data-row]") : null;
     if (!hit) return;
+    callbacks.current.onUser?.();
     cancelAnimationFrame(loop.current);
     loop.current = 0;
     motion.current!.press(e.clientY, Number(hit.getAttribute("data-row")), performance.now());
@@ -244,7 +252,10 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     setSpun(true);
     kick();
   };
-  useImperativeHandle(ref, () => ({ roll }));
+  const step = () => {
+    if (motion.current!.key("ArrowDown", performance.now())) kick();
+  };
+  useImperativeHandle(ref, () => ({ roll, step }));
 
   const id = useId();
   // The centred title's width, eased between the two rows nearest the centre as the wheel turns (the bar follows it).

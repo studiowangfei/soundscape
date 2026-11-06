@@ -70,9 +70,9 @@ export function SearchBar({ size, titleWidth, look, compact = false, hidden, sor
         style={icon(menu ? 1 : look.searchOpacity)}
       >
         <Hit size={parts.icon} />
-        {/* Phosphor's funnel-simple (MIT; svg/funnel-simple.svg) in its own box, as the design places its icons. */}
-        <svg viewBox="0 0 256 256" fill="currentColor" className="h-full w-full">
-          <path d="M200,136a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H192A8,8,0,0,1,200,136Zm32-56H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-80,96H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16Z" />
+        {/* Phosphor's funnel-simple (MIT; svg/funnel-simple.svg) as the Figma design draws it: 50 × 32 in its 64 box. */}
+        <svg viewBox="0 0 64 64" fill="currentColor" className="h-full w-full">
+          <path d="M48.07 32c0 .61-.19 1.19-.52 1.62-.34.43-.79.67-1.26.67H17.71c-.47 0-.93-.24-1.26-.67-.33-.43-.52-1.01-.52-1.62s.19-1.19.52-1.62c.33-.43.79-.67 1.26-.67h28.58c.47 0 .92.24 1.26.67.33.43.52 1.01.52 1.62ZM55.21 16H8.79c-.47 0-.93.24-1.26.67-.34.43-.53 1.01-.53 1.62s.19 1.19.53 1.62c.33.43.79.67 1.26.67h46.42c.47 0 .93-.24 1.26-.67.34-.43.53-1.01.53-1.62s-.19-1.19-.53-1.62c-.33-.43-.79-.67-1.26-.67ZM37.36 43.43H26.64c-.47 0-.93.24-1.26.67-.34.43-.52 1.01-.52 1.62s.18 1.19.52 1.62c.33.43.79.67 1.26.67h10.72c.47 0 .93-.24 1.26-.67.34-.43.52-1.01.52-1.62s-.18-1.19-.52-1.62c-.33-.43-.79-.67-1.26-.67Z" />
         </svg>
       </button>
       <SortMenu anchor={funnel} under={root} open={menu} value={sort} onChange={onSort} onClose={closeMenu} />

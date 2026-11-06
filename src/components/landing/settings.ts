@@ -4,7 +4,9 @@
  */
 import { useEffect, useState } from "react";
 import { defaults, PARAMS, SEARCH_BAR_PARAMS, WHEEL_PARAMS, type Param, type Params } from "../backdrops/params";
-import type { LoadedArt } from "../backdrops/art";
+import type { LoadedArt, Song } from "../backdrops/art";
+import { WINDOW_SEED } from "../backdrops/fog-render";
+import type { Scene } from "../backdrops/stage-model";
 import type { WheelSettings } from "./wheel";
 
 export const LANDING_STORE = "soundscape.landing.params";
@@ -12,13 +14,21 @@ const SONG_PAGES_STORE = "soundscape.backdrop.params";
 
 export type LandingSettings = { fog: Params; wheel: Params; bar: Params };
 
-/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-11-04). */
-const LANDING_FOG: Params = { opacity: 0.3, blur: 10, dripEvery: 10, edgeSoft: 0, brightness: 0.68, glow: 0.3, zoomSecs: 15 };
+/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-11-04; the first run 20 s in). */
+const LANDING_FOG: Params = { blur: 10, dripFirst: 20, dripEvery: 60, edgeSoft: 0, brightness: 0.6, glow: 0.3, zoomSecs: 15 };
 
 /** No finger-written title on this page (the titles are on the wheel); its own Fog defaults. */
 export const LANDING_FOG_SPECS: Param[] = PARAMS.fog
   .filter((s: Param) => s.key !== "text" && s.when !== "text")
   .map((s) => (s.key in LANDING_FOG ? { ...s, value: LANDING_FOG[s.key] } : s));
+
+/**
+ * The landing page's scene on the backdrop stage, its one window with `song`'s cover behind: Landing shows it, and a song
+ * page asks for it ahead as it closes. `hold`: keep the cover that's up (the wheel is passing other songs).
+ */
+export function landingScene(song: Song, fog: Params, hold = false): Scene {
+  return { mode: "landing", key: "landing", song, variant: "fog", params: { ...fog, text: 0 }, layout: "fill", seed: WINDOW_SEED, hold };
+}
 
 /** The landing page's Fog settings before any tuning. */
 export const landingFogDefaults = (): Params => ({ ...defaults(PARAMS.fog), ...LANDING_FOG, text: 0 });
