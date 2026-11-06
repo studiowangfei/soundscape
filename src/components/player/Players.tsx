@@ -18,7 +18,7 @@ import { clock } from "./youtube";
  * preview the bar stays, its play button disabled. It plays through the site's soundtrack (Soundtrack.tsx), so music on
  * from the landing page plays on here without a break, and on into the previous or next song.
  */
-export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks; onSkip?: (href: string) => void }) {
+export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks; onSkip?: (href: string, to: SongLink) => void }) {
   const track = useSoundtrack();
   const { attach, style, filter, look } = useGlass("player");
 
@@ -70,7 +70,7 @@ export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: stri
  * Previous or next song (⏮ / ⏭): a quiet icon link either side of the play button. `onSkip` takes the in-app
  * navigation over (the page plays its way out first); a ⌘-click or middle click still opens a new tab.
  */
-function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: (href: string) => void }) {
+function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: (href: string, to: SongLink) => void }) {
   const label = `${next ? "Next" : "Previous"} song: ${to.title}`;
   const href = `/songs/${to.slug}/`;
   return (
@@ -79,7 +79,7 @@ function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: 
       onNavigate={(e) => {
         if (!onSkip) return;
         e.preventDefault();
-        onSkip(href);
+        onSkip(href, to);
       }}
       aria-label={label}
       title={label}
