@@ -929,12 +929,15 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       clearRaw.current = layer(out.clear); // unfeathered, for the stage (misted)
       // The scene canvas is pushed in about its origin (up to 1 + zoom%), so its edges spread past the fog canvas, which
       // stays put; there the clear cover would show beside the fog's faded edge. It's left out of those strips (the fog
-      // covers the rest of it, but where wipes and trails cut through).
+      // covers the rest of it, but where wipes and trails cut through). Only on sides where the fog canvas ends inside
+      // the window: where it reaches the window's edge (a full-screen pane's top and bottom on a portrait phone), what
+      // spreads past it is off screen, and a strip left out there would show in a wipe as the blurred glow beneath.
       {
         const [ox0, oy0] = getComputedStyle(baseRef.current!).transformOrigin.split(" ").map(parseFloat);
-        const spread = (d: number) => Math.max(0, Math.ceil(((zoomPct || 0) / 100) * d * q));
-        const [l, t] = [spread(ox0 - (f.ox - edge)), spread(oy0 - (f.oy - edge))];
-        const [r, b] = [spread(f.ox - edge + span - ox0), spread(f.oy - edge + span - oy0)];
+        const spread = (d: number, inside: boolean) => (inside ? Math.max(0, Math.ceil(((zoomPct || 0) / 100) * d * q)) : 0);
+        const [x0, y0] = [f.ox - edge, f.oy - edge];
+        const [l, t] = [spread(ox0 - x0, x0 > 0), spread(oy0 - y0, y0 > 0)];
+        const [r, b] = [spread(x0 + span - ox0, x0 + span < W), spread(y0 + span - oy0, y0 + span < H)];
         const inset = blank(size);
         const o = inset.getContext("2d")!;
         o.drawImage(clearSrc.current, 0, 0);
