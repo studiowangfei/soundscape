@@ -2,7 +2,9 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import type { Song } from "./art";
 import { defaults, PARAMS, type Param, type Params } from "./params";
+import type { Scene } from "./stage-model";
 import { Blur, Echo, Fog, Glass, Halftone, Mosaic, PixelGlass, Zoom } from "./variants";
 import { TUNING } from "../tuning";
 
@@ -27,14 +29,42 @@ const initialParams = () => Object.fromEntries(VARIANTS.map((v) => [v.key, defau
 /** The song pages' background style in the deployed site (and the starting one while developing). */
 export const SHIPPED_VARIANT: VariantKey = "fog";
 
+/** The style in use: the shipped one; while developing, the one remembered (browser only). */
+export function readVariant(): VariantKey {
+  if (!TUNING) return SHIPPED_VARIANT;
+  const saved = localStorage.getItem(STORE) as VariantKey | null;
+  return saved && VARIANTS.some((x) => x.key === saved) ? saved : SHIPPED_VARIANT;
+}
+
+/** Every style's settings: the remembered ones over the defaults (browser only; unreadable ones: the defaults). */
+export function readBackdropParams(): AllParams {
+  const base = initialParams();
+  try {
+    const saved = JSON.parse(localStorage.getItem(PARAM_STORE) ?? "{}") as Partial<AllParams>;
+    for (const v of VARIANTS) base[v.key] = { ...base[v.key], ...saved[v.key] };
+  } catch {
+    // Unreadable settings: keep the defaults.
+  }
+  return base;
+}
+
+/** A song page's scene on the backdrop stage: SongView shows it, and the landing page asks for it ahead as a song opens. */
+export function songScene(slug: string, song: Song, variant: VariantKey, params: Params): Scene {
+  return { mode: "song", key: `${slug}|${variant}`, song, variant, params, layout: "beside" };
+}
+
+/** The scene the song page will show, with the style and settings it will read (browser only). */
+export const savedSongScene = (slug: string, song: Song) => {
+  const variant = readVariant();
+  return songScene(slug, song, variant, readBackdropParams()[variant]);
+};
+
 /** The backdrop style: the shipped one; while developing, the one chosen and remembered, with the number keys as shortcuts. */
 export function useBackdropVariant(): [VariantKey, (v: VariantKey) => void] {
   const [v, setV] = useState<VariantKey>(SHIPPED_VARIANT);
   useEffect(() => {
-    if (!TUNING) return;
-    const saved = localStorage.getItem(STORE) as VariantKey | null;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
-    if (saved && VARIANTS.some((x) => x.key === saved)) setV(saved);
+    setV(readVariant());
   }, []);
   const set = (next: VariantKey) => {
     setV(next);
@@ -56,19 +86,17 @@ export function useBackdropVariant(): [VariantKey, (v: VariantKey) => void] {
   return [v, set];
 }
 
-/** Persisted per-style settings from the Tune panel; saved values are merged over the defaults (new keys appear). */
+/**
+ * Persisted per-style settings from the Tune panel; saved values are merged over the defaults (new keys appear).
+ * `ready` once they've been read (after mount), so a page shows its scene once, with them (not the defaults first).
+ */
 export function useBackdropParams() {
   const [all, setAll] = useState<AllParams>(initialParams);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(PARAM_STORE) ?? "{}") as Partial<AllParams>;
-      const base = initialParams();
-      for (const v of VARIANTS) base[v.key] = { ...base[v.key], ...saved[v.key] };
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
-      setAll(base);
-    } catch {
-      // Unreadable settings: keep the defaults.
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
+    setAll(readBackdropParams());
+    setReady(true);
   }, []);
   const save = (next: AllParams) => {
     setAll(next);
@@ -76,7 +104,7 @@ export function useBackdropParams() {
   };
   const setParam = (variant: VariantKey, key: string, value: number) => save({ ...all, [variant]: { ...all[variant], [key]: value } });
   const reset = (variant: VariantKey) => save({ ...all, [variant]: defaults(PARAMS[variant]) });
-  return { params: all, setParam, reset };
+  return { params: all, ready, setParam, reset };
 }
 
 type SwitcherProps = {

@@ -79,8 +79,8 @@ export const PARAMS = {
   ],
   fog: [
     { key: "density", label: "Mist thickness", min: 0, max: 1, step: 0.02, value: 0 },
-    { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0.16 },
-    { key: "blur", label: "Mist blur", min: 2, max: 120, step: 1, value: 6, unit: "px" },
+    { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0.1 },
+    { key: "blur", label: "Mist blur (half on phones)", min: 2, max: 120, step: 1, value: 6, unit: "px" },
     { key: "bloom", label: "Light bloom", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0 },
     { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.35, unit: "×" },
@@ -91,11 +91,12 @@ export const PARAMS = {
     { key: "softness", label: "Wipe softness", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 30, unit: "s" },
     // While a song is shown the pane keeps fogging up, from the settings above to the thickest fog, over `thicken`.
-    { key: "thicken", label: "Fog thickens over (0 = never)", min: 0, max: 600, step: 10, value: 60, unit: "s" },
-    shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.7 }),
+    { key: "thicken", label: "Fog thickens over (0 = never)", min: 0, max: 600, step: 10, value: 90, unit: "s" },
+    shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.6 }),
     // Now and then one of the larger droplets runs down, clearing a trail; never more than one per `dripEvery`.
     { key: "autoDrips", label: "Drops run down on their own", min: 0, max: 1, step: 1, value: 1 },
     ...[
+      { key: "dripFirst", label: "First run after", min: 0, max: 60, step: 1, value: 2, unit: "s" },
       { key: "dripEvery", label: "Time between runs (at least)", min: 3, max: 60, step: 1, value: 15, unit: "s" },
       { key: "dripFade", label: "Run trails fog over (0 = never)", min: 0, max: 300, step: 10, value: 40, unit: "s" },
     ].map(shownWhen("autoDrips")),
@@ -156,10 +157,10 @@ const colour = (key: string, label: string, value: number): Param => ({ key, lab
  * Defaults from the Figma design (node 196:2058, 48 px text): a 2 px stroke at 25% white, inside the outline; 24 px from
  * the outline to each icon's 64 px box, above and below as at the sides; 40 px from each icon's box to the text; the
  * icons white (at 50%, like every icon on the site, rather than the design's 30%). Sizes are in em of the wheel's text (× text), so the bar keeps those proportions at any size.
- * Tuned on 2026-11-04 from there: the stroke at 30%, 1 × text between the text and each icon, the icons at 70%.
+ * Tuned from there (2026-11-04/05): a 1 px stroke at 30%, 1 × text between the text and each icon, the icons at 70%.
  */
 export const SEARCH_BAR_PARAMS: Param[] = [
-  { key: "stroke", label: "Stroke weight", min: 0, max: 8, step: 0.5, value: 2, unit: "px" },
+  { key: "stroke", label: "Stroke weight", min: 0, max: 8, step: 0.5, value: 1, unit: "px" },
   colour("strokeColor", "Stroke colour", 0xffffff),
   { key: "strokeOpacity", label: "Stroke opacity", min: 0, max: 100, step: 5, value: 30, unit: "%" },
   { key: "padX", label: "Padding, sides", min: 0, max: 2, step: 0.01, value: 24 / 48, unit: "× text" },

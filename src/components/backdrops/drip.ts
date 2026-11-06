@@ -40,6 +40,14 @@ export function newDrip(x0: number, y0: number, r: number, len: number, start: n
   return { x0, y0, r, len, start, dur, stops, amp: r * (0.05 + Math.random() * 0.07), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
 }
 
+/**
+ * A run asked for (the landing page's 💧), from the droplet at (x0, y0) all the way off the bottom: `len` takes it past
+ * the bottom edge. Quicker than a run of its own, so it answers the tap: it pauses once on the way at most.
+ */
+export function newFall(x0: number, y0: number, r: number, len: number, start: number, cover: number, shape = { e: 1, wob: 0, ph: 0 }): Drip {
+  return { ...newDrip(x0, y0, r, len, start, cover, false, shape), stops: 1 + Math.floor(Math.random() * 2), dur: 1400 + (len / cover) * 2000 };
+}
+
 /** How much the drop stretches downward right now: none at rest, up to ~25% at the height of a spurt. */
 export function dripStretch(d: Drip, now: number) {
   const u = Math.min(1, Math.max(0, (now - d.start) / d.dur));

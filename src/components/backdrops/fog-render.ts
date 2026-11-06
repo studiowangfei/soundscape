@@ -38,6 +38,12 @@ export type FogParams = {
 
 type Img = Uint8ClampedArray | Uint8Array;
 
+/** The Mist blur on a phone, as a share of the setting (which is a desktop's, in CSS px). */
+export const PHONE_MIST_BLUR = 0.5;
+
+/** The Mist blur setting (CSS px) as drawn on this device: half on a phone. */
+export const mistBlur = (blur: number, phone: boolean) => blur * (phone ? PHONE_MIST_BLUR : 1);
+
 /** Seeded PRNG (Park–Miller), so layouts are identical every render. */
 function rng(seed: number) {
   let s = seed;
@@ -295,7 +301,7 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
     const bottom = src[j] + (src[j + 4] - src[j]) * ax;
     return top + (bottom - top) * ay;
   };
-  return (dr: DropShape, hide: number, out: Uint8ClampedArray, ow: number, oh: number, ox: number, oy: number, over: boolean) => {
+  return (dr: DropShape, hide: number, out: Uint8ClampedArray, ow: number, oh: number, ox: number, oy: number, over: boolean, under?: Img) => {
     const { cx, cy, rx, ry, wob, ph } = dr;
     const pad = 1 + rx * wob;
     for (let y = Math.max(oy, Math.floor(cy - ry - pad)); y < Math.min(oy + oh, Math.ceil(cy + ry + pad)); y++) {
@@ -316,12 +322,11 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
         const ma = over ? out[o + 3] / 255 : 0;
         const outA = a + ma * (1 - a);
         for (let c = 0; c < 3; c++) {
-          // Inverted, wider view of the clear scene. Tiny drops are too small to show an image: a darker speck of mist
-          // with a hint of the sharper scene, which is what gives fog its texture up close.
-          const seen =
-            rx > LENS_PX
-              ? sampleClear(cx - (x + 0.5 - cx) * view, cy - (y + 0.5 - cy) * view, c) * 1.08
-              : (over ? (out[o + c] / Math.max(0.01, b)) * 0.62 : 0) + sampleClear(cx, cy, c) * 0.3;
+          // Inverted, wider view of the clear scene. Tiny drops are too small to show an image: a darker speck of the
+          // mist behind (`under`, when drawing on a layer of droplets over it) with a hint of the sharper scene, which
+          // is what gives fog its texture up close.
+          const behind = ma > 0 || !under ? (over ? out[o + c] : 0) : under[o + c];
+          const seen = rx > LENS_PX ? sampleClear(cx - (x + 0.5 - cx) * view, cy - (y + 0.5 - cy) * view, c) * 1.08 : (behind / Math.max(0.01, b)) * 0.62 + sampleClear(cx, cy, c) * 0.3;
           const hazy = seen + (veil[c] - seen) * hide * 0.5; // drops on opaque mist see through the haze too
           const col = (hazy * (1 - rim) + 255 * (spec + caustic)) * b;
           out[o + c] = over ? (col * a + out[o + c] * ma * (1 - a)) / Math.max(0.001, outA) : col;
@@ -340,9 +345,9 @@ export const TEXTURE_DROP = 0.0013;
 
 /**
  * Renders the fog (RGBA with alpha: mist, trails, droplets) in two parts, `scene` (the mist, which shows the scene and so
- * moves with it) and `lenses` (the droplets big enough to show an image, which are on the glass; fogOf puts them
- * together), plus the mist with only the tiniest droplets (`mist`, what a running drop's trail fogs back to) and the
- * clear view beneath (RGBA), all `size`×`size`, from the cover sampled at that size. `scale` is render px per CSS px (for
+ * moves with it) and `lenses` (every droplet, the tiniest too, which are on the glass and stay put; fogOf puts them
+ * together), plus the tiniest droplets alone (`specks`, the mist's texture, which a running drop's trail fogs back
+ * with) and the clear view beneath (RGBA), all `size`×`size`, from the cover sampled at that size. `scale` is render px per CSS px (for
  * the blur radius).
  */
 export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
@@ -416,22 +421,22 @@ export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
     }
   }
 
-  // Droplets, small to large: each a little inverted lens onto the clear scene. The tiniest are the mist's own texture,
-  // so `mist` (what a run's trail fogs back to) keeps them and leaves out the rest. The other droplets wider than LENS_PX
-  // go on a layer of their own, `lenses`: they're on the glass and stay put, while `scene` (the mist with its texture and
-  // specks, the scene seen through it) moves with the scene behind. The two together are the fog (fogOf).
+  // Droplets, small to large, on a layer of their own, `lenses`: they're on the glass and stay put, while `scene` (the
+  // mist, the scene seen through it) moves with the scene behind. The two together are the fog (fogOf). Each is a little
+  // inverted lens onto the clear scene, the smallest a speck of the mist behind it. The tiniest are the mist's own
+  // texture, so they're kept apart too (`specks`): a run's trail fogs back with them, but not with the rest.
   const S = size * p.dropSize;
   const paint = dropPainter(src, size, p);
   const lenses = new Uint8ClampedArray(size * size * 4);
-  let mist: Uint8ClampedArray | null = null;
+  let specks: Uint8ClampedArray | null = null;
   for (const dr of bySize) {
-    if (!mist && dr.r >= TEXTURE_DROP) mist = fog.slice();
+    if (!specks && dr.r >= TEXTURE_DROP) specks = lenses.slice();
     const rx = Math.max(0.5, dr.r * S);
-    paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, dr.r >= TEXTURE_DROP && rx > LENS_PX ? lenses : fog, size, size, 0, 0, true);
+    paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, lenses, size, size, 0, 0, true, fog);
   }
-  mist ??= fog.slice();
+  specks ??= lenses.slice();
   const done = (b: Uint8ClampedArray) => b as Uint8ClampedArray<ArrayBuffer>;
-  return { scene: done(fog), lenses: done(lenses), mist: done(mist), clear: done(clear) };
+  return { scene: done(fog), lenses: done(lenses), specks: done(specks), clear: done(clear) };
 }
 
 /** The whole fog as one image: the lenses laid over the scene layer (the page draws the two apart). */

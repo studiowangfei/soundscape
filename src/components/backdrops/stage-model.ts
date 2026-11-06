@@ -18,7 +18,8 @@ export type Scene = { mode: Mode; key: string; song: Song; variant: VariantKey; 
 /** hidden: building unseen; entering: fading in; shown: on screen; leaving: fading out, then gone. */
 export type Phase = "hidden" | "entering" | "shown" | "leaving";
 export type Pane = { id: number; scene: Scene; ready: boolean; phase: Phase };
-/** Panes bottom to top; `moving`: the cover is moving between frames (a new pane waits until it lands). */
+/** Panes bottom to top; `moving`: the cover is moving between frames and a new pane waits (until it mists over: the
+ * move's last TIMING.mistOver ms, so the incoming fog is fully up as the cover lands). */
 export type StageState = { panes: Pane[]; moving: boolean; nextId: number };
 export type StageAction =
   | { type: "show"; scene: Scene }
@@ -26,6 +27,7 @@ export type StageAction =
   | { type: "entered"; id: number }
   | { type: "gone"; id: number }
   | { type: "moveStart" }
+  | { type: "mistOpen" }
   | { type: "moveDone" };
 
 export const EMPTY_STAGE: StageState = { panes: [], moving: false, nextId: 1 };
@@ -40,10 +42,13 @@ export const TIMING = {
   dropsOut: 200,
   move: 500,
   moveEase: "cubic-bezier(0.65, 0, 0.35, 1)",
-  /** The incoming fog over the moved (misted) cover. */
-  mistOver: 500,
-  /** One pane over another in place (song to song, portrait screens), and a fresh page's fade-in. */
-  handover: 600,
+  /** The incoming fog over the moving (misted) cover: over the move's last this many ms, ending as it lands (fading in
+   * slowly at first, so it's faint while the cover is still on its way)… */
+  mistOver: 300,
+  /** …or, if it's drawn later than that, over at least this long once it has. */
+  mistMin: 180,
+  /** One pane over another in place (song to song, a backdrop style switched), and a fresh page's fade-in. */
+  handover: 400,
   /** The incoming page's own text and controls fade up… */
   entrance: 400,
   /** …from this far into the move. */
@@ -102,6 +107,7 @@ function step(s: StageState, a: StageAction): StageState {
       return { ...s, panes: s.panes.filter((p) => p.id !== a.id) };
     case "moveStart":
       return { ...s, moving: true, panes: s.panes.map((p) => (visible(p) ? { ...p, phase: "leaving" } : p)) };
+    case "mistOpen":
     case "moveDone":
       return { ...s, moving: false };
   }
@@ -123,17 +129,6 @@ export function stageReducer(s: StageState, a: StageAction): StageState {
 export function sceneOrigin(f: ReturnType<typeof coverFrame>, W: number, H: number): { x: number; y: number } {
   if (f.fill) return { x: W / 2, y: H / 2 };
   return f.wide ? { x: f.ox + f.side / 2, y: H / 2 } : { x: W / 2, y: (H * STACK) / 2 };
-}
-
-/**
- * How dark the calm shade over a page's content side is at (x, y) in a W×H window, 0–1 (Stage.tsx CALM draws it with
- * these same stops): on song pages darkest at the foot of portrait windows (none above 35% down, 0.55 at the bottom)
- * and at the left edge of wide ones (0.5, gone by 55% across); on the landing page a soft ellipse round the middle.
- */
-export function calmAlpha(mode: Mode, wide: boolean, x: number, y: number, W: number, H: number): number {
-  const clamp = (v: number) => Math.min(1, Math.max(0, v));
-  if (mode === "landing") return 0.5 * clamp(1 - Math.hypot((x - W / 2) / (0.7 * W), (y - H / 2) / (0.45 * H)));
-  return wide ? 0.5 * clamp(1 - x / W / 0.55) : 0.55 * clamp((y / H - 0.35) / 0.65);
 }
 
 /** The cover's square as seen on screen, pushed in `z` about `origin`. */

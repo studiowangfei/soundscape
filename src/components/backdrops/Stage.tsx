@@ -1,14 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Box } from "../cards/morph";
 import { wideNow } from "../env";
 import { landingFogDefaults } from "../landing/settings";
-import { BG, coverFrame, edgeBleed, useArtwork, zoomAt, type RGB, type Song } from "./art";
+import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
 import { VARIANTS } from "./Backdrop";
 import { defaults, PARAMS, type Params } from "./params";
-import { calmAlpha, EMPTY_STAGE, edgeStops, isShown, kindOf, needsMove, READY_TIMEOUT_MS, sceneOrigin, stageReducer, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
+import { EMPTY_STAGE, edgeStops, isShown, kindOf, needsMove, READY_TIMEOUT_MS, sceneOrigin, stageReducer, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
 import { Fog, padSquare, type FogHandle } from "./variants";
 
 /**
@@ -23,9 +24,10 @@ export type StageActions = {
   /**
    * About to go to `next` (called on the click): starts the cover's move at once rather than when the page arrives.
    * Resolves once the move is running on screen (at once if there's no move): change the page then, so its rendering
-   * doesn't hold up the move's first frames.
+   * doesn't hold up the move's first frames. With the `scene` that page will show, its pane starts building now too,
+   * under the moving cover, so it's ready to mist over as the cover lands (the page then shows the very same scene).
    */
-  leave: (next: { mode: Mode; song: Song }) => Promise<void>;
+  leave: (next: { mode: Mode; song: Song; scene?: Scene }) => Promise<void>;
   /** How long (ms) a page arriving now should wait before its own entrance: partway into a move, else 0. */
   entranceDelay: () => number;
   /** The page the last scene came from (asked by a page as it arrives, before it shows its own): null at first. */
@@ -35,14 +37,24 @@ export type StageActions = {
    * soon if it already is. Returns a function that cancels it.
    */
   afterShown: (key: string, fn: () => void) => () => void;
-  /**
-   * What's behind `box` (CSS px in the window) on the scene `key`'s backdrop, on average, calm shade included, as drawn
-   * now (even while it's still building unseen): null until it has drawn, or for styles that can't tell.
-   */
-  sampleBehind: (key: string, box: { left: number; top: number; width: number; height: number }) => RGB | null;
+  /** Lets one of the big droplets on the scene `key`'s fog fall down the glass now (FogHandle.drip); false if none could. */
+  drip: (key: string) => boolean;
 };
 
 const Actions = createContext<StageActions | null>(null);
+// The top of the backdrop, over its panes and calm shade (see OnBackdrop).
+const Overlay = createContext<HTMLElement | null>(null);
+
+/**
+ * Draws its children on the backdrop itself, over the scene, rather than in the page: for text blended with what's
+ * behind it (mix-blend-mode). The backdrop is a layer of its own, so blending there leaves the page alone: blend modes
+ * in the page upset Chrome's glass (glass/Glass.tsx), and the cards flashed white as a page came in. Positioned in the
+ * window (the backdrop is fixed): follow a placeholder in the page. Nothing until the backdrop is up.
+ */
+export function OnBackdrop({ children }: { children: ReactNode }) {
+  const el = useContext(Overlay);
+  return el ? createPortal(children, el) : null;
+}
 
 /** The stage's actions; the same object for the provider's whole life, so calling them never re-renders a page. */
 export function useStage(): StageActions {
@@ -61,23 +73,26 @@ export function useStageScene(scene: Scene | null) {
 
 /**
  * A page's own text or controls, faded up as the page arrives: partway into the cover's move when coming from another
- * page, at once otherwise (the delay is taken when it mounts: key it by song to replay it for each song).
+ * page, at once otherwise (the delay is taken when it mounts: key it by song to replay it for each song). `as`: the
+ * element it is (a div by default), so text blended with the backdrop can fade up itself: a wrapper fading up would
+ * isolate it from what's behind. `byColour`: it fades up by its text colour alone (from transparent), not its opacity
+ * and a slide, for blended text (globals.css .colour-enter).
  */
-export function Entrance({ children, className = "", stayFrom }: { children: ReactNode; className?: string; stayFrom?: Mode }) {
+export function Entrance({ children, className = "", stayFrom, as: Tag = "div", byColour = false }: { children: ReactNode; className?: string; stayFrom?: Mode; as?: "div" | "p" | "span"; byColour?: boolean }) {
   const { entranceDelay, lastMode } = useStage();
   // `stayFrom`: coming from that kind of page, it's already there (a song page's player, song to song): no entrance.
   const [delay] = useState(() => (stayFrom && lastMode() === stayFrom ? null : entranceDelay()));
   return (
-    <div className={`${delay === null ? "" : "page-enter"} ${className}`} style={{ "--enter-delay": `${Math.round(delay ?? 0)}ms` } as React.CSSProperties}>
+    <Tag className={`${delay === null ? "" : byColour ? "colour-enter" : "page-enter"} ${className}`} style={{ "--enter-delay": `${Math.round(delay ?? 0)}ms` } as React.CSSProperties}>
       {children}
-    </div>
+    </Tag>
   );
 }
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // What keeps the content side calm, per page: a soft dim behind the landing wheel; on song pages a shade under the
-// content (the bottom on portrait screens, the left on wide ones). stage-model.ts calmAlpha has the same stops.
+// content (the bottom on portrait screens, the left on wide ones).
 const CALM: Record<Mode, string> = {
   landing: "bg-[radial-gradient(ellipse_70%_45%_at_center,rgba(13,11,10,0.5),transparent)]",
   song: "bg-[linear-gradient(to_bottom,transparent_35%,rgba(13,11,10,0.55))] wide:bg-[linear-gradient(to_right,rgba(13,11,10,0.5),transparent_55%)]",
@@ -120,13 +135,14 @@ type Move = {
 };
 
 /** The stage's own side of its actions (for the Mover and the provider). */
-type Internal = { moveDone: (id: number) => void; clearMove: () => void; started: (id: number) => void };
+type Internal = { moveDone: (id: number) => void; clearMove: () => void; started: (id: number) => void; mistOpen: (id: number) => void };
 
 /** A CSS transform's scale (the scene's push-in): matrix(a, …) → a; none → 1. */
 const scaleOf = (transform: string) => (transform.startsWith("matrix(") ? parseFloat(transform.slice(7)) || 1 : 1);
 
 export function StageProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(stageReducer, EMPTY_STAGE);
+  const [overlay, setOverlay] = useState<HTMLDivElement | null>(null);
   const [move, setMove] = useState<Move | null>(null);
   const stateRef = useRef(state);
   const moveRef = useRef<Move | null>(null);
@@ -163,7 +179,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
     };
     // The cover moves to where `target`'s page has it, if that's somewhere else (between the landing page and a song):
     // from where it is on screen now (mid-move, wherever the moving cover has got to).
-    const startMove = (target: Mode, song: Song, arrived: boolean): number | null => {
+    const startMove = (target: Mode, song: Song, arrived: boolean, params?: Params): number | null => {
       const box = boxRef.current;
       const m = moveRef.current;
       if (!box || reducedMotion() || m?.target === target) return null;
@@ -197,7 +213,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
         const misted = handles.current.get(out.id)?.current?.misted() ?? null;
         if (misted) [snap, thickness, srcMargin] = [misted.canvas, misted.thickness, misted.pad / misted.cover];
       }
-      const p = lastParams.current[target] ?? (target === "song" ? defaults(PARAMS.fog) : landingFogDefaults());
+      const p = params ?? lastParams.current[target] ?? (target === "song" ? defaults(PARAMS.fog) : landingFogDefaults());
       const to = visibleBox(tf, zoomAt(0, p.zoom, p.zoomSecs), sceneOrigin(tf, W, H));
       // The page arrived at bleeds its cover past the square (a song page: Edge bleed), so the moving
       // cover grows the same margin on the way, built as the fog builds its own (padSquare) where the page left has a
@@ -246,8 +262,10 @@ export function StageProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "show", scene });
       },
       leave: (next) => {
-        const id = startMove(next.mode, next.song, false);
+        const id = startMove(next.mode, next.song, false, next.scene?.params);
         if (id === null) return Promise.resolve();
+        // Not show(): the page being left still counts as on screen until the address changes (see Move.arrived).
+        if (next.scene) dispatch({ type: "show", scene: next.scene });
         // At most a little longer than a frame or two should take, whatever happens to the move.
         return new Promise<void>((resolve) => {
           waiters.current.set(id, resolve);
@@ -266,13 +284,9 @@ export function StageProvider({ children }: { children: ReactNode }) {
         if (resolve) requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       },
       lastMode: () => lastMode.current,
-      sampleBehind: (key, box) => {
+      drip: (key) => {
         const pane = [...stateRef.current.panes].reverse().find((p) => p.scene.key === key && p.phase !== "leaving");
-        const seen = pane && handles.current.get(pane.id)?.current?.sample(box);
-        const el = boxRef.current;
-        if (!pane || !seen || !el) return null;
-        const a = calmAlpha(pane.scene.mode, wideNow(), box.left + box.width / 2, box.top + box.height / 2, el.clientWidth, el.clientHeight);
-        return seen.map((c, i) => c * (1 - a) + BG[i] * a) as RGB;
+        return !!pane && !!handles.current.get(pane.id)?.current?.drip();
       },
       afterShown: (key, fn) => {
         const w = { key, fn };
@@ -284,6 +298,10 @@ export function StageProvider({ children }: { children: ReactNode }) {
         const m = moveRef.current;
         return m && !m.done ? Math.max(0, m.startedAt + TIMING.move * TIMING.entranceAt - performance.now()) : 0;
       },
+      // The move's last part: the incoming pane, once drawn, may mist over, to be fully up as the cover lands.
+      mistOpen: (id: number) => {
+        if (moveRef.current?.id === id) dispatch({ type: "mistOpen" });
+      },
       moveDone: (id: number) => {
         const m = moveRef.current;
         if (!m || m.id !== id) return;
@@ -293,7 +311,15 @@ export function StageProvider({ children }: { children: ReactNode }) {
       clearMove: () => setBoth(null),
     } as StageActions & Internal;
   }, []);
-  const { moveDone, clearMove, started } = actions as StageActions & Internal;
+  const { moveDone, clearMove, started, mistOpen } = actions as StageActions & Internal;
+  // How an incoming pane fades in: during a move, over what's left of it (slowly at first, so it's faint while the cover
+  // is still on its way), or if that's too short (it was drawn late), over TIMING.mistMin; otherwise a plain handover.
+  const enter = useCallback(() => {
+    const m = moveRef.current;
+    if (!m) return { ms: TIMING.handover, easing: "ease" };
+    const left = m.startedAt + TIMING.move - performance.now();
+    return left >= TIMING.mistMin ? { ms: left, easing: "ease-in" } : { ms: TIMING.mistMin, easing: "ease" };
+  }, []);
 
   const top = state.panes[state.panes.length - 1];
   const mode = move?.target ?? top?.scene.mode ?? null;
@@ -305,11 +331,12 @@ export function StageProvider({ children }: { children: ReactNode }) {
 
   return (
     <Actions.Provider value={actions}>
-      {children}
+      <Overlay.Provider value={overlay}>{children}</Overlay.Provider>
       {/* As tall as the window with the browser's toolbars away (h-lvh), so the fog isn't rebuilt as they come and go.
-          Bottom to top: the moving cover, the panes, the calm shade for the page's content. */}
+          Bottom to top: the moving cover, the panes, the calm shade for the page's content, what pages draw on it
+          (OnBackdrop). */}
       <div ref={boxRef} aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh bg-[#0d0b0a]">
-        {move && <Mover key={move.id} move={move} elRef={moverRef} onStart={started} onDone={moveDone} />}
+        {move && <Mover key={move.id} move={move} elRef={moverRef} onStart={started} onMistOpen={mistOpen} onDone={moveDone} />}
         {state.panes.map((pane) => (
           <PaneLayer
             key={pane.id}
@@ -317,13 +344,14 @@ export function StageProvider({ children }: { children: ReactNode }) {
             dispatch={dispatch}
             handles={handles}
             startThick={move && pane.id >= move.firstPane ? move.thickness : 0}
-            enterMs={move ? TIMING.mistOver : TIMING.handover}
+            enter={enter}
             leaveMs={move ? TIMING.dropsOut : TIMING.handover}
           />
         ))}
         {(Object.keys(CALM) as Mode[]).map((m) => (
           <div key={m} className={`absolute inset-0 transition-opacity duration-[600ms] ${CALM[m]} ${mode === m ? "opacity-100" : "opacity-0"}`} />
         ))}
+        <div ref={setOverlay} className="absolute inset-0" />
       </div>
     </Actions.Provider>
   );
@@ -336,7 +364,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
  * on the way. A resize mid-move ends it
  * at once (the incoming fog, laid out for the new size, mists over it).
  */
-function Mover({ move, elRef, onStart, onDone }: { move: Move; elRef: React.RefObject<HTMLDivElement | null>; onStart: (id: number) => void; onDone: (id: number) => void }) {
+function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef: React.RefObject<HTMLDivElement | null>; onStart: (id: number) => void; onMistOpen: (id: number) => void; onDone: (id: number) => void }) {
   const { from, to } = move;
   const masked = useRef<HTMLDivElement>(null);
   const picture = useRef<HTMLCanvasElement>(null);
@@ -367,6 +395,7 @@ function Mover({ move, elRef, onStart, onDone }: { move: Move; elRef: React.RefO
     // Up first, still, where the cover is now (see startMove); moving from the next frame but one.
     Object.assign(el.style, { transform: start, filter: `brightness(${dim[0]})` });
     let anims: (Animation | undefined)[] = [];
+    let mist = 0;
     const onResize = () => anims.forEach((x) => x?.finish());
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
@@ -378,12 +407,14 @@ function Mover({ move, elRef, onStart, onDone }: { move: Move; elRef: React.RefO
           glow.current?.animate([{ opacity: Math.min(1, move.fromGlow * lift) }, { opacity: Math.min(1, move.toGlow * lift) }], opts),
         ];
         a.finished.then(() => onDone(move.id), () => {});
+        mist = window.setTimeout(() => onMistOpen(move.id), Math.max(0, TIMING.move - TIMING.mistOver));
         window.addEventListener("resize", onResize);
         onStart(move.id);
       });
     });
     return () => {
       cancelAnimationFrame(raf);
+      clearTimeout(mist);
       window.removeEventListener("resize", onResize);
       anims.forEach((x) => x?.cancel());
     };
@@ -439,11 +470,12 @@ type PaneProps = {
   handles: { current: Map<number, { current: FogHandle | null }> };
   /** The fog's thickness to start at (carried over from the page left). */
   startThick: number;
-  enterMs: number;
+  /** How it fades in, asked as it starts to (see StageProvider). */
+  enter: () => { ms: number; easing: string };
   leaveMs: number;
 };
 
-function PaneLayer({ pane, dispatch, handles, startThick, enterMs, leaveMs }: PaneProps) {
+function PaneLayer({ pane, dispatch, handles, startThick, enter, leaveMs }: PaneProps) {
   const { id, scene, phase } = pane;
   const handleRef = useRef<FogHandle | null>(null);
   useEffect(() => {
@@ -471,7 +503,8 @@ function PaneLayer({ pane, dispatch, handles, startThick, enterMs, leaveMs }: Pa
     const el = layer.current;
     if (!el || (phase !== "entering" && phase !== "leaving")) return;
     const to = phase === "entering" ? 1 : 0;
-    const a = el.animate([{ opacity: getComputedStyle(el).opacity }, { opacity: to }], { duration: reducedMotion() ? 0 : phase === "entering" ? enterMs : leaveMs, easing: "ease", fill: "forwards" });
+    const how = phase === "entering" ? enter() : { ms: leaveMs, easing: "ease" };
+    const a = el.animate([{ opacity: getComputedStyle(el).opacity }, { opacity: to }], { duration: reducedMotion() ? 0 : how.ms, easing: how.easing, fill: "forwards" });
     a.finished.then(
       () => {
         el.style.opacity = String(to);

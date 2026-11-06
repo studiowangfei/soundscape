@@ -6,10 +6,10 @@ import { renderFog, type FogParams } from "./fog-render";
 
 export type FogJob = { id: number; src: Uint8ClampedArray; size: number; scale: number; params: FogParams };
 type Px = Uint8ClampedArray<ArrayBuffer>;
-/** What the page needs (see renderFog): the scene through the mist, the lenses, the trail mist and the clear view. */
-export type FogResult = { id: number; scene: Px; lenses: Px; mist: Px; clear: Px };
+/** What the page needs (see renderFog): the scene through the mist, the droplets, the tiniest alone and the clear view. */
+export type FogResult = { id: number; scene: Px; lenses: Px; specks: Px; clear: Px };
 
 export function runFogJob(job: FogJob): FogResult {
-  const { scene, lenses, mist, clear } = renderFog(job.src, job.size, job.scale, job.params);
-  return { id: job.id, scene, lenses, mist, clear };
+  const { scene, lenses, specks, clear } = renderFog(job.src, job.size, job.scale, job.params);
+  return { id: job.id, scene, lenses, specks, clear };
 }
