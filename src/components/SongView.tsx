@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { Neighbours } from "@/content/neighbours";
+import type { Neighbours, SongLink } from "@/content/neighbours";
 import type { Entry } from "@/content/schema";
 import type { VisitorComment } from "@/content/visitors";
-import { BackdropSwitcher, useBackdropParams, useBackdropVariant } from "./backdrops/Backdrop";
-import { mutedOn } from "./contrast";
+import { ArtistName } from "./ArtistName";
+import { BackdropSwitcher, songScene, useBackdropParams, useBackdropVariant } from "./backdrops/Backdrop";
 import { Entrance, useStage, useStageScene } from "./backdrops/Stage";
 import { TIMING } from "./backdrops/stage-model";
 import { CardGrid } from "./cards/CardGrid";
@@ -15,7 +15,7 @@ import { rowCards } from "./cards/row";
 import { useMobileCard } from "./cards/useMobileCard";
 import { GlassProvider, useGlassTune } from "./glass/Glass";
 import { Hit, ICON_HOVER, TOP_RIGHT } from "./icon";
-import { iconBox, LANDING_FOCUS_KEY, searchBarLook, sessionSet, useLandingSettings, wheelSettings } from "./landing/settings";
+import { iconBox, LANDING_FOCUS_KEY, landingScene, searchBarLook, sessionSet, useLandingSettings, wheelSettings } from "./landing/settings";
 import { useWheelLayout } from "./landing/useWheelLayout";
 import { PreviewBar } from "./player/Players";
 import { streamLinks } from "./player/stream-links";
@@ -42,46 +42,38 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
   const backdrop = { title: entry.title, artist: entry.artist, cover: `/covers/${entry.cover.file}`, coverKind: entry.cover.kind };
   // The backdrop is the site's one window (backdrops/Stage.tsx): this song's pane on it (a new one per style while tuning,
   // so switching styles crossfades).
-  const sceneKey = `${entry.slug}|${variant}`;
-  useStageScene({ mode: "song", key: sceneKey, song: backdrop, variant, params: tune.params[variant], layout: "beside" });
+  const scene = songScene(entry.slug, backdrop, variant, tune.params[variant]);
+  const sceneKey = scene.key;
   const stage = useStage();
+  // Leaving this song: its title and cards (and, back to all songs, the player) fade out, then the next page comes.
+  const [out, setOut] = useState<"landing" | "song" | null>(null);
+  // (Not once it's on its way out: song to song, the next song's scene is already up, see go; nor before its saved
+  // settings are read, so its fog is built once, with them.)
+  useStageScene(out || !tune.ready ? null : scene);
   // Coming from another song, the title and cards wait (their entrances held at the start, hidden) until the cover's
   // crossfade is over, then come up.
   const [held, setHeld] = useState(() => stage.lastMode() === "song");
   useEffect(() => {
     if (held) return stage.afterShown(sceneKey, () => setHeld(false));
   }, [held, stage, sceneKey]);
-  // The artist's grey reads on whatever is behind it: measured off the backdrop as soon as its pane has drawn (still
-  // unseen, so it's right when the name comes up), then now and then as the fog thickens and the scene pushes in.
-  const artistRef = useRef<HTMLParagraphElement>(null);
-  const [artistColor, setArtistColor] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    let timer = 0;
-    const check = () => {
-      // Just the words' own box (the line runs the width of the header).
-      const range = document.createRange();
-      if (artistRef.current) range.selectNodeContents(artistRef.current);
-      const ink = range.getBoundingClientRect();
-      const bg = ink.width ? stage.sampleBehind(sceneKey, { left: ink.left, top: ink.top, width: ink.width, height: ink.height }) : null;
-      if (bg) setArtistColor(mutedOn(bg));
-      timer = window.setTimeout(check, bg ? 2000 : 250);
-    };
-    check();
-    return () => clearTimeout(timer);
-  }, [stage, sceneKey]);
-  // Leaving this song: its title and cards (and, back to all songs, the player) fade out, then the next page comes.
   const router = useRouter();
-  const [out, setOut] = useState<"landing" | "song" | null>(null);
   const gone = useRef(false);
   useEffect(() => {
     gone.current = false;
     return () => void (gone.current = true); // gone already (Back): don't navigate after all
   }, []);
-  const go = (href: string, to: "landing" | "song") => {
+  const go = (href: string, to: "landing" | "song", next?: SongLink) => {
     if (out) return;
-    // Back to all songs, the cover moves: the page changes once it's moving (its rendering then can't hold it up).
-    const moving = to === "landing" ? stage.leave({ mode: "landing", song: backdrop }) : Promise.resolve();
+    // Back to all songs, the cover moves: the page changes once it's moving (its rendering then can't hold it up). The
+    // landing page's fog starts building now, under the moving cover, so it's ready to mist over as the cover lands.
+    const moving = to === "landing" ? stage.leave({ mode: "landing", song: backdrop, scene: landingScene(backdrop, landing.fog) }) : Promise.resolve();
     setOut(to);
+    // To another song: its backdrop starts building now, while this page fades out and the next one loads, and
+    // crossfades in as soon as it has drawn (the next page shows the very same scene, so it's kept).
+    if (next) {
+      const song = { title: next.title, artist: next.artist, cover: next.cover, coverKind: next.coverKind };
+      stage.show(songScene(next.slug, song, variant, tune.params[variant]));
+    }
     void Promise.all([moving, new Promise((r) => window.setTimeout(r, TIMING.songExit))]).then(() => !gone.current && router.push(href));
   };
   const fade = "transition-[opacity,translate] duration-[180ms] ease-out";
@@ -100,8 +92,9 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
         }}
         aria-label="Close, back to all songs"
         title="Back to all songs"
-        className={`${TOP_RIGHT} ${ICON_HOVER} text-white ${box ? "" : "invisible"}`}
-        style={{ width: box ?? 0, height: box ?? 0 }}
+        className={`${TOP_RIGHT} ${ICON_HOVER} text-[rgb(var(--icon))] ${box ? "" : "invisible"}`}
+        // The landing search bar arrow's colour and opacity (Tune → Search bar), so the two read as one set of icons.
+        style={{ width: box ?? 0, height: box ?? 0, "--icon": look.iconColor, "--icon-a": look.arrowOpacity } as React.CSSProperties}
       >
         {box && <Hit size={box} />}
         <svg viewBox="0 0 256 256" className="size-full" fill="currentColor" aria-hidden>
@@ -114,11 +107,9 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
       <header className={`${fade} ${out ? "opacity-0" : ""} px-page pt-16 phone:pt-[max(1.25rem,env(safe-area-inset-top))] phone:pr-[calc(max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))_+_var(--corner-box,40px)*29/32_+_12px)]`}>
         <Entrance>
           <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
-          {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
-          <p ref={artistRef} className="mt-1 text-[24px] text-[#777] transition-colors duration-[600ms]" style={{ color: artistColor }}>
-            {entry.artist}
-          </p>
         </Entrance>
+        {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
+        <ArtistName name={entry.artist} held={held} out={!!out} />
       </header>
 
       {/* The cards sit at the foot of the window, with either card size (Tune → Cards): pushed down by the space above
@@ -131,7 +122,7 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
         {/* The player stays put from song to song (no entrance coming from another song's page). */}
         <div className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
           <Entrance stayFrom="song">
-            <PreviewBar cover={backdrop.cover} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href) => go(href, "song")} />
+            <PreviewBar cover={backdrop.cover} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href, to) => go(href, "song", to)} />
           </Entrance>
         </div>
         <CardGrid
