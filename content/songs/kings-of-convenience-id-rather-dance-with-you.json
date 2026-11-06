@@ -202,8 +202,8 @@
             "id": "kings-of-convenience-id-rather-dance-with-you-g8",
             "type": "version",
             "headline": "Le Bataclan, 2009: Feist joins the dance",
-            "snippet": "Five years after the album, the duo played Le Bataclan in Paris on 11 November 2009 — and Feist, who sings on the album's other singles, joined them for this one; a fan's film of it has passed 159,000 views. One listener: \"Wait. Shouldn't it be \"i'd rather dance with someone else\"? 😂\"",
-            "context": "On the album, Feist sings the quiet duets — 'Know-How' and 'The Build-Up' — so her turn on the dance song is the evening's twist, and the thread knows it.",
+            "snippet": "Five years after the album, the duo played Le Bataclan in Paris on 11 November 2009 — and Feist, who sings on the album's other singles, joined them for this one; a fan's film of it has passed 159,000 views.",
+            "context": "On the album, Feist sings the quiet duets — 'Know-How' and 'The Build-Up' — so her turn on the dance song is the evening's twist.",
             "source": {
                 "name": "YouTube — ValerieToumayan",
                 "platform": "web"
@@ -234,6 +234,7 @@
         "associationCap": "No film card: no film placement for this song surfaced. Feist appears on g1 (context line, as an album fact) and g8 (the live version) — two cards, at the cap. Wes Anderson left the set with the swapped-out comment.",
         "bereavementCap": "No pick is centered on a death or mourning; the cap does not bind on this set.",
         "swapNote": "Fei directed (2026-11-05): the 5th comment (@fabtheman4693, 1,000, Wes Anderson) was swapped for a live version. Live threads harvested for both candidates on 2026-11-05: Le Bataclan ft. Feist (goBP27aky9I, 52 comments) and the February 2005 live clip (u3n6oBoO9l0, 59 comments). Bataclan chosen: the Feist guest spot is the version with a story, and its most-liked listener comment (@xbix87, 43) is about exactly that twist. The 2005 clip's best quotes were about its 144p quality (@fishenelmar, 80) or general charm.",
+        "correctionNote": "2026-11-05, after publishing (commits f7b325b cover, 98dced0 entry): an independent re-verification (Top + Newest-first sorts) showed the g8 quote attributed to @xbix87 was false — that handle's only comment in the thread (43 likes) reads 'terrorism can't stop rock 'n' roll'; the 'dance with someone else' text was not found in either sort, and the first harvest's other Bataclan text/author pairings also conflicted with the re-check. Fei chose option (a): drop the quote. The version card ships facts-only. Same failure class as the Inspector Norse glenseagles catch, except that one was caught pre-publish.",
         "commentIds": "The harvest captured no comment permalinks; commentId is null (schema-nullable).",
         "harvestCaveats": "Pool A (picks + §7.1 evidence): official video OczRpuGKTfY, top 150 of 3,344. Pool B: ppsht Grr7cOc8pzg, top 150 of 214 (top comment 77 likes — no picks). Pool C: mhayati 2iDNMUtw_CQ, all 138 loaded (0 displayed likes — no picks). Topic audio 8PiXNWCyh6c (27 loaded) also scanned for §7.1 evidence. Harvested 2026-11-05; replies for the three lower picks fetched in a follow-up pass the same day. @localabsurdist6661's comment displays on two lines ('No one:' / 'YouTube: listen to this song from 2009'); joined with a space here, wording unchanged.",
         "coverSource": "iTunes listing verified before use (artistName 'Kings of Convenience', track 'I'd Rather Dance With You', collection 'Riot On an Empty Street' 1663661508, track 1663661527): cover is the album artwork and the preview comes from the same verified track listing."
