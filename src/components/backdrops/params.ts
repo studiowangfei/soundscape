@@ -89,7 +89,7 @@ export const PARAMS = {
     { key: "trails", label: "Drip trails", min: 0, max: 30, step: 1, value: 0 },
     { key: "brush", label: "Wipe size", min: 10, max: 240, step: 2, value: 90, unit: "px" },
     { key: "softness", label: "Wipe softness", min: 0, max: 1, step: 0.05, value: 0.5 },
-    { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 30, unit: "s" },
+    { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 60, unit: "s" },
     // While a song is shown the pane keeps fogging up, from the settings above to the thickest fog, over `thicken`.
     { key: "thicken", label: "Fog thickens over (0 = never)", min: 0, max: 600, step: 10, value: 90, unit: "s" },
     shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.6 }),
@@ -98,7 +98,7 @@ export const PARAMS = {
     ...[
       { key: "dripFirst", label: "First run after", min: 0, max: 60, step: 1, value: 2, unit: "s" },
       { key: "dripEvery", label: "Time between runs (at least)", min: 3, max: 60, step: 1, value: 15, unit: "s" },
-      { key: "dripFade", label: "Run trails fog over (0 = never)", min: 0, max: 300, step: 10, value: 40, unit: "s" },
+      { key: "dripFade", label: "Run trails fog over (0 = never)", min: 0, max: 300, step: 10, value: 60, unit: "s" },
     ].map(shownWhen("autoDrips")),
     // Off removes the title and artist written in the fog, the drips from their letters, and the haze behind them.
     { key: "text", label: "Finger-written text & drips", min: 0, max: 1, step: 1, value: 0 },

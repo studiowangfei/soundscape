@@ -20,8 +20,9 @@ export type Drip = {
   dur: number;
   stops: number; // it moves in spurts: speed drops to zero this many times
   amp: number;
-  freq: number; // cycles over the run: at most half, so it bends one way once at most, never weaving
-  phase: number; // of its sideways wander
+  freq: number; // cycles over the run: at most half, so it leans one way once at most
+  phase: number; // of its lean
+  meander: Meander[]; // its gentle wander on top of the lean, as it finds its way down the glass
   rests: boolean; // stops on the glass and stays there as a drop; false: runs off the bottom edge
   e: number; // the droplet's own shape (fogDrops): elongation, outline wobble and its phase
   wob: number;
@@ -33,11 +34,35 @@ export type Drip = {
 
 export type PathDrop = { i: number; s: number; x: number; y: number; rx: number; ry: number };
 
+/** A sideways wave along a run: `amp` px either way, every `wl` px down the glass (so long and short runs bend alike). */
+export type Meander = { amp: number; wl: number; ph: number };
+
+/**
+ * A run's meander, for a drop of radius r: a long gentle wave and a shorter, smaller one at an unrelated wavelength on
+ * it, so the path bends irregularly instead of weaving evenly. Slight: mostly straight down, never more than ~4° off.
+ */
+export function newMeander(r: number): Meander[] {
+  const wl = r * (40 + Math.random() * 20);
+  return [
+    { amp: r * (0.1 + Math.random() * 0.05), wl, ph: Math.random() * 6.3 },
+    { amp: r * (0.03 + Math.random() * 0.02), wl: wl * (0.35 + Math.random() * 0.1), ph: Math.random() * 6.3 },
+  ];
+}
+
+/** How far down from the droplet's spot the trail narrows, in drop radii: from the spot's width to its own. */
+export const NECK = 7;
+
+/**
+ * The top of the trail's arch, as the radius of its two sides in units of the spot's half-width: under 1 would be
+ * rounder than the spot, 1 a half-circle; larger is more pointed (and reaches higher above the spot).
+ */
+const ARCH = 1.6;
+
 /** A run of the droplet at (x0, y0) with body radius r and the given shape, so it starts out looking exactly like itself. */
 export function newDrip(x0: number, y0: number, r: number, len: number, start: number, cover: number, rests = true, shape = { e: 1, wob: 0, ph: 0 }): Drip {
   const stops = 2 + Math.floor(Math.random() * 2);
   const dur = Math.min(rests ? 8000 : 11000, 2200 + (len / cover) * 12000); // a run off the bottom may take longer
-  return { x0, y0, r, len, start, dur, stops, amp: r * (0.05 + Math.random() * 0.07), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
+  return { x0, y0, r, len, start, dur, stops, amp: r * (0.05 + Math.random() * 0.07), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, meander: newMeander(r), rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
 }
 
 /**
@@ -73,10 +98,45 @@ export function dripProgress(d: Drip, now: number) {
   return u - Math.sin(2 * Math.PI * k * u) / (2 * Math.PI * k);
 }
 
-/** The drop at progress s: straight down but for a slight lean, shrinking a little as it wets the glass. */
+/** The drop at progress s: down a slight lean and a gentle meander, shrinking a little as it wets the glass. */
 export function dripAt(d: Drip, s: number) {
-  const wander = (t: number) => Math.sin(t * d.freq * 2 * Math.PI + d.phase) * d.amp;
+  const wander = (t: number) => Math.sin(t * d.freq * 2 * Math.PI + d.phase) * d.amp + d.meander.reduce((x, m) => x + Math.sin(((t * d.len) / m.wl) * 2 * Math.PI + m.ph) * m.amp, 0);
   return { x: d.x0 + wander(s) - wander(0), y: d.y0 + s * d.len, r: d.r * (1 - 0.2 * s) };
+}
+
+/**
+ * Half the trail's width at progress s: its own (TRAIL_HALF of the drop), except near the top, where it starts as wide as
+ * the cleared spot the droplet left (dripSpot, sweepRadii) and narrows smoothly over NECK radii, so the spot and the
+ * trail read as one streak with a rounded top, not a round hole with a line hanging from it.
+ */
+export function trailHalf(d: Drip, s: number) {
+  const own = dripAt(d, s).r * TRAIL_HALF;
+  const [spot] = spotReach(d);
+  const t = Math.min(1, Math.max(0, (s * d.len) / (NECK * d.r)));
+  return own + Math.max(0, spot - own) * (0.5 + 0.5 * Math.cos(Math.PI * t));
+}
+
+/** How far the cleared spot a droplet leaves reaches, across and up: all its sweep covers (variants.tsx sweep). */
+export function spotReach(d: Drip) {
+  const [rx, ry] = dripSpot(d);
+  const [a, b] = sweepRadii(rx, ry);
+  const soft = 2 * Math.max(0.5, rx * 0.1);
+  return [a + soft, b + soft] as const;
+}
+
+/**
+ * The top of the trail, above where the droplet sat: a gently pointed arch (two arcs meeting at the top) instead of
+ * the round spot, so the streak starts tapered rather than as a circle. It still holds all of the spot (the arch of any
+ * ARCH ≥ 1 contains the half-ellipse under it). Points from the top down to the droplet's middle: [half-width, height
+ * above y0].
+ */
+export function trailTop(d: Drip, steps = 8): [number, number][] {
+  const [a, b] = spotReach(d);
+  const top = Math.sqrt(2 * ARCH - 1);
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const v = top * (1 - i / steps);
+    return [Math.max(0, Math.sqrt(ARCH * ARCH - v * v) - (ARCH - 1)) * a, v * b];
+  });
 }
 
 /**
@@ -85,11 +145,12 @@ export function dripAt(d: Drip, s: number) {
  * of `size`); `self` is the running drop's own index.
  */
 export function pathDrops(d: Drip, drops: { i: number; x: number; y: number; rx: number; ry: number }[], size: number, self: number): PathDrop[] {
+  const above = (trailTop(d, 1)[0][1] + 2 * TRAIL_SOFT * d.r) / d.len; // up to the top of its arch, soft edge included
   return drops
     .flatMap((o) => {
       const s = (o.y * size - d.y0) / d.len;
       const at = dripAt(d, s);
-      const touches = o.i !== self && s > -(d.r * 1.3) / d.len && s < 1 && Math.abs(o.x * size - at.x) < at.r * (TRAIL_HALF + 2 * TRAIL_SOFT) + o.rx * size;
+      const touches = o.i !== self && s > -above && s < 1 && Math.abs(o.x * size - at.x) < trailHalf(d, s) + 2 * TRAIL_SOFT * at.r + o.rx * size;
       return touches ? [{ i: o.i, s, x: o.x * size, y: o.y * size, rx: o.rx * size, ry: o.ry * size }] : [];
     })
     .sort((a, b) => a.s - b.s);

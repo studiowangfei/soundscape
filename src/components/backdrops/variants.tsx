@@ -1,318 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { accentOf, backdropSize, BG, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, luminance, palette, rgb, sampleSquare, useResizeDraw, zoomAt, zoomOrigin, type Layout, type LoadedArt, type RGB, type Song } from "./art";
+import { backdropSize, BG, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, pushInAnimation, rgb, sampleSquare, zoomAt, zoomOrigin, type Layout, type LoadedArt, type Song } from "./art";
 import { coarseNow, phoneNow, wideNow } from "../env";
 import { claim, HOLD_MS, HOLD_SLOP, release } from "../gesture";
-import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, segmentDistance, sweepRadii, TRAIL_HALF, TRAIL_SOFT, type Drip } from "./drip";
+import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, segmentDistance, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, type Drip } from "./drip";
 import { createFogRenderer } from "./fog-client";
 import type { FogResult } from "./fog-job";
 import { dropPainter, fillParams, fogDrops, glassSeed, mistBlur, thickened } from "./fog-render";
-import { FOG_FONTS, narrow, zoomStyle, type Params } from "./params";
+import { ticker } from "./ticker";
+import { FOG_FONTS, type Params } from "./params";
 
 /** Every style gets the loaded artwork, its tunable settings (see params.ts) and the song. */
-type V = { art: LoadedArt; p: Params; song: Song };
-
-/** Light falls off towards the content column: leftwards on wide screens, downwards on narrow ones. */
-function falloff(x: number, y: number, f: ReturnType<typeof coverFrame>) {
-  const t = f.wide ? Math.max(0, (f.ox - x) / Math.max(1, f.ox)) : Math.max(0, (y - f.side * 0.55) / (f.side * 0.6));
-  return 1 - 0.55 * Math.min(1, t);
-}
-
-/** Cover-cell lookup with edge clamp, plus how far outside the cover the point is (in cells). */
-function cell(x: number, y: number, f: ReturnType<typeof coverFrame>, cells: number) {
-  const cp = f.side / cells;
-  const cx = Math.floor((x - f.ox) / cp);
-  const cy = Math.floor((y - f.oy) / cp);
-  const ix = Math.max(0, Math.min(cells - 1, cx));
-  const iy = Math.max(0, Math.min(cells - 1, cy));
-  return { i: (iy * cells + ix) * 4, outside: Math.max(Math.abs(cx - ix), Math.abs(cy - iy)) };
-}
-
-// ── 1. Mosaic ───────────────────────────────────────────────────────────────────────────────────────
-/** Pixel tiles with grout; the whole cover stays recognizable, edges bleed into the page. */
-export function Mosaic({ art, p }: V) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useResizeDraw(() => {
-    const { ctx, W, H } = fitCanvas(ref.current!);
-    const f = coverFrame(W, H);
-    const tile = narrow(p.tile, f.wide);
-    const cells = Math.round(f.side / tile);
-    const px = sampleSquare(art.img, cells);
-    ctx.fillStyle = rgb(BG);
-    ctx.fillRect(0, 0, W, H);
-    for (let y = 0; y < H; y += tile) {
-      for (let x = 0; x < W; x += tile) {
-        const { i, outside } = cell(x + tile / 2, y + tile / 2, f, cells);
-        const fade = Math.max(0, 1 - outside / Math.max(0.5, p.bleed)) ** 1.5;
-        if (!fade) continue;
-        const light = p.brightness * falloff(x, y, f);
-        const c = [0, 1, 2].map((k) => BG[k] + (px[i + k] * light - BG[k]) * fade) as RGB;
-        ctx.fillStyle = rgb(c.map((v, k) => v * (1 - p.grout) + BG[k] * p.grout) as RGB);
-        ctx.fillRect(x, y, tile, tile);
-        ctx.fillStyle = rgb(c);
-        ctx.fillRect(x + 1, y + 1, tile - 1, tile - 1);
-      }
-    }
-  }, [art, p]);
-  return <canvas ref={ref} className="h-full w-full" />;
-}
-
-// ── 2. Halftone ─────────────────────────────────────────────────────────────────────────────────────
-/** Print-dot duotone in the cover's own accent colour; dot size follows brightness. */
-export function Halftone({ art, p }: V) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const accent = useMemo(() => accentOf(palette(art.img)), [art]);
-  useResizeDraw(() => {
-    const { ctx, W, H } = fitCanvas(ref.current!);
-    const f = coverFrame(W, H);
-    const pitch = narrow(p.pitch, f.wide);
-    const cells = Math.round(f.side / pitch);
-    const px = sampleSquare(art.img, cells);
-    // Paper: near-black tinted towards the accent.
-    const paper = BG.map((v, k) => v + (accent[k] - v) * p.paper) as RGB;
-    ctx.fillStyle = rgb(paper);
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = rgb(accent);
-    // Rotated screen (like print halftones).
-    const ang = (p.angle * Math.PI) / 180;
-    const cos = Math.cos(ang);
-    const sin = Math.sin(ang);
-    const R = Math.hypot(W, H);
-    for (let v = -R; v < R; v += pitch) {
-      for (let u = -R; u < R; u += pitch) {
-        const x = u * cos - v * sin + W / 2;
-        const y = u * sin + v * cos + H / 2;
-        if (x < -pitch || y < -pitch || x > W + pitch || y > H + pitch) continue;
-        const { i, outside } = cell(x, y, f, cells);
-        const fade = Math.max(0, 1 - outside / Math.max(0.5, p.bleed)) ** 1.5;
-        if (!fade) continue;
-        const l = luminance([px[i], px[i + 1], px[i + 2]]);
-        const r = (pitch / 2) * Math.sqrt(l) * p.dot * fade * falloff(x, y, f);
-        if (r < 0.35) continue;
-        ctx.globalAlpha = p.ink;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
-  }, [art, accent, p]);
-  return <canvas ref={ref} className="h-full w-full" />;
-}
-
-// ── 3. Blur ─────────────────────────────────────────────────────────────────────────────────────────
-/** The cover softened just enough to go dreamy (shapes and colours still read) over its own ambient glow. */
-export function Blur({ art, p }: V) {
-  return (
-    <div className="animate-subtle-zoom absolute inset-0 overflow-hidden" style={zoomStyle(p)}>
-      <Ambient src={art.src} opacity={p.glow} />
-      <div className="cover-box cover-feather">
-        {/* eslint-disable-next-line @next/next/no-img-element -- proxied artwork */}
-        <img
-          src={art.src}
-          alt=""
-          className="h-full w-full scale-105 object-cover"
-          style={{ filter: `blur(${p.blur}px) brightness(${p.brightness}) saturate(${p.saturation})` }}
-        />
-      </div>
-      <div className="grain absolute inset-0 mix-blend-overlay" style={{ opacity: p.grain }} />
-    </div>
-  );
-}
-
-// ── 4. Zoom ─────────────────────────────────────────────────────────────────────────────────────────
-/** The crisp cover, dimmed, slowly pushing in and drifting (Ken Burns), so the page breathes without moving much. */
-export function Zoom({ art, p }: V) {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <Ambient src={art.src} opacity={p.glow} />
-      <div className="cover-box cover-feather overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element -- proxied artwork */}
-        <img src={art.src} alt="" className="animate-slow-zoom h-full w-full object-cover" style={{ ...zoomStyle(p), filter: `brightness(${p.brightness})` }} />
-      </div>
-    </div>
-  );
-}
-
-// ── 5. Glass ────────────────────────────────────────────────────────────────────────────────────────
-/** The cover seen through reeded glass: each vertical flute shows a squeezed slice of what's behind it, with shading. */
-export function Glass({ art, p }: V) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useResizeDraw(() => {
-    const { ctx, W, H } = fitCanvas(ref.current!);
-    const f = coverFrame(W, H);
-    const img = art.img;
-    const s = Math.min(img.naturalWidth, img.naturalHeight);
-    const sx0 = (img.naturalWidth - s) / 2;
-    const sy0 = (img.naturalHeight - s) / 2;
-    const k = s / f.side; // image px per screen px
-    drawBleed(ctx, art, f, W, H, p.glow);
-    // Flutes, drawn off-screen so the cover can be dimmed and feathered on its own. Each strip shows the region
-    // around its centre squeezed (p.squeeze), so neighbouring flutes overlap like real reeded glass.
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const off = document.createElement("canvas");
-    off.width = off.height = Math.round(f.side * dpr);
-    const o = off.getContext("2d")!;
-    o.scale(dpr, dpr);
-    const flute = narrow(p.flute, f.wide);
-    const shade = (a: number) => Math.min(1, a * p.ridges);
-    for (let x = 0; x < f.side; x += flute) {
-      const w = Math.min(flute, f.side - x);
-      const sw = Math.min(f.side, w * p.squeeze);
-      const sx = Math.max(0, Math.min(f.side - sw, x + w / 2 - sw / 2));
-      o.drawImage(img, sx0 + sx * k, sy0, sw * k, s, x, 0, w, f.side);
-      const g = o.createLinearGradient(x, 0, x + w, 0);
-      g.addColorStop(0, `rgba(0,0,0,${shade(0.38)})`);
-      g.addColorStop(0.3, `rgba(255,255,255,${shade(0.07)})`);
-      g.addColorStop(0.55, "rgba(0,0,0,0)");
-      g.addColorStop(1, `rgba(0,0,0,${shade(0.32)})`);
-      o.fillStyle = g;
-      o.fillRect(x, 0, w, f.side);
-    }
-    o.fillStyle = rgb(BG, 1 - p.brightness);
-    o.fillRect(0, 0, f.side, f.side);
-    feather(o, f.wide, off.width);
-    ctx.drawImage(off, f.ox, f.oy, f.side, f.side);
-  }, [art, p]);
-  return <canvas ref={ref} className="animate-subtle-zoom h-full w-full" style={zoomStyle(p)} />;
-}
-
-// ── 6. Pixel glass ──────────────────────────────────────────────────────────────────────────────────
-/**
- * The cover through a block of square glass lenses (after Monoli's Pixel Mirror): cells abut with no grout, each
- * one a soft swatch holding a blurred, flipped view of what's behind it, with a faint bevel. Hovering a
- * cell wipes its glass away to the crisp cover underneath, and it stays clear (until the song or style changes).
- */
-export function PixelGlass({ art, p }: V) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  // Revealed screen tiles ("tx,ty" → reveal start time) for the current tile size.
-  const revealed = useRef({ tile: 0, at: new Map<string, number>() });
-  const lensCache = useRef<{ key: string; src: HTMLCanvasElement } | null>(null);
-
-  const draw = useCallback(() => {
-    const { ctx, W, H } = fitCanvas(ref.current!);
-    const f = coverFrame(W, H);
-    const tile = narrow(p.pixel, f.wide);
-    const cells = Math.round(f.side / tile);
-    if (revealed.current.tile !== tile) revealed.current = { tile, at: new Map() };
-    // A few samples per cell (p.detail), upscaled with smoothing, give each lens a gentle gradient instead of a flat
-    // colour; each lens also sees p.spread samples past its own patch.
-    const sub = p.detail;
-    const win = sub + p.spread;
-    const n = cells * sub;
-    if (lensCache.current?.key !== `${art.src}|${n}`) {
-      const src = document.createElement("canvas");
-      src.width = src.height = n;
-      src.getContext("2d")!.putImageData(new ImageData(new Uint8ClampedArray(sampleSquare(art.img, n)), n, n), 0, 0);
-      lensCache.current = { key: `${art.src}|${n}`, src };
-    }
-    const src = lensCache.current.src;
-    // The crisp cover, for revealed tiles: centre-cropped square, k image px per screen px.
-    const img = art.img;
-    const s = Math.min(img.naturalWidth, img.naturalHeight);
-    const sx0 = (img.naturalWidth - s) / 2;
-    const sy0 = (img.naturalHeight - s) / 2;
-    const k = s / f.side;
-    const now = performance.now();
-
-    ctx.fillStyle = rgb(BG);
-    ctx.fillRect(0, 0, W, H);
-    ctx.imageSmoothingQuality = "high";
-    const edge = (c: number) => Math.max(0, Math.min(n - win, c * sub - p.spread / 2)); // source x/y of cell c, clamped
-    for (let y = 0; y < H; y += tile) {
-      for (let x = 0; x < W; x += tile) {
-        const { i, outside } = cell(x + tile / 2, y + tile / 2, f, cells);
-        const fade = Math.max(0, 1 - outside / Math.max(0.5, p.bleed)) ** 1.5;
-        if (!fade) continue;
-        const start = revealed.current.at.get(`${x / tile},${y / tile}`);
-        const t = start === undefined ? 0 : p.revealMs > 0 ? Math.min(1, (now - start) / p.revealMs) : 1;
-        const clear = t * t * (3 - 2 * t); // eased reveal progress
-        if (clear < 1) {
-          const cx = (i / 4) % cells;
-          const cy = Math.floor(i / 4 / cells);
-          // Each lens inverts its patch (and sees a little past its own edges, like real glass).
-          ctx.save();
-          if (p.flip) {
-            ctx.translate(x + tile, y + tile);
-            ctx.scale(-1, -1);
-          } else {
-            ctx.translate(x, y);
-          }
-          ctx.drawImage(src, edge(cx), edge(cy), win, win, 0, 0, tile, tile);
-          ctx.restore();
-          // Bevel, kept faint so cells read as glass edges rather than grout: light top/left, shade bottom/right.
-          ctx.fillStyle = `rgba(255,255,255,${p.edges * 0.375 * (1 - clear)})`;
-          ctx.fillRect(x, y, tile, 1);
-          ctx.fillRect(x, y + 1, 1, tile - 1);
-          ctx.fillStyle = `rgba(0,0,0,${p.edges * (1 - clear)})`;
-          ctx.fillRect(x, y + tile - 1, tile, 1);
-          ctx.fillRect(x + tile - 1, y, 1, tile - 1);
-        }
-        if (clear > 0) {
-          ctx.globalAlpha = clear;
-          ctx.drawImage(img, sx0 + (x - f.ox) * k, sy0 + (y - f.oy) * k, tile * k, tile * k, x, y, tile, tile);
-          ctx.globalAlpha = 1;
-        }
-        // Cells past the cover's edge fade into the page.
-        if (fade < 1) {
-          ctx.fillStyle = rgb(BG, 1 - fade);
-          ctx.fillRect(x, y, tile, tile);
-        }
-      }
-    }
-    // Dim towards the content column as one smooth gradient (per-cell dimming would step from column to column).
-    // Matches falloff(): full brightness at the cover, down to 0.45 of it at the far edge of the page.
-    const dim = f.wide ? ctx.createLinearGradient(0, 0, f.ox, 0) : ctx.createLinearGradient(0, f.side * 1.15, 0, f.side * 0.55);
-    dim.addColorStop(0, rgb(BG, 1 - p.brightness * 0.45));
-    dim.addColorStop(1, rgb(BG, 1 - p.brightness));
-    ctx.fillStyle = dim;
-    ctx.fillRect(0, 0, W, H);
-  }, [art, p]);
-
-  useResizeDraw(draw, [draw]);
-
-  // The backdrop sits under the page and ignores the pointer, so watch it at the window and map it onto the canvas
-  // (via its on-screen rect, which includes the slow push-in). Only tiles over the cover itself can be revealed.
-  useEffect(() => {
-    if (!p.reveal) return;
-    let raf = 0;
-    const animating = () => [...revealed.current.at.values()].some((t) => performance.now() - t < p.revealMs);
-    const frame = () => {
-      draw();
-      raf = animating() ? requestAnimationFrame(frame) : 0;
-    };
-    const onMove = (e: PointerEvent) => {
-      // Not while working the page's own controls (e.g. the Tune panel floats over the cover).
-      if (e.target instanceof Element && e.target.closest("button, input, select, a, [role=dialog], [data-backdrop-ui]")) return;
-      const r = ref.current?.getBoundingClientRect();
-      if (!r || !r.width) return;
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      const x = ((e.clientX - r.left) / r.width) * W;
-      const y = ((e.clientY - r.top) / r.height) * H;
-      const f = coverFrame(W, H);
-      const tile = narrow(p.pixel, f.wide);
-      const tx = Math.floor(x / tile);
-      const ty = Math.floor(y / tile);
-      const cx = (tx + 0.5) * tile;
-      const cy = (ty + 0.5) * tile;
-      if (cx < f.ox || cx > f.ox + f.side || cy < f.oy || cy > f.oy + f.side) return;
-      const key = `${tx},${ty}`;
-      if (revealed.current.tile !== tile || revealed.current.at.has(key)) return;
-      const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      revealed.current.at.set(key, performance.now() - (instant ? p.revealMs : 0));
-      if (!raf) raf = requestAnimationFrame(frame);
-    };
-    window.addEventListener("pointermove", onMove);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, [draw, p.pixel, p.reveal, p.revealMs]);
-
-  return <canvas ref={ref} className="animate-subtle-zoom h-full w-full" style={zoomStyle(p)} />;
-}
+export type V = { art: LoadedArt; p: Params; song: Song };
 
 // ── 7. Fog ──────────────────────────────────────────────────────────────────────────────────────────
 /**
@@ -426,6 +126,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   // The scene's push-in right now (a scale) about (ox, oy) in fog px, and the pane's soft edges (song pages): they're the
   // glass's, so they're laid on after the mist has been drawn pushed in.
   const zoom = useRef({ z: 1, ox: 0, oy: 0, reach: 0 }); // reach: the farthest point on screen from the origin, CSS px
+  const pushIn = useRef({ zoom: 0, secs: 0 }); // the push-in now running (zoom 0: held still)
+  const wakeText = useRef(() => {}); // restarts the writing's fog-return clock (it sleeps while there's nothing to fog)
+  const wakeDrips = useRef(() => {}); // restarts the runs' clock (it sleeps between runs)
   const edgeFade = useRef<HTMLCanvasElement | null>(null);
   // What's behind the pane where it fades out at its edges (the page and the cover's glow, without the cover), in fog px:
   // the fog fades into it rather than turning see-through, so the clear cover under it doesn't show through where the
@@ -439,6 +142,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     const ctx = c.getContext("2d")!;
     // The mist shows the scene behind the glass, so it's drawn pushed in just as the scene is; all that's on the glass
     // (droplets, writing, trails, wipes) is drawn as it is.
+    // The mist is drawn pushed in exactly as far as the scene is right now (the scene moves on its own: see the push-in).
+    zoom.current.z = zoomAt((performance.now() - shownAt.current) / 1000, pushIn.current.zoom, pushIn.current.secs);
     const { z, ox, oy } = zoom.current;
     const behind = (g: CanvasRenderingContext2D, img: CanvasImageSource, alpha = 1) => {
       g.setTransform(z, 0, 0, z, ox * (1 - z), oy * (1 - z));
@@ -602,7 +307,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       },
       drip: () => {
         regrow.current = true;
-        return startRunRef.current(performance.now(), true);
+        const started = startRunRef.current(performance.now(), true);
+        wakeDrips.current();
+        return started;
       },
     };
     return () => {
@@ -612,10 +319,12 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
 
   const busyUntil = useRef(0);
   const queued = useRef(0);
+  const drawnAt = useRef(0);
   const drawNow = useCallback(() => {
     const t = performance.now();
     drawFog();
-    busyUntil.current = performance.now() + 2 * (performance.now() - t);
+    drawnAt.current = performance.now();
+    busyUntil.current = drawnAt.current + 2 * (drawnAt.current - t);
   }, [drawFog]);
   const compose = useCallback(() => {
     if (queued.current) return;
@@ -626,10 +335,24 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       drawNow();
     }, wait);
   }, [drawNow]);
+  // The slow changes (the push-in, thickening, wipes and trails fogging back over, the writing fogging over) each ask
+  // for a drawing up to ten times a second; they share one: an ask waits until SLOW_MS after the last drawing, and is
+  // dropped if a drawing has been made since (every drawing shows them all as they are at that moment).
+  const slowQueued = useRef(0);
+  const composeSlow = useCallback(() => {
+    if (slowQueued.current) return;
+    const asked = performance.now();
+    slowQueued.current = window.setTimeout(() => {
+      slowQueued.current = 0;
+      if (drawnAt.current <= asked) compose();
+    }, Math.max(0, drawnAt.current + SLOW_MS - asked));
+  }, [compose]);
   useEffect(
     () => () => {
       clearTimeout(queued.current);
+      clearTimeout(slowQueued.current);
       queued.current = 0; // or every later ask would wait for a drawing that never comes
+      slowQueued.current = 0;
     },
     [],
   );
@@ -796,6 +519,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     writing.current = next;
     // Freshly written text starts clear; the fog then creeps back over it (if Text fogs over is set).
     if (restartClock || !writtenAt.current) writtenAt.current = performance.now();
+    wakeText.current();
   }, [song.title, song.artist, text, font, textSize, finger, textAngle, textX, textY, textDrips, dripWidth, spacing]);
 
   // Rewrite (cheap) when the text settings change; recompose when only the clarity changes.
@@ -817,31 +541,30 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   }, [compose, p.clarity]);
 
   // Fog returning over the writing: eases from clear to fully fogged over `textRefog` seconds (0 = never). Recomposed
-  // ~15 times a second, which is plenty for a change this slow.
+  // up to ~10 times a second (with the other slow changes), plenty for a change this slow; only while there's writing still clearing (rewriting
+  // the text wakes it), so with no writing it never runs.
   useEffect(() => {
     if (!p.textRefog) {
       textFog.current = 1;
       compose();
       return;
     }
-    // Keeps ticking while enabled (rewriting the text restarts its clock at any time); only recomposes on change.
-    let raf = 0;
-    let last = 0;
-    const tick = (now: number) => {
-      if (now - last > 66) {
-        last = now;
-        const t = Math.min(1, Math.max(0, (now - writtenAt.current) / (p.textRefog * 1000)));
-        const next = 1 - t * t * (3 - 2 * t);
-        if (Math.abs(next - textFog.current) > 0.002) {
-          textFog.current = next;
-          compose();
-        }
+    const clock = ticker((now) => {
+      if (!writing.current) return "stop";
+      const t = Math.min(1, Math.max(0, (now - writtenAt.current) / (p.textRefog * 1000)));
+      const next = 1 - t * t * (3 - 2 * t);
+      if (Math.abs(next - textFog.current) > 0.002 || (t >= 1 && next !== textFog.current)) {
+        textFog.current = next;
+        composeSlow();
       }
-      raf = requestAnimationFrame(tick);
+      return t >= 1 ? "stop" : 66;
+    });
+    wakeText.current = clock.wake;
+    return () => {
+      clock.stop();
+      wakeText.current = () => {};
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [compose, p.textRefog]);
+  }, [compose, composeSlow, p.textRefog]);
 
   const { density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, glow, bleed, edgeSoft, thickMax } = p;
   const zoomPct = p.zoom;
@@ -1228,8 +951,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   // Fog creeping back over the wipes in `refog` seconds (0 = never), with no visible steps (see FadingLayer).
   useEffect(() => {
     if (!p.refog) return;
-    return fadeLoop(() => [mask.current], p.refog, compose);
-  }, [compose, p.refog]);
+    return fadeLoop(() => [mask.current], p.refog, composeSlow);
+  }, [composeSlow, p.refog]);
 
   // The pane starts out freshly fogged when first shown. A song changing in place (the landing page) keeps the same
   // glass, wipes, trails, drops and thickening and all; only the cover behind it changes (see build).
@@ -1245,49 +968,48 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       compose();
       return;
     }
-    let raf = 0;
-    let last = 0;
-    const tick = (now: number) => {
-      if (now - last > 250) {
-        last = now;
-        const t = Math.min(1, Math.max(0, thickT0.current + (now - shownAt.current) / (p.thicken * 1000)));
-        const next = t * t * (3 - 2 * t);
-        if (Math.abs(next - thick.current) > 0.003) {
-          thick.current = next;
-          compose();
-        }
+    // Four times a second until it's fully thick, then it stops.
+    const clock = ticker((now) => {
+      const t = Math.min(1, Math.max(0, thickT0.current + (now - shownAt.current) / (p.thicken * 1000)));
+      const next = t * t * (3 - 2 * t);
+      if (Math.abs(next - thick.current) > 0.003 || (t >= 1 && next !== thick.current)) {
+        thick.current = next;
+        composeSlow();
       }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [compose, p.thicken]);
+      return t >= 1 ? "stop" : 250;
+    });
+    return clock.stop;
+  }, [compose, composeSlow, p.thicken]);
 
   // The scene behind the glass slowly pushes in and out (Zoom amount, over Zoom duration, timed as the other styles'
-  // CSS push-in), and the mist seen through the glass with it: both are drawn here together, the scene as its canvas's
-  // transform and the mist in drawFog. A move this slow needs drawing only once the picture has moved half a pixel
-  // somewhere on screen (about 10 times a second), and only when the fog's drawing budget allows (see compose), so a
-  // slow phone still has time to load pages (it then moves in slightly bigger steps). Held still for reduced motion.
+  // CSS push-in), and the mist seen through the glass with it. The scene is a Web Animation the browser runs on its own,
+  // smooth at any frame rate; the mist (drawn in drawFog, pushed in as far as the scene is at that moment) is redrawn at
+  // most every SLOW_MS, once the picture has moved half a pixel somewhere on screen, and only when the fog's drawing
+  // budget allows (see compose and composeSlow). The mist is blurred, so trailing the scene by that much doesn't show. Held still for
+  // reduced motion.
   useEffect(() => {
     const scene = baseRef.current;
     if (!scene) return;
-    const still = !p.zoom || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0;
-    let drawn = NaN; // the push-in last drawn
-    const tick = (now: number) => {
-      const z = still ? 1 : zoomAt((now - shownAt.current) / 1000, p.zoom, p.zoomSecs);
-      const free = !queued.current && performance.now() >= busyUntil.current;
-      if (free && (Number.isNaN(drawn) || Math.abs(z - drawn) * zoom.current.reach >= 0.5)) {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const run = reduced ? null : pushInAnimation(p.zoom, p.zoomSecs);
+    pushIn.current = run ? { zoom: p.zoom, secs: p.zoomSecs } : { zoom: 0, secs: 0 };
+    scene.style.transform = "";
+    const anim = run ? scene.animate(run.keyframes, run.options) : null;
+    if (anim) anim.startTime = shownAt.current; // the same clock the mist reads (both count from the page's start)
+    let drawn = NaN; // the push-in last asked for
+    const clock = ticker((now) => {
+      const z = zoomAt((now - shownAt.current) / 1000, pushIn.current.zoom, pushIn.current.secs);
+      if (Number.isNaN(drawn) || Math.abs(z - drawn) * zoom.current.reach >= 0.5) {
         drawn = z;
-        zoom.current.z = z;
-        scene.style.transform = z === 1 ? "" : `scale(${z})`;
-        drawNow();
+        composeSlow();
       }
-      if (!still) raf = requestAnimationFrame(tick);
+      return run ? SLOW_MS : "stop";
+    });
+    return () => {
+      clock.stop();
+      anim?.cancel();
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [drawNow, p.zoom, p.zoomSecs]);
+  }, [composeSlow, p.zoom, p.zoomSecs]);
 
   useEffect(() => {
     dropLook.current = { film: 0.3 + 0.5 * p.opacity }; // the film the baked trails keep
@@ -1408,8 +1130,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     const gap = () => p.dripEvery * 1000 * (1 + Math.random());
     let next = auto ? performance.now() + (p.dripFirst ?? 2) * 1000 : Infinity;
     let nextGrow = 0;
-    let raf = 0;
-    const tick = (now: number) => {
+    // Every frame while a drop runs or a droplet grows; between runs it sleeps until the next one is due.
+    const clock = ticker((now) => {
       const running = drips.current;
       for (const d of running) {
         const s = dripProgress(d, now);
@@ -1437,12 +1159,18 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         growing = grown.current.some((g) => now < g.born + GROW_MS + 100);
         if (growing) paintGrown(now);
       }
-      if (running.length || growing) compose();
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
+      if (running.length || growing) {
+        compose();
+        return "frame";
+      }
+      if (!built.current) return auto || regrow.current ? 250 : "stop"; // waits for the pane to be built
+      const due = Math.min(next, regrow.current ? nextGrow : Infinity);
+      return due === Infinity ? "stop" : Math.max(16, due - now);
+    });
+    wakeDrips.current = clock.wake;
     return () => {
-      cancelAnimationFrame(raf);
+      clock.stop();
+      wakeDrips.current = () => {};
       drips.current = [];
       compose();
     };
@@ -1453,8 +1181,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     if (!p.dripFade) return;
     // FadingLayer's seconds are a time constant (about a third is left after them); a third of the setting leaves ~3%
     // at the set time, so the trail has fogged over by then, as the label says.
-    return fadeLoop(() => [clearness.current, restDrops.current], p.dripFade / 3, compose);
-  }, [compose, p.dripFade]);
+    return fadeLoop(() => [clearness.current, restDrops.current], p.dripFade / 3, composeSlow);
+  }, [composeSlow, p.dripFade]);
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -1470,6 +1198,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     </div>
   );
 }
+
+/** How often at most the fog is redrawn for its slow changes, the push-in among them (the scene itself moves every frame, on its own). */
+const SLOW_MS = 100;
 
 const blank = (size: number) => Object.assign(document.createElement("canvas"), { width: size, height: size });
 
@@ -1493,10 +1224,14 @@ class FadingLayer {
     this.fresh = blank(size);
   }
 
+  /** Called on every new mark, so the fade loops sleeping while nothing faded wake up (see fadeLoop). */
+  static readonly onMark = new Set<() => void>();
+
   /** The context to draw new marks with. */
   mark() {
     this.marked = true;
     this.left = 1;
+    for (const wake of FadingLayer.onMark) wake();
     return this.fresh.getContext("2d")!;
   }
 
@@ -1573,26 +1308,37 @@ class FadingLayer {
 
 /**
  * Runs the fade of some layers, recomposing while any of them still shows: often enough that each recompose changes
- * the fade by at most ~0.5% (up to every frame for short fades), and once more when one finishes. Returns the stop.
+ * the fade by at most ~0.5% (up to every frame for short fades), and once more when one finishes. Asleep while nothing
+ * is fading; a new mark on any layer wakes it. Returns the stop.
  */
 function fadeLoop(layers: () => (FadingLayer | null)[], seconds: number, compose: () => void) {
   const every = Math.min(100, Math.max(0, seconds * 5)); // ms per 0.5% of fade
-  let raf = 0;
-  let prev = performance.now();
+  let prev = NaN; // NaN after sleeping: the time asleep didn't fade anything
   let drawn = 0;
-  const tick = (now: number) => {
+  const clock = ticker((now) => {
     const live = layers().filter((l): l is FadingLayer => !!l?.live);
-    for (const l of live) l.advance(now - prev, seconds);
+    if (!live.length) {
+      prev = NaN;
+      return "stop";
+    }
+    for (const l of live) l.advance(Number.isNaN(prev) ? 0 : now - prev, seconds);
     prev = now;
     const finished = live.some((l) => !l.live);
-    if (live.length && (finished || now - drawn >= every)) {
+    if (finished || now - drawn >= every) {
       drawn = now;
       compose();
     }
-    raf = requestAnimationFrame(tick);
+    if (live.every((l) => !l.live)) {
+      prev = NaN;
+      return "stop";
+    }
+    return every < 16 ? "frame" : every;
+  });
+  FadingLayer.onMark.add(clock.wake);
+  return () => {
+    FadingLayer.onMark.delete(clock.wake);
+    clock.stop();
   };
-  raf = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(raf);
 }
 
 /** Marks all a droplet covers (plus a margin) on the swept or clearness layer; the soft edge falls outside it. */
@@ -1607,14 +1353,21 @@ function sweep(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry
   g.filter = "none";
 }
 
-/** The trail cleared from the start to progress s, a little narrower than the drop. */
+/**
+ * The trail cleared from the start to progress s: a little narrower than the drop, widening up into the spot it left and
+ * tapering to an arch above it (trailHalf, trailTop).
+ */
 function trailPath(d: Drip, s: number) {
   const n = Math.max(2, Math.ceil((s * d.len) / 3));
   const left: [number, number][] = [];
   const right: [number, number][] = [];
+  for (const [hw, up] of trailTop(d).slice(0, -1)) {
+    left.push([d.x0 - hw, d.y0 - up]);
+    right.push([d.x0 + hw, d.y0 - up]);
+  }
   for (let i = 0; i <= n; i++) {
     const at = dripAt(d, (s * i) / n);
-    const hw = at.r * TRAIL_HALF;
+    const hw = trailHalf(d, (s * i) / n);
     left.push([at.x - hw, at.y]);
     right.push([at.x + hw, at.y]);
   }
@@ -1982,7 +1735,7 @@ async function fingerWriting(o: {
 }
 
 /** Page fill plus the cover as soft light bleeding past its edges, under the glass styles. */
-function drawBleed(ctx: CanvasRenderingContext2D, art: LoadedArt, f: ReturnType<typeof coverFrame>, W: number, H: number, glow: number) {
+export function drawBleed(ctx: CanvasRenderingContext2D, art: LoadedArt, f: ReturnType<typeof coverFrame>, W: number, H: number, glow: number) {
   const img = art.img;
   const s = Math.min(img.naturalWidth, img.naturalHeight);
   ctx.fillStyle = rgb(BG);
@@ -2028,7 +1781,7 @@ function fadeAt(f: Fade, size: number, x: number, y: number) {
   return along(f.h, x / size) * along(f.v, y / size);
 }
 
-function feather(o: CanvasRenderingContext2D, wide: boolean, size: number, pad = 0, fill = false) {
+export function feather(o: CanvasRenderingContext2D, wide: boolean, size: number, pad = 0, fill = false) {
   o.save();
   o.setTransform(1, 0, 0, 1, 0, 0);
   o.globalCompositeOperation = "destination-in";
@@ -2104,55 +1857,4 @@ export function padSquare(cover: HTMLCanvasElement, pad: number, soft: number): 
   }
   o.drawImage(cover, pad, pad);
   return c;
-}
-
-// ── 8. Echo ─────────────────────────────────────────────────────────────────────────────────────────
-/** A crisp cover with larger, softer, fainter copies behind it, like reverb tails, breathing slowly out of step. */
-const ECHOES = [
-  { k: 1.55, blur: 28, o: 0.16 },
-  { k: 1.22, blur: 12, o: 0.28 },
-  { k: 0.96, blur: 4, o: 0.45 },
-];
-export function Echo({ art, p }: V) {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="cover-box grid place-items-center">
-        {ECHOES.map((e, i) => (
-          // eslint-disable-next-line @next/next/no-img-element -- proxied artwork
-          <img
-            key={e.k}
-            src={art.src}
-            alt=""
-            className="animate-breathe absolute rounded-[4px] object-cover"
-            style={
-              {
-                width: `${p.size}%`,
-                height: `${p.size}%`,
-                "--k": 1 + (e.k - 1) * p.spread,
-                filter: `blur(${e.blur * p.blur}px) brightness(${p.brightness + 0.1})`,
-                opacity: Math.min(1, e.o * p.fade),
-                animationDuration: `${p.breathe}s`,
-                animationDelay: `${(-i * p.breathe) / 3}s`,
-              } as React.CSSProperties
-            }
-          />
-        ))}
-        {/* eslint-disable-next-line @next/next/no-img-element -- proxied artwork */}
-        <img
-          src={art.src}
-          alt=""
-          className="relative rounded-[4px] object-cover shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
-          style={{ width: `${p.size}%`, height: `${p.size}%`, filter: `brightness(${p.brightness})` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/** The cover as soft light filling the whole page, so the cover's edges never meet flat black. */
-function Ambient({ src, opacity = 0.35 }: { src: string; opacity?: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- proxied artwork
-    <img src={src} alt="" style={{ opacity }} className="absolute inset-0 h-full w-full scale-125 object-cover blur-[70px] saturate-150" />
-  );
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { createContext, Suspense, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Box } from "../cards/morph";
+import { coverAt } from "../cover";
 import { wideNow } from "../env";
 import { landingFogDefaults } from "../landing/settings";
 import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
@@ -75,15 +76,14 @@ export function useStageScene(scene: Scene | null) {
  * A page's own text or controls, faded up as the page arrives: partway into the cover's move when coming from another
  * page, at once otherwise (the delay is taken when it mounts: key it by song to replay it for each song). `as`: the
  * element it is (a div by default), so text blended with the backdrop can fade up itself: a wrapper fading up would
- * isolate it from what's behind. `byColour`: it fades up by its text colour alone (from transparent), not its opacity
- * and a slide, for blended text (globals.css .colour-enter).
+ * isolate it from what's behind.
  */
-export function Entrance({ children, className = "", stayFrom, as: Tag = "div", byColour = false }: { children: ReactNode; className?: string; stayFrom?: Mode; as?: "div" | "p" | "span"; byColour?: boolean }) {
+export function Entrance({ children, className = "", stayFrom, as: Tag = "div" }: { children: ReactNode; className?: string; stayFrom?: Mode; as?: "div" | "p" | "span" }) {
   const { entranceDelay, lastMode } = useStage();
   // `stayFrom`: coming from that kind of page, it's already there (a song page's player, song to song): no entrance.
   const [delay] = useState(() => (stayFrom && lastMode() === stayFrom ? null : entranceDelay()));
   return (
-    <Tag className={`${delay === null ? "" : byColour ? "colour-enter" : "page-enter"} ${className}`} style={{ "--enter-delay": `${Math.round(delay ?? 0)}ms` } as React.CSSProperties}>
+    <Tag className={`${delay === null ? "" : "page-enter"} ${className}`} style={{ "--enter-delay": `${Math.round(delay ?? 0)}ms` } as React.CSSProperties}>
       {children}
     </Tag>
   );
@@ -425,7 +425,7 @@ function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef
     if (!move.next) return;
     let alive = true;
     const img = new Image();
-    img.src = move.next;
+    img.src = coverAt(move.next);
     img.decode().then(() => alive && setNextIn(true), () => {});
     return () => {
       alive = false;
@@ -445,13 +445,13 @@ function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef
           <canvas ref={picture} className={img} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element -- the cover, already loaded
-          <img src={move.src} alt="" className={img} />
+          <img src={coverAt(move.src)} alt="" className={img} />
         )}
         {move.next && (
           // The opened song's cover, softened to sit with the misted one until its own fog mists over.
           // eslint-disable-next-line @next/next/no-img-element -- the opened song's cover
           <img
-            src={move.next}
+            src={coverAt(move.next)}
             alt=""
             className="absolute object-cover blur-md transition-opacity duration-300"
             style={{ inset: `${(move.margin / (1 + 2 * move.margin)) * 100}%`, opacity: nextIn ? 1 : 0 }}
@@ -539,7 +539,10 @@ function PaneLayer({ pane, dispatch, handles, startThick, enter, leaveMs }: Pane
             startThick={startThick}
           />
         ) : (
-          <V.C art={art} p={scene.params} song={scene.song} />
+          // A Tune-only style loads on first use (Backdrop.tsx tuneOnly).
+          <Suspense fallback={null}>
+            <V.C art={art} p={scene.params} song={scene.song} />
+          </Suspense>
         ))}
     </div>
   );

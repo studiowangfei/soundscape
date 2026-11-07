@@ -1,12 +1,20 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { lazy, useEffect, useState, type ComponentType } from "react";
 import type { Song } from "./art";
 import { defaults, PARAMS, type Param, type Params } from "./params";
 import type { Scene } from "./stage-model";
-import { Blur, Echo, Fog, Glass, Halftone, Mosaic, PixelGlass, Zoom } from "./variants";
+import { Fog, type V } from "./variants";
 import { TUNING } from "../tuning";
+
+/**
+ * A style offered only in Tune (tune-variants.tsx), loaded when picked while developing. The deployed site never shows
+ * one, so it never downloads them (the condition is written out so the build drops the import altogether).
+ */
+const tuneOnly = (name: "Mosaic" | "Halftone" | "Blur" | "Zoom" | "Glass" | "PixelGlass" | "Echo"): ComponentType<V> =>
+  process.env.NODE_ENV === "development" ? lazy(() => import("./tune-variants").then((m) => ({ default: m[name] }))) : () => null;
+const [Mosaic, Halftone, Blur, Zoom, Glass, PixelGlass, Echo] = (["Mosaic", "Halftone", "Blur", "Zoom", "Glass", "PixelGlass", "Echo"] as const).map(tuneOnly);
 
 export const VARIANTS = [
   { key: "mosaic", label: "Mosaic", C: Mosaic },

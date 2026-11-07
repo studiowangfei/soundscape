@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { coverAt } from "../cover";
 import { isWide } from "../env";
 
 export type Song = { title: string; artist: string; cover: string; coverKind: "album" | "artist" };
-export type LoadedArt = { img: HTMLImageElement; kind: "album" | "artist"; src: string };
+/** `src` is the file loaded (a cover's WebP for this screen, see cover.ts), `from` the URL it was asked for. */
+export type LoadedArt = { img: HTMLImageElement; kind: "album" | "artist"; src: string; from: string };
 
 export const BG: [number, number, number] = [13, 11, 10];
 
@@ -17,10 +19,11 @@ export function useArtwork(src: string, kind: "album" | "artist"): LoadedArt | n
   useEffect(() => {
     let alive = true;
     const img = new Image();
-    img.src = src;
+    const file = coverAt(src);
+    img.src = file;
     // Decoded off the main thread before it's handed over, so drawing it the first time doesn't stall the page.
     img.decode().then(
-      () => alive && setArt({ img, kind, src }),
+      () => alive && setArt({ img, kind, src: file, from: src }),
       () => alive && setArt(null),
     );
     return () => {
@@ -201,6 +204,18 @@ export function zoomAt(t: number, zoom: number, secs: number) {
   const lap = Math.floor(run);
   const along = lap % 2 === 0 ? run - lap : 1 - (run - lap); // alternate: out on every other lap
   return 1 + (zoom / 100) * easeInOut(along);
+}
+
+/**
+ * zoomAt as a Web Animation, for the browser to run on its own at full frame rate: started at the moment the scene
+ * appeared (set the animation's startTime to it), it shows the very scale zoomAt gives at every moment. Null when the
+ * scene doesn't push in.
+ */
+export function pushInAnimation(zoom: number, secs: number) {
+  if (!zoom || !(secs > 0)) return null;
+  const keyframes: Keyframe[] = [{ transform: "scale(1)" }, { transform: `scale(${1 + zoom / 100})` }];
+  const options = { duration: secs * 1000, delay: -0.2 * secs * 1000, iterations: Infinity, direction: "alternate" as const, easing: "ease-in-out" };
+  return { keyframes, options };
 }
 
 /** CSS ease-in-out, cubic-bezier(0.42, 0, 0.58, 1): solved for the curve's x by Newton's method, then its y. */
