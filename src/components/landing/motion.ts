@@ -104,25 +104,28 @@ export class WheelMotion {
     if (p.samples.length > 12) p.samples.shift();
   }
 
-  /** The press ends. Returns the song to open: a tap on the centred row while the wheel was at rest. */
-  release(now: number): { open: number | null } {
+  /**
+   * The press ends. Returns the song to open (a tap on the centred row while the wheel was at rest), and whether it was
+   * a tap on a title at all.
+   */
+  release(now: number): { open: number | null; tap: boolean } {
     const p = this.press_;
     this.press_ = null;
-    if (!p) return { open: null };
+    if (!p) return { open: null, tap: false };
     if (!p.moved) {
       const c = Math.round(this.pos);
       if (p.row === c && p.wasIdle) {
         this.mode = "idle";
-        return { open: wrap(c, this.count) };
+        return { open: wrap(c, this.count), tap: true };
       }
       this.goTo(p.row ?? c, now); // another row spins to the centre; a tap mid-spin stops it there
-      return { open: null };
+      return { open: null, tap: p.row !== null };
     }
     const recent = [...p.samples, { t: now, p: this.pos }].filter((s) => s.t >= now - FLICK_WINDOW);
     const [a, b] = [recent[0], recent[recent.length - 1]];
     const vel = recent.length >= 2 && b.t > a.t ? ((b.p - a.p) / (b.t - a.t)) * 1000 : 0;
     this.goTo(flickTarget(this.pos, vel), now);
-    return { open: null };
+    return { open: null, tap: false };
   }
 
   /** A cancelled press (the browser took the pointer): settle where it is; never opens anything. */
