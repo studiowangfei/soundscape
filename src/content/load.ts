@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { COVER, minCoverPx } from "./cover-rules";
 import { EntrySchema, type Entry } from "./schema";
 
 // The songs: content/ inside the app (the deploy repo, see scripts/package-dist.mts), else beside it (this workspace).
@@ -10,6 +11,25 @@ export const CONTENT_DIR: string =
   path.resolve(process.cwd(), "..", "content");
 
 const MAX_IMAGE_BYTES = 250 * 1024;
+
+/** What's wrong with a cover's original (see COVER), or null when it's fine. */
+async function checkCover(file: string, rel: string, minPx: number): Promise<string | null> {
+  let bytes: number;
+  try {
+    bytes = (await fs.stat(file)).size;
+  } catch {
+    return `cover file not found: ${rel}`;
+  }
+  if (bytes > COVER.maxBytes) return `cover ${rel} is ${(bytes / 1048576).toFixed(1)} MB, over the 2 MB limit`;
+  // Loaded here, not at the top: the visitor-comment endpoint imports this module and never checks a cover.
+  const { default: sharp } = await import("sharp");
+  const { width, height } = await sharp(file)
+    .metadata()
+    .catch(() => ({ width: undefined, height: undefined }));
+  if (!width || !height) return `cover ${rel} isn't a readable image`;
+  if (Math.max(width, height) < minPx) return `cover ${rel} is ${width}×${height}, under ${minPx} px on its longest side`;
+  return null;
+}
 
 export type ContentError = { file: string; message: string };
 
@@ -72,17 +92,8 @@ export async function checkEntries(
       errors.push({ file, message: `cover.file must be "${entry.slug}.jpg" (got "${entry.cover.file}")` });
     }
     const coverRel = `covers/${entry.cover.file}`;
-    try {
-      const st = await fs.stat(path.join(dir, coverRel));
-      if (st.size > MAX_IMAGE_BYTES) {
-        errors.push({
-          file,
-          message: `cover ${coverRel} is ${Math.round(st.size / 1024)} KB, over the 250 KB limit`,
-        });
-      }
-    } catch {
-      errors.push({ file, message: `cover file not found: ${coverRel}` });
-    }
+    const coverProblem = await checkCover(path.join(dir, coverRel), coverRel, minCoverPx(entry.slug));
+    if (coverProblem) errors.push({ file, message: coverProblem });
     for (const card of entry.cards) {
       const poster = card.film?.poster;
       if (!poster) continue;
