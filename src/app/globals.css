@@ -52,7 +52,6 @@
   --color-foreground: var(--foreground);
   /* The design's sans: Apple's system face (SF), else the platform's own UI font. */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
 }
 
 /* Not inline: the serif typeface is switched while the page runs (Tune → Text sets --font-serif on <html>; see
@@ -240,20 +239,11 @@ body {
   from { opacity: 0; transform: translateY(8px); }
 }
 .page-enter { animation: page-enter 400ms ease-out var(--enter-delay, 0ms) both; }
-/* The same for text blended with the backdrop (the song page's artist), by its colour alone: animating a blended
-   element's opacity or position lifts it onto a layer of its own, blended by the compositor, and the glass cards over
-   the backdrop flashed white as the page came in. A colour change is only repainted. */
-@keyframes colour-enter {
-  from { color: transparent; }
-}
-.colour-enter { animation: colour-enter 400ms ease-out var(--enter-delay, 0ms) both; }
-/* …and out by its colour too, as its page goes (ArtistName). */
-.ink-out .colour-enter { animation: none; color: transparent; transition: color 180ms ease-out; }
 /* Held at their start (hidden) until the page lets them go: a song page arriving from another song, until the cover's
    crossfade is over (SongView). The cards' rise too. */
-.entrance-hold .page-enter, .entrance-hold .colour-enter, .entrance-hold .glass-rise { animation-play-state: paused; }
+.entrance-hold .page-enter, .entrance-hold .glass-rise { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter, .colour-enter { animation: none; }
+  .page-enter { animation: none; }
 }
 
 /* The moving cover's glow (backdrops/Stage.tsx): soft all round, as the fog's blurred bleed is. */
