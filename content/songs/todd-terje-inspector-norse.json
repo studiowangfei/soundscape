@@ -1,246 +1,246 @@
 {
-    "slug": "todd-terje-inspector-norse",
-    "title": "Inspector Norse",
-    "artist": "Todd Terje",
-    "aliases": [],
-    "releaseYear": 2014,
-    "addedAt": "2026-11-03",
-    "tags": [],
-    "youtubeUrl": "https://www.youtube.com/watch?v=gHiqPG0526U",
-    "spotifyId": "1NHd4UVxT5d5EGYzlDq17T",
-    "youtubeMusicId": "VfvKT8bVJGM",
-    "preview": {
-        "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/aa/98/ab/aa98ab9a-d887-39de-94db-334668f52cb3/mzaf_10828813601278153631.plus.aac.p.m4a",
-        "source": "itunes",
-        "link": "https://music.apple.com/us/album/inspector-norse/806267243?i=806267402&uo=4"
+  "slug": "todd-terje-inspector-norse",
+  "title": "Inspector Norse",
+  "artist": "Todd Terje",
+  "aliases": [],
+  "releaseYear": 2014,
+  "addedAt": "2026-11-03",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=gHiqPG0526U",
+  "spotifyId": "1NHd4UVxT5d5EGYzlDq17T",
+  "youtubeMusicId": "VfvKT8bVJGM",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/aa/98/ab/aa98ab9a-d887-39de-94db-334668f52cb3/mzaf_10828813601278153631.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/inspector-norse/806267243?i=806267402&uo=4"
+  },
+  "cover": {
+    "file": "todd-terje-inspector-norse.jpg",
+    "kind": "album",
+    "album": "It's Album Time",
+    "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1e/5b/b0/1e5bb079-498e-cf95-d922-2663610dc267/5060186922560_1.jpg/3000x3000bb.jpg"
+  },
+  "cards": [
+    {
+      "id": "todd-terje-inspector-norse-g1",
+      "type": "background",
+      "headline": "One synth, one EP, and 2012's tune of the year",
+      "snippet": "Todd Terje built 'Inspector Norse' on a single machine. His fourth EP, It's the Arps, was recorded using only the ARP 2600 synthesizer, and this track — his debut single, released 19 June 2012 — became its calling card: Mixmag named it the top tune of 2012 and Resident Advisor placed it second on its year-end list. Two years later it closed his debut album, It's Album Time (2014), a record critics treated as the moment Norwegian space-disco stepped fully into the light.",
+      "context": "Terje — Terje Olsen — had spent years as a remixer and re-editor, and was called the 'king of the summer jams' by Mixmag.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Inspector_Norse",
+      "sourceDate": "2012-06-19"
     },
-    "cover": {
-        "file": "todd-terje-inspector-norse.jpg",
-        "kind": "album",
-        "album": "It's Album Time",
-        "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1e/5b/b0/1e5bb079-498e-cf95-d922-2663610dc267/5060186922560_1.jpg/1200x1200bb.jpg"
+    {
+      "id": "todd-terje-inspector-norse-g2",
+      "type": "background",
+      "headline": "The dancing man who gave the track its face",
+      "snippet": "The same day the single appeared, Pitchfork posted its official video: four minutes of a Norwegian man dancing alone — in his kitchen, on a bus, in the street — utterly unbothered. The man is Marius Solem Johansen, who had been posting his own ecstatic dance videos online under the alias 'Inspector Norse'. For most of the world the clip, not a club, is where this track lives, and its comment threads still fill with people standing up mid-listen to dance along in empty rooms.",
+      "context": "In the Pitchfork thread, viewers still argue over the excerpt's tone — pure joy, or despair with music as the only outlet.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Inspector_Norse",
+      "sourceDate": "2012-06-19"
     },
-    "cards": [
+    {
+      "id": "todd-terje-inspector-norse-g3",
+      "type": "comment",
+      "headline": "The pact: 'we are not allowed to stop dancing until it's over'",
+      "snippet": "Over the years my friends and I have made a pact that if this song comes on at a party or club, we are not allowed to stop dancing until it's over. That has been a really fun pact. One time my girlfriend said \"If you don't stop playing Inspector Norse I'll leave\". I'll miss her",
+      "context": "The replies refuse to mourn the trade — 'i miss her too...............' and 'LOL never stop being you man!'.",
+      "source": {
+        "name": "YouTube — ross1012",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
+      "sourceDate": null,
+      "comment": {
+        "author": "@2PengBristol",
+        "commentId": null,
+        "likesObserved": 3000,
+        "observedAt": "2026-11-03",
+        "replies": [
+          {
+            "author": "@barrycarrigan5584",
+            "commentId": null,
+            "text": "i miss her too...............",
+            "likesObserved": 59
+          },
+          {
+            "author": "@Yungtacosss",
+            "commentId": null,
+            "text": "LOL never stop being you man!",
+            "likesObserved": 48
+          }
+        ]
+      }
+    },
+    {
+      "id": "todd-terje-inspector-norse-g4",
+      "type": "comment",
+      "headline": "'This should be our planets official anthem'",
+      "snippet": "This should be our planets official anthem",
+      "context": "Most of its 45 replies are addressed to the commenter by name and so don't display; the one that stands alone answers, 'I don't think we deserve such a sweet anthem.'",
+      "source": {
+        "name": "YouTube — ross1012",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
+      "sourceDate": null,
+      "comment": {
+        "author": "@Finalounet",
+        "commentId": null,
+        "likesObserved": 2500,
+        "observedAt": "2026-11-03",
+        "replies": [
+          {
+            "author": "@tylerjones7433",
+            "commentId": null,
+            "text": "I don't think we deserve such a sweet anthem",
+            "likesObserved": 15
+          }
+        ]
+      }
+    },
+    {
+      "id": "todd-terje-inspector-norse-g5",
+      "type": "comment",
+      "headline": "For David, who had 'the most amazing moves to this song'",
+      "snippet": "A friend of mine who died nearly three years ago, had the most amazing moves to this song, I will never forget seeing him, smiling, shaking his hips, pointing fingers, wobbling his knees. Miss you so much David.",
+      "context": "His own replies add the detail the thread asked for — the elbows, moving in and out with the knees: 'sounds kinda stupid, but looked amazing.'",
+      "source": {
+        "name": "YouTube — ross1012",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
+      "sourceDate": null,
+      "comment": {
+        "author": "@tomushy",
+        "commentId": null,
+        "likesObserved": 1300,
+        "observedAt": "2026-11-03",
+        "replies": [
+          {
+            "author": "@tomushy",
+            "commentId": null,
+            "text": "Damnit, I forgot the elbows! You wouldn't believe it, if I told you! :D",
+            "likesObserved": 117
+          },
+          {
+            "author": "@tomushy",
+            "commentId": null,
+            "text": "He moved his elbows and knees simultanously in- and outwards... sounds kinda stupid, but looked amazing.",
+            "likesObserved": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "todd-terje-inspector-norse-g6",
+      "type": "comment",
+      "headline": "Four words the thread built a ritual on: 'the leaving work track.'",
+      "snippet": "the leaving work track.",
+      "context": "Its replies keep renaming it — the leaving-something-crappy track, the leaving-the-wife track.",
+      "source": {
+        "name": "YouTube — ross1012",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
+      "sourceDate": null,
+      "comment": {
+        "author": "@glenseagles",
+        "commentId": null,
+        "likesObserved": 1300,
+        "observedAt": "2026-11-03",
+        "replies": [
+          {
+            "author": "@Chimpfinga",
+            "commentId": null,
+            "text": "leaving the wife track in my case :)",
+            "likesObserved": 50
+          },
+          {
+            "author": "@glenseagles",
+            "commentId": null,
+            "text": "hahah. lets call it the leaving something crappy n pointless track.",
+            "likesObserved": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "todd-terje-inspector-norse-g7",
+      "type": "version",
+      "headline": "Øya 2014: the live version half a million people dance to",
+      "snippet": "At Oslo's Øya Festival in 2014, Terje played the track live with the Olsens' dancers in strings of light; a fan upload of that performance has become the version's second home, watched more than 600,000 times. One listener: \"Instead ofantidepressants people should be prescribed this video.\"",
+      "context": "Its own thread keeps prescribing the performance the same way — a depression-busting tune, a happy place, goosebumps on cue.",
+      "source": {
+        "name": "YouTube — Georgie Casey",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=uzFOcF3g9D8",
+      "sourceDate": "2014-08-15",
+      "version": {
+        "performer": "Todd Terje",
+        "versionLabel": "Todd Terje - Inspector Norse Best Live Version",
+        "popularityObserved": "612K views",
+        "observedAt": "2026-11-03"
+      }
+    },
+    {
+      "id": "todd-terje-inspector-norse-g8",
+      "type": "film",
+      "headline": "Whateverest (2012): the film the video was cut from",
+      "snippet": "The track's official video is a four-minute excerpt from Borgli's short about Marius Solem Johansen, a small-town Norwegian who posted ecstatic solo dance videos online as 'Inspector Norse' — the excerpt keeps the film's joy and cuts loose its sadder whole.",
+      "context": "In the video's thread, the most-liked reading holds both halves at once: a sick father, a stuck village, home-cooked drugs — 'then music gives him an outlet.'",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/whateverest/",
+      "sourceDate": "2012-11-01",
+      "supporting": [
         {
-            "id": "todd-terje-inspector-norse-g1",
-            "type": "background",
-            "headline": "One synth, one EP, and 2012's tune of the year",
-            "snippet": "Todd Terje built 'Inspector Norse' on a single machine. His fourth EP, It's the Arps, was recorded using only the ARP 2600 synthesizer, and this track — his debut single, released 19 June 2012 — became its calling card: Mixmag named it the top tune of 2012 and Resident Advisor placed it second on its year-end list. Two years later it closed his debut album, It's Album Time (2014), a record critics treated as the moment Norwegian space-disco stepped fully into the light.",
-            "context": "Terje — Terje Olsen — had spent years as a remixer and re-editor, and was called the 'king of the summer jams' by Mixmag.",
-            "source": {
-                "name": "Wikipedia",
-                "platform": "web"
-            },
-            "url": "https://en.wikipedia.org/wiki/Inspector_Norse",
-            "sourceDate": "2012-06-19"
-        },
-        {
-            "id": "todd-terje-inspector-norse-g2",
-            "type": "background",
-            "headline": "The dancing man who gave the track its face",
-            "snippet": "The same day the single appeared, Pitchfork posted its official video: four minutes of a Norwegian man dancing alone — in his kitchen, on a bus, in the street — utterly unbothered. The man is Marius Solem Johansen, who had been posting his own ecstatic dance videos online under the alias 'Inspector Norse'. For most of the world the clip, not a club, is where this track lives, and its comment threads still fill with people standing up mid-listen to dance along in empty rooms.",
-            "context": "In the Pitchfork thread, viewers still argue over the excerpt's tone — pure joy, or despair with music as the only outlet.",
-            "source": {
-                "name": "Wikipedia",
-                "platform": "web"
-            },
-            "url": "https://en.wikipedia.org/wiki/Inspector_Norse",
-            "sourceDate": "2012-06-19"
-        },
-        {
-            "id": "todd-terje-inspector-norse-g3",
-            "type": "comment",
-            "headline": "The pact: 'we are not allowed to stop dancing until it's over'",
-            "snippet": "Over the years my friends and I have made a pact that if this song comes on at a party or club, we are not allowed to stop dancing until it's over. That has been a really fun pact. One time my girlfriend said \"If you don't stop playing Inspector Norse I'll leave\". I'll miss her",
-            "context": "The replies refuse to mourn the trade — 'i miss her too...............' and 'LOL never stop being you man!'.",
-            "source": {
-                "name": "YouTube — ross1012",
-                "platform": "web"
-            },
-            "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
-            "sourceDate": null,
-            "comment": {
-                "author": "@2PengBristol",
-                "commentId": null,
-                "likesObserved": 3000,
-                "observedAt": "2026-11-03",
-                "replies": [
-                    {
-                        "author": "@barrycarrigan5584",
-                        "commentId": null,
-                        "text": "i miss her too...............",
-                        "likesObserved": 59
-                    },
-                    {
-                        "author": "@Yungtacosss",
-                        "commentId": null,
-                        "text": "LOL never stop being you man!",
-                        "likesObserved": 48
-                    }
-                ]
-            }
-        },
-        {
-            "id": "todd-terje-inspector-norse-g4",
-            "type": "comment",
-            "headline": "'This should be our planets official anthem'",
-            "snippet": "This should be our planets official anthem",
-            "context": "Most of its 45 replies are addressed to the commenter by name and so don't display; the one that stands alone answers, 'I don't think we deserve such a sweet anthem.'",
-            "source": {
-                "name": "YouTube — ross1012",
-                "platform": "web"
-            },
-            "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
-            "sourceDate": null,
-            "comment": {
-                "author": "@Finalounet",
-                "commentId": null,
-                "likesObserved": 2500,
-                "observedAt": "2026-11-03",
-                "replies": [
-                    {
-                        "author": "@tylerjones7433",
-                        "commentId": null,
-                        "text": "I don't think we deserve such a sweet anthem",
-                        "likesObserved": 15
-                    }
-                ]
-            }
-        },
-        {
-            "id": "todd-terje-inspector-norse-g5",
-            "type": "comment",
-            "headline": "For David, who had 'the most amazing moves to this song'",
-            "snippet": "A friend of mine who died nearly three years ago, had the most amazing moves to this song, I will never forget seeing him, smiling, shaking his hips, pointing fingers, wobbling his knees. Miss you so much David.",
-            "context": "His own replies add the detail the thread asked for — the elbows, moving in and out with the knees: 'sounds kinda stupid, but looked amazing.'",
-            "source": {
-                "name": "YouTube — ross1012",
-                "platform": "web"
-            },
-            "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
-            "sourceDate": null,
-            "comment": {
-                "author": "@tomushy",
-                "commentId": null,
-                "likesObserved": 1300,
-                "observedAt": "2026-11-03",
-                "replies": [
-                    {
-                        "author": "@tomushy",
-                        "commentId": null,
-                        "text": "Damnit, I forgot the elbows! You wouldn't believe it, if I told you! :D",
-                        "likesObserved": 117
-                    },
-                    {
-                        "author": "@tomushy",
-                        "commentId": null,
-                        "text": "He moved his elbows and knees simultanously in- and outwards... sounds kinda stupid, but looked amazing.",
-                        "likesObserved": 40
-                    }
-                ]
-            }
-        },
-        {
-            "id": "todd-terje-inspector-norse-g6",
-            "type": "comment",
-            "headline": "Four words the thread built a ritual on: 'the leaving work track.'",
-            "snippet": "the leaving work track.",
-            "context": "Its replies keep renaming it — the leaving-something-crappy track, the leaving-the-wife track.",
-            "source": {
-                "name": "YouTube — ross1012",
-                "platform": "web"
-            },
-            "url": "https://www.youtube.com/watch?v=ebjXsc0UjdQ",
-            "sourceDate": null,
-            "comment": {
-                "author": "@glenseagles",
-                "commentId": null,
-                "likesObserved": 1300,
-                "observedAt": "2026-11-03",
-                "replies": [
-                    {
-                        "author": "@Chimpfinga",
-                        "commentId": null,
-                        "text": "leaving the wife track in my case :)",
-                        "likesObserved": 50
-                    },
-                    {
-                        "author": "@glenseagles",
-                        "commentId": null,
-                        "text": "hahah. lets call it the leaving something crappy n pointless track.",
-                        "likesObserved": 40
-                    }
-                ]
-            }
-        },
-        {
-            "id": "todd-terje-inspector-norse-g7",
-            "type": "version",
-            "headline": "Øya 2014: the live version half a million people dance to",
-            "snippet": "At Oslo's Øya Festival in 2014, Terje played the track live with the Olsens' dancers in strings of light; a fan upload of that performance has become the version's second home, watched more than 600,000 times. One listener: \"Instead ofantidepressants people should be prescribed this video.\"",
-            "context": "Its own thread keeps prescribing the performance the same way — a depression-busting tune, a happy place, goosebumps on cue.",
-            "source": {
-                "name": "YouTube — Georgie Casey",
-                "platform": "web"
-            },
-            "url": "https://www.youtube.com/watch?v=uzFOcF3g9D8",
-            "sourceDate": "2014-08-15",
-            "version": {
-                "performer": "Todd Terje",
-                "versionLabel": "Todd Terje - Inspector Norse Best Live Version",
-                "popularityObserved": "612K views",
-                "observedAt": "2026-11-03"
-            }
-        },
-        {
-            "id": "todd-terje-inspector-norse-g8",
-            "type": "film",
-            "headline": "Whateverest (2012): the film the video was cut from",
-            "snippet": "The track's official video is a four-minute excerpt from Borgli's short about Marius Solem Johansen, a small-town Norwegian who posted ecstatic solo dance videos online as 'Inspector Norse' — the excerpt keeps the film's joy and cuts loose its sadder whole.",
-            "context": "In the video's thread, the most-liked reading holds both halves at once: a sick father, a stuck village, home-cooked drugs — 'then music gives him an outlet.'",
-            "source": {
-                "name": "Letterboxd",
-                "platform": "letterboxd"
-            },
-            "url": "https://letterboxd.com/film/whateverest/",
-            "sourceDate": "2012-11-01",
-            "supporting": [
-                {
-                    "label": "Wikipedia — Inspector Norse",
-                    "url": "https://en.wikipedia.org/wiki/Inspector_Norse"
-                }
-            ],
-            "film": {
-                "association": "The track's official video is a four-minute excerpt from Borgli's short about Marius Solem Johansen, a small-town Norwegian who posted ecstatic solo dance videos online as 'Inspector Norse' — the excerpt keeps the film's joy and cuts loose its sadder whole.",
-                "title": "Whateverest",
-                "year": 2012,
-                "kind": "film",
-                "poster": {
-                    "file": "todd-terje-inspector-norse-g8.jpg",
-                    "sourceUrl": "https://a.ltrbxd.com/resized/film-poster/1/6/9/2/1/6/169216-whateverest-0-600-0-900-crop.jpg?v=867d077fb4"
-                }
-            }
+          "label": "Wikipedia — Inspector Norse",
+          "url": "https://en.wikipedia.org/wiki/Inspector_Norse"
         }
-    ],
-    "provenance": {
-        "generator": "Soundscape chat pipeline v2 (design-3) run 2026-11-03; entry assembled from the run's final.json after Fei approved the set, including the glenseagles resolution he directed.",
-        "observed": "2026-11-03",
-        "upload": {
-            "id": "ebjXsc0UjdQ",
-            "title": "Todd Terje - Inspector Norse",
-            "channel": "ross1012",
-            "views": "21M",
-            "likes": 132496,
-            "comments": 4147
-        },
-        "spotifyIdNote": "Track ID from songdata.io's track page for 'Inspector Norse' by Todd Terje (keyed by Spotify track ID; the listing names the It's the Arps release and ISRC NOSTS1219010): open.spotify.com/track/1NHd4UVxT5d5EGYzlDq17T. Spotify connector not connected.",
-        "lyricStage": "No lyric card: the track is instrumental and its Genius page (song 678581) states 'This song is an instrumental'; its only referent (25947988) is the description annotation. Koeln/Moby precedent.",
-        "associationCap": "Whateverest is named on g8 only; the g2 background tells the video's story (and names Marius, a person) without naming the film. Oya Festival appears on the version card g7 only.",
-        "bereavementCap": "@tomushy (g5) is the set's one bereavement-centered comment, kept as the highest-liked such comment per Addendum E. @geoffmeisner (566, a joke about his own funeral) is not mourning-centered and remains an eligible reserve.",
-        "glenseaglesDiscrepancy": "The first harvest rendered @glenseagles' 1,300-like comment as two sentences ('This is the leaving work track. The one you play when you finally clock off and the world feels good again.'). A targeted re-check on 2026-11-03 found the comment on the page reads only 'the leaving work track.' - the longer text could not be verified and was NOT carded. Fei was shown both resolutions on 2026-11-03 and chose the verified short text: the card ships with 'the leaving work track.' and its two most-liked passing replies (@Chimpfinga 50; the author's own follow-up, 40). @jamesforrest9837 (877, 'This song plays when humanity gets the good ending.') was displaced to the reserve list by that choice.",
-        "commentIds": "The harvest captured no comment permalinks; commentId is null (schema-nullable, as in recent entries).",
-        "harvestCaveats": "Pool 1's Top order is dynamic; picks are ordered by displayed like counts, not Top rank. The first harvest's middle ranks (roughly 39-150) include paraphrase-suspect one-liners and truncated texts; every pick's text was cross-verified (picks 1-3 and 6 via reply coherence or a second independent read; pick 4 from the harvest's fully verified top-38 ranks). Pool 2 ranks 41-150 were only partially reproduced; pools 2/3 are evidence/version sources, not pick sources. Like counts are YouTube's displayed values (3K read as 3000, 1.3K as 1300).",
-        "coverSource": "iTunes listing verified before use (artistName 'Todd Terje', track 'Inspector Norse', collection 'It's Album Time' 806267243, track 806267402): cover is the album artwork (Bendik Kaltenborn) and the preview comes from the same verified track listing. Fei viewed and approved the cover in chat 2026-11-03 before publishing.",
-        "posterSource": "Whateverest poster from the film's Letterboxd page (600x900 crop, shipped as-is). The film card's sourceDate is Letterboxd's listed release date for the film."
+      ],
+      "film": {
+        "association": "The track's official video is a four-minute excerpt from Borgli's short about Marius Solem Johansen, a small-town Norwegian who posted ecstatic solo dance videos online as 'Inspector Norse' — the excerpt keeps the film's joy and cuts loose its sadder whole.",
+        "title": "Whateverest",
+        "year": 2012,
+        "kind": "film",
+        "poster": {
+          "file": "todd-terje-inspector-norse-g8.jpg",
+          "sourceUrl": "https://a.ltrbxd.com/resized/film-poster/1/6/9/2/1/6/169216-whateverest-0-600-0-900-crop.jpg?v=867d077fb4"
+        }
+      }
     }
+  ],
+  "provenance": {
+    "generator": "Soundscape chat pipeline v2 (design-3) run 2026-11-03; entry assembled from the run's final.json after Fei approved the set, including the glenseagles resolution he directed.",
+    "observed": "2026-11-03",
+    "upload": {
+      "id": "ebjXsc0UjdQ",
+      "title": "Todd Terje - Inspector Norse",
+      "channel": "ross1012",
+      "views": "21M",
+      "likes": 132496,
+      "comments": 4147
+    },
+    "spotifyIdNote": "Track ID from songdata.io's track page for 'Inspector Norse' by Todd Terje (keyed by Spotify track ID; the listing names the It's the Arps release and ISRC NOSTS1219010): open.spotify.com/track/1NHd4UVxT5d5EGYzlDq17T. Spotify connector not connected.",
+    "lyricStage": "No lyric card: the track is instrumental and its Genius page (song 678581) states 'This song is an instrumental'; its only referent (25947988) is the description annotation. Koeln/Moby precedent.",
+    "associationCap": "Whateverest is named on g8 only; the g2 background tells the video's story (and names Marius, a person) without naming the film. Oya Festival appears on the version card g7 only.",
+    "bereavementCap": "@tomushy (g5) is the set's one bereavement-centered comment, kept as the highest-liked such comment per Addendum E. @geoffmeisner (566, a joke about his own funeral) is not mourning-centered and remains an eligible reserve.",
+    "glenseaglesDiscrepancy": "The first harvest rendered @glenseagles' 1,300-like comment as two sentences ('This is the leaving work track. The one you play when you finally clock off and the world feels good again.'). A targeted re-check on 2026-11-03 found the comment on the page reads only 'the leaving work track.' - the longer text could not be verified and was NOT carded. Fei was shown both resolutions on 2026-11-03 and chose the verified short text: the card ships with 'the leaving work track.' and its two most-liked passing replies (@Chimpfinga 50; the author's own follow-up, 40). @jamesforrest9837 (877, 'This song plays when humanity gets the good ending.') was displaced to the reserve list by that choice.",
+    "commentIds": "The harvest captured no comment permalinks; commentId is null (schema-nullable, as in recent entries).",
+    "harvestCaveats": "Pool 1's Top order is dynamic; picks are ordered by displayed like counts, not Top rank. The first harvest's middle ranks (roughly 39-150) include paraphrase-suspect one-liners and truncated texts; every pick's text was cross-verified (picks 1-3 and 6 via reply coherence or a second independent read; pick 4 from the harvest's fully verified top-38 ranks). Pool 2 ranks 41-150 were only partially reproduced; pools 2/3 are evidence/version sources, not pick sources. Like counts are YouTube's displayed values (3K read as 3000, 1.3K as 1300).",
+    "coverSource": "iTunes listing verified before use (artistName 'Todd Terje', track 'Inspector Norse', collection 'It's Album Time' 806267243, track 806267402): cover is the album artwork (Bendik Kaltenborn) and the preview comes from the same verified track listing. Fei viewed and approved the cover in chat 2026-11-03 before publishing.",
+    "posterSource": "Whateverest poster from the film's Letterboxd page (600x900 crop, shipped as-is). The film card's sourceDate is Letterboxd's listed release date for the film."
+  }
 }
