@@ -57,18 +57,35 @@ errors. In short:
 ### The cover
 
 The rule (design doc §9.1): the cover of the studio album the song is on; single art only if it was never on an album;
-the artist's photo only if nothing matches (then `kind: "artist"`). JPEG, at most 800 px and 250 KB. On macOS:
+the artist's photo only if nothing matches (then `kind: "artist"`).
+
+Write the entry first (with `cover.album`, the album whose cover it is), then let the repo find the image:
 
 ```
-sips -Z 800 -s format jpeg -s formatOptions 65 <image> --out content/covers/<slug>.jpg
+npm ci                        # once
+npm run cover <slug>          # finds the largest copy of that album's cover, saves content/covers/<slug>.jpg
 ```
 
-Still over 250 KB: use `formatOptions 50`.
+It searches iTunes, the Cover Art Archive and Deezer for `cover.album` by the song's artist, keeps the largest that
+matches (at least 1,200 px, scaled down to 2,048 px, JPEG), and sets `cover.sourceUrl`. Then **look at the saved
+image**: it must be that album's usual cover, not a remaster, deluxe or single sleeve with different art. When the
+command prints "note: this replaces the current edition", compare the new image with the old one before keeping it.
+
+- `npm run cover <slug> -- --list` shows every candidate with its size and writes nothing.
+- `npm run cover <slug> -- --url <image-url>` saves that image instead (still at least 1,200 px). Use it when the pick
+  is the wrong edition, or for an artist photo.
+- "no cover of at least 1200 px": nothing big enough exists under that album name. Try `--list` (other spellings of
+  the album turn up as candidates) or find one by hand for `--url`; if there is none, tell the owner and leave the song
+  out. Never upscale a small image to pass the check.
+
+Don't make WebPs or resize by hand: the build turns each cover into the two sizes the site serves
+(`<slug>-1200.webp` for phones, `<slug>-2048.webp` for wider screens).
 
 ### Posters
 
-For film cards (design doc §9.2): `content/posters/<card id>.jpg`, named in the card's `film.poster.file`, with the same
-limits as a cover. No confident match: leave `poster` out, and the card shows text only.
+For film cards (design doc §9.2): `content/posters/<card id>.jpg`, named in the card's `film.poster.file`: JPEG, at most
+800 px and 250 KB. On macOS: `sips -Z 800 -s format jpeg -s formatOptions 65 <image> --out content/posters/<card id>.jpg`
+(still over 250 KB: `formatOptions 50`). No confident match: leave `poster` out, and the card shows text only.
 
 ### Icons
 

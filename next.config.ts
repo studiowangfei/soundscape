@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   // Phones and tablets on the same Wi-Fi may open the dev server by this Mac's address (e.g. http://10.0.0.247:3000).
   allowedDevOrigins: ["10.*.*.*", "192.168.*.*", "172.*.*.*", "*.local"],
   trailingSlash: true,
+  // Covers, posters and icons (copied into public/ at build time) are cached by browsers for a day, instead of being
+  // re-checked on every visit (Next's default for public/ is max-age=0). The cost: a replaced image can show the old
+  // one to a returning visitor for up to a day.
+  async headers() {
+    return ["covers", "posters", "icons"].map((dir) => ({ source: `/${dir}/:file*`, headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] }));
+  },
   turbopack: {
     rules: {
       "*.css": {
