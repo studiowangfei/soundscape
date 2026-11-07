@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Neighbours, SongLink } from "@/content/neighbours";
 import type { Entry } from "@/content/schema";
 import type { VisitorComment } from "@/content/visitors";
-import { ArtistName } from "./ArtistName";
 import { BackdropSwitcher, songScene, useBackdropParams, useBackdropVariant } from "./backdrops/Backdrop";
 import { Entrance, useStage, useStageScene } from "./backdrops/Stage";
 import { TIMING } from "./backdrops/stage-model";
@@ -17,6 +16,7 @@ import { GlassProvider, useGlassTune } from "./glass/Glass";
 import { Hit, ICON_HOVER, TOP_RIGHT } from "./icon";
 import { iconBox, LANDING_FOCUS_KEY, landingScene, searchBarLook, sessionSet, useLandingSettings, wheelSettings } from "./landing/settings";
 import { useWheelLayout } from "./landing/useWheelLayout";
+import { ShakeDrops } from "./landing/ShakeDrops";
 import { PreviewBar } from "./player/Players";
 import { streamLinks } from "./player/stream-links";
 import { TUNING } from "./tuning";
@@ -109,7 +109,9 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
           <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
         </Entrance>
         {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
-        <ArtistName name={entry.artist} held={held} out={!!out} />
+        <Entrance as="p" className="mt-1 text-[24px] text-white">
+          {entry.artist}
+        </Entrance>
       </header>
 
       {/* The cards sit at the foot of the window, with either card size (Tune → Cards): pushed down by the space above
@@ -132,6 +134,10 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
         />
       </div>
       <div className="order-2 min-h-10 flex-1 phone:order-1" />
+
+      {/* Shaking the phone lets drops fall down this song's glass, as on the landing page (landing/ShakeDrops; on an
+          iPhone once the motion sensor has been allowed, which the landing page's 💧 asks for). */}
+      <ShakeDrops ready={!out && tune.ready} onDrop={() => stage.drip(sceneKey)} />
 
       {TUNING && (
         <BackdropSwitcher

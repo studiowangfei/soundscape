@@ -1,3 +1,5 @@
+import { haptic, useSwitchTicks } from "./haptics";
+
 /**
  * What the site's icons share (the search bar's funnel and Arrow, a song page's Close, the landing page's emoji: the music
  * switch, the 🎲 and the 💧): one size for what's drawn, everywhere, set by the landing wheel's text (landing/settings.ts
@@ -45,20 +47,50 @@ export const LANDING_MUSIC =
 /**
  * An emoji as an icon button: drawn as big as the others in a box `box` px square (null: not measured yet, so hidden),
  * fully opaque, 1.4× as big under the pointer (hover screens only). A click leaves the focus where it was, so the
- * arrow keys still turn the wheel.
+ * arrow keys still turn the wheel. A tap on a touch screen ticks (haptics.ts): a pulse on Android, the switch's own
+ * tick on an iPhone (SwitchTick).
  */
-export function EmojiButton({ emoji, box, className, ...button }: { emoji: string; box: number | null } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "style">) {
+export function EmojiButton({ emoji, box, className, onClick, ...button }: { emoji: string; box: number | null } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "style">) {
+  const ticks = useSwitchTicks();
   return (
     <button
       type="button"
       onMouseDown={(e) => e.preventDefault()}
       {...button}
+      onClick={(e) => {
+        haptic("tap");
+        onClick?.(e);
+      }}
       className={`${className} cursor-pointer leading-none transition-transform hover:scale-[1.4] ${box ? "" : "invisible"}`}
       style={{ width: box ?? 0, height: box ?? 0, fontSize: ((box ?? 0) * DRAWING) / EMOJI_INK }}
     >
       {box && <Hit size={box} />}
       {emoji}
+      {box && ticks && <SwitchTick size={box} />}
     </button>
+  );
+}
+
+/**
+ * An iPhone's tick for a tap (it has no vibrate): an invisible native switch over the whole target (a `size` px icon's,
+ * as big as Hit's; without one, its parent's), which the finger taps itself (a switch toggled from script stays silent
+ * on recent iOS). The click goes on up to the control. Hidden from assistive tech and the keyboard, and it gives the
+ * focus straight back. Marked data-tick, so the song wheel still takes a press on it (SongWheel).
+ */
+export function SwitchTick({ size }: { size?: number }) {
+  const pad = size == null ? 0 : Math.max(0, (44 - size) / 2);
+  return (
+    <input
+      type="checkbox"
+      {...{ switch: "" }}
+      data-tick
+      aria-hidden
+      tabIndex={-1}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.currentTarget.blur()}
+      className="absolute m-0 cursor-pointer opacity-0"
+      style={size == null ? { inset: 0, width: "100%", height: "100%" } : { left: -pad, top: -pad, width: size + 2 * pad, height: size + 2 * pad }}
+    />
   );
 }
 
