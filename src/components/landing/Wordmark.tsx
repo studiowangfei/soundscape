@@ -8,8 +8,7 @@ const PLACE =
   "pointer-events-none absolute font-sans text-[15px] leading-none font-medium tracking-[4.5px] whitespace-nowrap select-none transition-opacity duration-200 ease-out top-[max(36px,calc(env(safe-area-inset-top)+0.5rem))] left-[max(36px,calc(env(safe-area-inset-left)+0.5rem))] phone:top-[max(24px,env(safe-area-inset-top))] phone:left-1/2 phone:-translate-x-1/2 phone:text-[11px] phone:tracking-[3.3px]";
 
 /**
- * The app's name on the landing page. Its letters are the backdrop's inverse, in grey, as a song page's artist is
- * (ArtistName): a copy underneath takes the colour out of the backdrop within the letters (saturation), and the name over
+ * The app's name on the landing page. Its letters are the backdrop's inverse, in grey: a copy underneath takes the colour out of the backdrop within the letters (saturation), and the name over
  * it, white at the design's 75%, is the difference from that grey, so it reads on any cover, letter by letter, and stays
  * monochrome. Both are drawn on the backdrop itself (OnBackdrop), over the scene and under the page: blend modes in the
  * page upset Chrome's glass (the song page's cards flashed white), and the landing page's own layers, fixed and fading,

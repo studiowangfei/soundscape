@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { claim, HOLD_SLOP, onClaim, release } from "../gesture";
+import { haptic, useSwitchTicks } from "../haptics";
+import { SwitchTick } from "../icon";
 import { WheelMotion } from "./motion";
 import { SearchBar } from "./SearchBar";
 import { wheelOwnsKeys, type SearchBarLook } from "./settings";
@@ -113,8 +115,17 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
 
   const centreRow = Math.round(pos);
   const centre = wrap(centreRow, count);
+  // Turned by hand (a press, drag, scroll or key; not the 🎲 or the page turning it): each song reaching the middle
+  // ticks, where the phone can (haptics.ts). A tap on a title ticks too: a pulse on Android (onUp), and on an iPhone the
+  // tap lands on the invisible switch over each title (SwitchTick), which ticks itself.
+  const handTurn = useRef(false);
+  const byHand = () => {
+    handTurn.current = true;
+    callbacks.current.onUser?.();
+  };
   useEffect(() => {
     callbacks.current.onFocus(centre);
+    if (handTurn.current) haptic("step");
   }, [centre]);
 
   const handleKey = (e: KeyboardEvent | React.KeyboardEvent) => {
@@ -122,7 +133,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     if (e.key === "Enter") callbacks.current.onOpen(m.chosen(), e.metaKey || e.ctrlKey);
     else if (m.key(e.key, performance.now())) kick();
     else return;
-    callbacks.current.onUser?.();
+    byHand();
     e.preventDefault();
   };
 
@@ -135,7 +146,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       const action = wheelAction(e);
       if (action === "ignore") return;
       e.preventDefault();
-      callbacks.current.onUser?.();
+      byHand();
       motion.current!.wheel(e.deltaY, action, performance.now());
       kick();
     };
@@ -168,9 +179,9 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       if (e.pointerType === "mouse" || !e.isPrimary || touch !== null) return;
       const t = e.target instanceof Element ? e.target : null;
       const ui = t?.closest("[data-backdrop-ui]");
-      if ((ui && ui !== rootRef.current) || t?.closest("button, input, select, textarea, a, [role=dialog]")) return;
+      if ((ui && ui !== rootRef.current) || t?.closest("button, input:not([data-tick]), select, textarea, a, [role=dialog]")) return;
       const row = t?.closest("[data-row]");
-      callbacks.current.onUser?.();
+      byHand();
       cancelAnimationFrame(loop.current);
       loop.current = 0;
       touch = e.pointerId;
@@ -191,7 +202,8 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       release(e.pointerId);
       const m = motion.current!;
       if (m.mode !== "drag") return;
-      const { open } = m.release(performance.now());
+      const { open, tap } = m.release(performance.now());
+      if (tap) haptic("tap");
       if (open !== null) callbacks.current.onOpen(open, false);
       else kick();
     };
@@ -220,7 +232,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     const hit = e.target instanceof Element ? e.target.closest("[data-row]") : null;
     if (!hit) return;
-    callbacks.current.onUser?.();
+    byHand();
     cancelAnimationFrame(loop.current);
     loop.current = 0;
     motion.current!.press(e.clientY, Number(hit.getAttribute("data-row")), performance.now());
@@ -247,17 +259,20 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
 
   // A random spin (the page's 🎲).
   const roll = () => {
+    handTurn.current = false;
     motion.current!.roll(Math.random(), performance.now());
     // A spin always travels (several songs, however few songs there are): the bar fades until it lands.
     setSpun(true);
     kick();
   };
   const step = () => {
+    handTurn.current = false;
     if (motion.current!.key("ArrowDown", performance.now())) kick();
   };
   useImperativeHandle(ref, () => ({ roll, step }));
 
   const id = useId();
+  const ticks = useSwitchTicks();
   // The centred title's width, eased between the two rows nearest the centre as the wheel turns (the bar follows it).
   const below = Math.floor(pos);
   const widthAt = (k: number) => fitOf(k).width;
@@ -290,6 +305,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
         }}
       >
         {titles[song]}
+        {ticks && <SwitchTick />}
       </div>,
     );
   }

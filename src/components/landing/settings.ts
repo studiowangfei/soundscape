@@ -14,8 +14,8 @@ const SONG_PAGES_STORE = "soundscape.backdrop.params";
 
 export type LandingSettings = { fog: Params; wheel: Params; bar: Params };
 
-/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-11-04; the first run 20 s in). */
-const LANDING_FOG: Params = { blur: 10, dripFirst: 20, dripEvery: 60, edgeSoft: 0, brightness: 0.6, glow: 0.3, zoomSecs: 15 };
+/** Where the landing page's Fog looks different from the song pages' (as tuned on 2026-11-06; the first run 20 s in). */
+const LANDING_FOG: Params = { density: 0.3, blur: 8, thicken: 120, thickMax: 0.7, dripFirst: 20, dripEvery: 60, edgeSoft: 0, brightness: 0.6, glow: 0.3, zoomSecs: 15 };
 
 /** No finger-written title on this page (the titles are on the wheel); its own Fog defaults. */
 export const LANDING_FOG_SPECS: Param[] = PARAMS.fog
@@ -194,7 +194,7 @@ export type Shown = { i: number; art: LoadedArt };
  * song with another's cover.
  */
 export function pairShown(prev: Shown | null, to: number, art: LoadedArt | null, coverOf: (i: number) => string): Shown | null {
-  if (!art || art.src !== coverOf(to)) return prev;
+  if (!art || art.from !== coverOf(to)) return prev;
   return prev && prev.i === to && prev.art === art ? prev : { i: to, art };
 }
 

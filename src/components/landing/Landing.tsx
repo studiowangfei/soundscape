@@ -7,8 +7,11 @@ import { savedSongScene, TunePanel } from "../backdrops/Backdrop";
 import { SEARCH_BAR_PARAMS, WHEEL_PARAMS } from "../backdrops/params";
 import { Entrance, useStage, useStageScene } from "../backdrops/Stage";
 import { TIMING } from "../backdrops/stage-model";
+import { coverAt } from "../cover";
 import { EmojiButton, LANDING_DICE, LANDING_DROP } from "../icon";
 import { AutoRotate } from "./AutoRotate";
+import { askMotion } from "./shake";
+import { ShakeDrops } from "./ShakeDrops";
 import { BackgroundMusic } from "./BackgroundMusic";
 import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
@@ -150,7 +153,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
       const src = `/covers/${songs[i].cover.file}`;
       if (fetched.current.has(src)) continue;
       fetched.current.add(src);
-      new Image().src = src;
+      new Image().src = coverAt(src);
     }
   }, [focused, songs]);
 
@@ -212,11 +215,13 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
           </div>
 
           {/* The emoji, placed for desktops and phones (icon.tsx LANDING_*). A drop: one of the big droplets on the glass
-              falls, clearing a trail (backdrops/variants.tsx, FogHandle.drip). A random song. */}
-          <EmojiButton emoji="💧" box={start !== null ? box : null} onClick={() => stage.drip("landing")} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
+              falls, clearing a trail (backdrops/variants.tsx, FogHandle.drip); on an iPhone its first tap also asks for
+              the motion sensor, so shaking the phone lets drops fall too (ShakeDrops). A random song. */}
+          <EmojiButton emoji="💧" box={start !== null ? box : null} onClick={() => (askMotion(), stage.drip("landing"))} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
           <EmojiButton emoji="🎲" box={start !== null ? box : null} onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="Random song" title="Random song" className={LANDING_DICE} />
           <BackgroundMusic src={shownSong ? shownSong.preview : undefined} box={box} />
           <Wordmark leaving={leaving} />
+          <ShakeDrops ready={start !== null && !leaving} onDrop={() => stage.drip("landing")} />
           <AutoRotate wheel={wheelRef} ready={start !== null && !leaving} song={rest} preview={songs[rest].preview} userAt={userAt} />
         </div>
       </Entrance>
