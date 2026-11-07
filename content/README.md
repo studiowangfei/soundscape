@@ -13,10 +13,26 @@ Validate with `npm run content:check` before pushing. Schema: `src/content/schem
 
 ## Making a cover
 
-Covers must be JPEG, at most 250 KB. On macOS, the built-in `sips` does it (PNG input works too):
+A cover is the song's original: JPEG, 1,200 to 2,048 px on its longest side, at most 2 MB. With the entry's
+`cover.album` filled in, the cover command finds and saves it:
 
 ```
-sips -Z 800 -s format jpeg -s formatOptions 65 <input> --out content/covers/<slug>.jpg
+npm run cover <slug>                         # largest match from iTunes, the Cover Art Archive or Deezer; sets cover.sourceUrl
+npm run cover <slug> -- --list               # every candidate with its size; writes nothing
+npm run cover <slug> -- --url <image-url>    # that image instead (wrong edition picked, or an artist photo)
+```
+
+Check the saved image is the album's usual cover (not a remaster or single with different art). Under 1,200 px
+everywhere: the command says so and saves nothing. Never upscale to pass. (The few songs whose cover exists nowhere at
+that size are named in `SMALL_COVERS`, `src/content/cover-rules.ts`.) The build makes the two WebPs the site serves,
+`<slug>-1200.webp` (phones) and `<slug>-2048.webp`, so don't make them by hand.
+
+## Making a poster
+
+Posters must be JPEG, at most 250 KB. On macOS, the built-in `sips` does it (PNG input works too):
+
+```
+sips -Z 800 -s format jpeg -s formatOptions 65 <input> --out content/posters/<card id>.jpg
 ```
 
 If the result is still over 250 KB, lower `formatOptions` (for example 50).
@@ -74,8 +90,8 @@ The optional 9th card highlights one line listeners keep quoting. It doesn't tak
 - The collapsed card shows the "Lyric" label, the quoted line and the source line; the expanded card shows the line, then
   `snippet` (the story or meaning behind it) and `context` (a fan reaction or another take; may be empty), then the source
   line. `headline` is stored, not shown. Never say where the line sits in the song (verse, chorus, opening line…).
-- `cover.file` must be `<slug>.jpg`; `slug` is ASCII kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`). Covers live in `content/covers/<slug>.jpg`, must exist, and must be at most 250 KB.
-- `film.poster.file` must be `<card id>.jpg`. Posters live in `content/posters/<card id>.jpg`, must exist, and must be at most 250 KB. Make one like a cover.
+- `cover.file` must be `<slug>.jpg`; `slug` is ASCII kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`). Covers live in `content/covers/<slug>.jpg`, must exist, and must be a readable image of at least 1,200 px on its longest side (except the songs in `SMALL_COVERS`) and at most 2 MB.
+- `film.poster.file` must be `<card id>.jpg`. Posters live in `content/posters/<card id>.jpg`, must exist, and must be at most 250 KB. Make one as in "Making a poster".
 - Run `npm run content:check` before pushing.
 
 ## Visitor comments
