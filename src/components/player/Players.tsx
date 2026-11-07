@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Neighbours, SongLink } from "@/content/neighbours";
+import { useCoverFile } from "../cover";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { PLAYER_HEIGHT, PLAYER_INSET } from "../glass/settings";
 import { ListenOn } from "./ListenOn";
@@ -23,13 +24,14 @@ export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: stri
   const { attach, style, filter, look } = useGlass("player");
 
   const { follow } = track;
+  const coverFile = useCoverFile(cover);
   useEffect(() => follow(preview?.url ?? null), [preview?.url, follow]);
   const mine = !!preview && track.src === preview.url;
 
   // The cover's corners follow the bar's: its radius is the bar's less the inset, so the gap stays even round the bend.
   const art = (
     // eslint-disable-next-line @next/next/no-img-element -- local cover
-    <img src={cover} alt="" className="size-12 object-cover" style={{ borderRadius: look.radius - PLAYER_INSET }} />
+    <img src={coverFile ?? undefined} alt="" className="size-12 object-cover" style={{ borderRadius: look.radius - PLAYER_INSET }} />
   );
 
   return (
