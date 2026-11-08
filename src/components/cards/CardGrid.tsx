@@ -24,8 +24,12 @@ export function CardGrid({ cards, mobile = "standard", className = "" }: { cards
   // The cards rise once the page's arrival has got going (partway into the cover's move, coming from another page).
   const { entranceDelay } = useStage();
   const [delay] = useState(entranceDelay);
-  // The open card, and the side it came in from when it was swiped to (0: opened from its tile).
-  const [opened, setOpened] = useState<{ id: string; enter: -1 | 0 | 1 } | null>(null);
+  // The open card, and the side it came in from when it was swiped to (0: opened from its tile), with where the last
+  // card was then (so the two keep a step apart). Each opening is its own CardDetail (`uid`).
+  const [opened, setOpened] = useState<{ id: string; uid: number; enter: -1 | 0 | 1; from: number } | null>(null);
+  // The cards on their way out, beside the one coming in (still the same CardDetail, so nothing redraws).
+  const [leaving, setLeaving] = useState<{ id: string; uid: number; enter: -1 | 0 | 1; dir: -1 | 1 }[]>([]);
+  const uid = useRef(0);
   const openId = opened?.id ?? null;
   const at = cards.findIndex((c) => c.id === openId);
   const open = at >= 0 ? cards[at] : undefined;
@@ -68,42 +72,62 @@ export function CardGrid({ cards, mobile = "standard", className = "" }: { cards
             hidden={card.id === openId}
             onOpen={(el) => {
               tiles.current.set(card.id, el);
-              setOpened({ id: card.id, enter: 0 });
+              setOpened({ id: card.id, uid: ++uid.current, enter: 0, from: 0 });
             }}
           />
         ))}
       </div>
-      {open && (
-        <CardDetail
-          key={open.id}
-          card={open}
-          tile={tileBox}
-          short={short}
-          enter={opened?.enter}
-          step={{
-            prev: at > 0,
-            next: at < cards.length - 1,
-            // On to the card either side: its tile is brought into view in the row (behind the open card), so closing
-            // goes back to it.
-            go: (dir) => {
-              const to = cards[at + dir];
-              const el = row.current?.children[at + dir];
-              if (!to) return;
-              if (el instanceof HTMLElement && row.current) {
-                tiles.current.set(to.id, el);
-                const [r, t] = [row.current.getBoundingClientRect(), el.getBoundingClientRect()];
-                row.current.scrollBy({ left: t.left - r.left - (r.width - t.width) / 2, behavior: "instant" });
-              }
-              setOpened({ id: to.id, enter: dir });
-            },
-          }}
-          onClosed={() => {
-            const el = tiles.current.get(open.id);
-            setOpened(null);
-            requestAnimationFrame(() => el?.focus({ preventScroll: true })); // once it's visible again
-          }}
-        />
-      )}
+      {/* One list, so a card going from open to on its way out stays the same CardDetail (keyed by its opening). */}
+      {[...leaving, ...(open && opened ? [opened] : [])].map((o) => {
+        const card = cards.find((c) => c.id === o.id);
+        if (!card) return null;
+        if ("dir" in o)
+          return (
+            <CardDetail
+              key={o.uid}
+              card={card}
+              tile={tileBox}
+              short={short}
+              enter={o.enter}
+              leaving={o.dir}
+              onGone={() => setLeaving((ls) => ls.filter((x) => x.uid !== o.uid))}
+              onClosed={() => {}}
+            />
+          );
+        return (
+          <CardDetail
+            key={o.uid}
+            card={card}
+            tile={tileBox}
+            short={short}
+            enter={o.enter}
+            from={o.from}
+            step={{
+              prev: at > 0,
+              next: at < cards.length - 1,
+              // On to the card either side: its tile is brought into view in the row (behind the open card), so closing
+              // goes back to it. This card stays on, on its way out beside the next one coming in (none, reduced motion).
+              go: (dir, from) => {
+                const to = cards[at + dir];
+                const el = row.current?.children[at + dir];
+                if (!to) return;
+                if (el instanceof HTMLElement && row.current) {
+                  tiles.current.set(to.id, el);
+                  const [r, t] = [row.current.getBoundingClientRect(), el.getBoundingClientRect()];
+                  row.current.scrollBy({ left: t.left - r.left - (r.width - t.width) / 2, behavior: "instant" });
+                }
+                if (from !== undefined) setLeaving((ls) => [...ls, { id: o.id, uid: o.uid, enter: o.enter, dir }]);
+                setOpened({ id: to.id, uid: ++uid.current, enter: dir, from: from ?? 0 });
+              },
+            }}
+            onClosed={() => {
+              const el = tiles.current.get(o.id);
+              setOpened(null);
+              requestAnimationFrame(() => el?.focus({ preventScroll: true })); // once it's visible again
+            }}
+          />
+        );
+      })}
     </>
   );
 }

@@ -17,6 +17,7 @@ import { DETAIL_BODY as BODY, DETAIL_HEADLINE as HEADLINE, DETAIL_LABEL as LABEL
 import type { VisitorComment } from "@/content/visitors";
 import { keyStaysInForm, startsInField } from "./form";
 import { VisitorForm } from "./VisitorForm";
+import { pagerFade, pagerStep } from "./switch";
 
 type Props = {
   /** One of the entry's cards, a visitor's comment, or the end card (its form). */
@@ -29,10 +30,15 @@ type Props = {
   short?: boolean;
   /** The cards either side in the row, if there are any, and how to move to one: swiping the card sideways (touch) or
    * the arrow keys move to them. */
-  step?: { prev: boolean; next: boolean; go: (dir: -1 | 1) => void };
+  step?: { prev: boolean; next: boolean; go: (dir: -1 | 1, from?: number) => void };
   /** Arrived by a swipe from this side (1: from the right, -1: from the left): it slides in, rather than growing out of
    * its tile, and takes the last card's place in the history. */
   enter?: -1 | 0 | 1;
+  /** How far along (px) the card it takes over from was when the two set off, so they keep a step apart. */
+  from?: number;
+  /** On its way out as the next card (that way: 1, the next) comes in beside it; then `onGone`. */
+  leaving?: -1 | 1;
+  onGone?: () => void;
 };
 
 /** How tall the design draws each kind of open card, at the least (a card with more to say grows). */
@@ -42,9 +48,9 @@ const minHeight = (card: RowCard, media: boolean) =>
 
 const OPEN = { type: "spring", stiffness: 260, damping: 30, mass: 1 } as const;
 const CLOSE = { type: "spring", stiffness: 340, damping: 36, mass: 1 } as const;
-// Moving to the next or previous card: the card slides out to one side and the other slides in from the other.
-const SLIDE_OUT = { type: "tween", duration: 0.2, ease: [0.4, 0, 1, 1] } as const;
-const SLIDE_IN = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
+// Moving to the next or previous card (switch.ts): the two cards along together, side by side, in one move; by touch,
+// from wherever the finger let go.
+const PAGER = { type: "tween", duration: 0.46, ease: [0.32, 0.72, 0, 1] } as const;
 const SPRING_BACK = { type: "spring", stiffness: 500, damping: 40 } as const;
 /** How far a sideways swipe must go (px), or how fast (px/s), to move to the next card. */
 const SWIPE_DISTANCE = 80;
@@ -52,18 +58,37 @@ const SWIPE_SPEED = 500;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// The page behind is out of reach while a card is open (two, for a moment, side by side): no tabbing to it, no screen
+// reader wandering into it, no scrolling it. Held while any card is open, let go as the last one goes.
+let holders = 0;
+let held: { els: HTMLElement[]; overflow: string } | null = null;
+function holdPage() {
+  if (holders++ === 0) {
+    const els = Array.from(document.body.children).filter((el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute("data-card-dialog") && !el.inert);
+    for (const el of els) el.inert = true;
+    held = { els, overflow: document.documentElement.style.overflow };
+    document.documentElement.style.overflow = "hidden";
+  }
+  return () => {
+    if (--holders > 0 || !held) return;
+    for (const el of held.els) el.inert = false;
+    document.documentElement.style.overflow = held.overflow;
+    held = null;
+  };
+}
+
 /**
  * The expanded card: 600 wide and at least as tall as the design draws its kind, centred in the window above
  * everything (a portal on <body>), the whole page dimmed and blurred behind it; on phones, 8 px in from the sides
  * (globals.css .card-stage). It grows out of its tile and shrinks back into it (morph.ts): laid out in place, drawn
  * over the tile, and eased there, its glass one pane throughout (nothing cross-fades, so nothing flashes). The tile's
- * face fades out as the card's own content fades in. Swiped sideways (touch), or with the arrow keys, it slides away
- * and the next or previous card in the row slides in (the row scrolls to its tile, so closing goes back there). Closes
+ * face fades out as the card's own content fades in. Swiped sideways (touch), or with the arrow keys, it moves on to the
+ * next or previous card in the row, as Tune → Card switch says (the row scrolls to its tile, so closing goes back there). Closes
  * on Escape, a click outside, the browser's Back (an open card is a step in the history, so Android's back and iOS's
  * swipe back close it rather than leave the song), or, by touch, dragging it down from the top of its content. The page
  * behind is out of reach meanwhile (inert).
  */
-export function CardDetail({ card, tile, onClosed, short = false, step, enter = 0 }: Props) {
+export function CardDetail({ card, tile, onClosed, short = false, step, enter = 0, from = 0, leaving, onGone }: Props) {
   const glass = useGlass("expanded", { sync: true });
   const settings = useGlassSettings();
   const [revealed, setRevealed] = useState(false);
@@ -86,6 +111,9 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   const progress = useMotionValue(0);
   const dragY = useMotionValue(0); // how far a finger has pulled the card down (px)
   const dragX = useMotionValue(0); // how far the card is slid sideways: by a finger, or moving to the next card (px)
+  // The card's opacity by how far along it is from the middle (moving to the next card, or dragged sideways).
+  const fadeBy = useRef<((x: number) => number) | null>(null);
+  const leavingRef = useRef(false);
   const flipRef = useRef<Flip | null>(null);
   const closing = useRef(false);
 
@@ -102,15 +130,18 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
       const slide = dragX.get() * Math.min(1, Math.max(0, p));
       el.style.transform = `translate(${m.x + slide}px, ${m.y + pull}px) scale(${m.sx}, ${m.sy})`;
       el.style.borderRadius = `${m.rx}px / ${m.ry}px`;
+      const a = fadeBy.current ? fadeBy.current(dragX.get()) : 1;
+      el.style.setProperty("--card-fade", String(a));
       if (face.current) {
         face.current.style.opacity = String(m.face);
         face.current.style.transform = `scale(${m.ix}, ${m.iy})`;
       }
       if (content.current) {
-        content.current.style.opacity = String(m.content);
+        content.current.style.opacity = String(m.content * a);
         content.current.style.transform = `scale(${m.cx}, ${m.cy})`;
       }
-      if (overlay.current) overlay.current.style.opacity = String(m.overlay * (1 - Math.min(0.5, pull / 800)));
+      // On its way out, the next card's dimming takes over.
+      if (overlay.current) overlay.current.style.opacity = leavingRef.current ? "0" : String(m.overlay * (1 - Math.min(0.5, pull / 800)));
       // The bend scales with the card, its wide edge included, so drawn small it already matches the tile's; frost
       // doesn't, so it's set as seen on screen (the tile's at the start, the open card's at the end). In flight, over
       // the page's sharp text, the lens eases off, settling back in as the card lands: a lens racing over text reads
@@ -133,18 +164,24 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   };
 
   // Open: measure where the card ends up, draw it over the tile before the first paint, then ease it into place. Or,
-  // arriving by a swipe, already open and just off the side it comes from, sliding in.
+  // arriving from the card beside it, already open, off the side it comes from, sliding in.
   useLayoutEffect(() => {
     if (!pane.current) return;
     flipRef.current = measure();
     const unsubscribe = progress.on("change", draw);
     const unslide = dragX.on("change", () => draw(progress.get()));
     let controls: { stop(): void } | null = null;
+    const el = pane.current;
+    // A card fades by how far it is from the middle, a finger's drag included.
+    const s = pagerStep(el.offsetWidth);
+    fadeBy.current = (x) => pagerFade(x, s);
     if (enter) {
-      dragX.set(enter * window.innerWidth);
       progress.set(1);
-      if (reducedMotion()) dragX.set(0);
-      else controls = animate(dragX, 0, SLIDE_IN);
+      if (!reducedMotion()) {
+        dragX.set(from + enter * s);
+        controls = animate(dragX, 0, PAGER);
+      }
+      draw(1);
     } else {
       draw(0);
       if (reducedMotion()) progress.set(1);
@@ -173,17 +210,29 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClosed, progress]);
 
-  // Slides away to the side opposite `dir` (1: on to the next card, so out to the left), then the row moves on to it.
+  // On to the card beside it (`dir` 1: the next): the row moves on at once, and this card carries on out towards the
+  // other side (as `leaving`), from wherever a finger let it go, a step ahead of the next coming in beside it.
   const moveOn = useCallback(
     (dir: -1 | 1) => {
       if (closing.current || !step || !(dir > 0 ? step.next : step.prev)) return;
       closing.current = true;
       video.current?.pause();
       if (reducedMotion()) return step.go(dir);
-      animate(dragX, -dir * window.innerWidth, { ...SLIDE_OUT, onComplete: () => step.go(dir) });
+      step.go(dir, dragX.get());
     },
     [step, dragX],
   );
+
+  // On its way out: a step along, keeping pace with the next card coming in beside it.
+  useLayoutEffect(() => {
+    if (!leaving || !pane.current) return;
+    leavingRef.current = true;
+    draw(progress.get());
+    const controls = animate(dragX, -leaving * pagerStep(pane.current.offsetWidth), { ...PAGER, onComplete: () => onGone?.() });
+    return () => controls.stop();
+    // Runs once, as it sets off.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaving]);
 
   // The open card is a step in the history: Back closes it. Closing it any other way takes that step back too, and
   // the card goes when the history says so (popstate), so the two never disagree. A card arrived at by a swipe takes
@@ -200,7 +249,9 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
       if (enter) history.replaceState({ soundscapeCard: card.id }, "");
       else history.pushState({ soundscapeCard: card.id }, "");
     }
-    const onPop = () => dismissRef.current();
+    const onPop = () => {
+      if (!leavingRef.current) dismissRef.current();
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
     // Runs again only if the card changes, which it doesn't (a new card is a new CardDetail).
@@ -211,15 +262,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
     else dismiss();
   }, [card.id, dismiss]);
 
-  // The page behind is out of reach while the card is open: no tabbing to it, no screen reader wandering into it.
-  useEffect(() => {
-    const dialog = pane.current?.closest('[role="dialog"]');
-    const behind = Array.from(document.body.children).filter((el): el is HTMLElement => el instanceof HTMLElement && el !== dialog && !el.inert);
-    for (const el of behind) el.inert = true;
-    return () => {
-      for (const el of behind) el.inert = false;
-    };
-  }, []);
+  useEffect(() => holdPage(), []);
 
   // Touch: a sideways swipe moves to the next or previous card: the card follows the finger (with a little give and
   // no further at either end of the row) and, let go far or fast enough, slides away as the other slides in; else it
@@ -301,6 +344,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
     // move to the next or previous card. Typing in the end card's fields, the arrows move the caret and Escape leaves
     // the field (a second Escape closes).
     const onKey = (e: KeyboardEvent) => {
+      if (leavingRef.current) return;
       if (keyStaysInForm(e)) {
         if (e.key === "Escape") (e.target as HTMLElement).blur();
         return;
@@ -309,13 +353,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
       else if (e.key === "ArrowRight" || e.key === "ArrowLeft") moveOn(e.key === "ArrowRight" ? 1 : -1);
     };
     window.addEventListener("keydown", onKey);
-    const root = document.documentElement;
-    const overflow = root.style.overflow;
-    root.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      root.style.overflow = overflow;
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [close, moveOn]);
 
   const setPane = useCallback(
@@ -327,7 +365,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   );
 
   return createPortal(
-    <div ref={dialog} tabIndex={-1} className="fixed inset-0 z-[1000] outline-none" role="dialog" aria-modal="true" aria-label={!entry ? rowCardLabel(card) : entry.type === "comment" ? entry.snippet : entry.type === "lyric" && entry.lyric ? entry.lyric.excerptOrTimestamp : entry.headline}>
+    <div ref={dialog} tabIndex={-1} data-card-dialog inert={!!leaving} aria-hidden={leaving ? true : undefined} className={`fixed inset-0 outline-none ${leaving ? "z-[1001]" : "z-[1000]"}`} role="dialog" aria-modal="true" aria-label={!entry ? rowCardLabel(card) : entry.type === "comment" ? entry.snippet : entry.type === "lyric" && entry.lyric ? entry.lyric.excerptOrTimestamp : entry.headline}>
       <div
         ref={overlay}
         className="absolute inset-0 touch-none"
