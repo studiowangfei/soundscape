@@ -55,3 +55,45 @@ export function ticker(step: (now: number) => Next, env: Env = browser()) {
     },
   };
 }
+
+/**
+ * Asks for a drawing, made at most once per frame, at the frame: however many things ask in between (pointer moves,
+ * a running drop, the slow changes), the next frame draws once. After a drawing it waits twice as long as that took
+ * before the next (on a slow phone a drawing can outlast a frame; back to back they'd leave no time to load a page).
+ * Drawing on the frame matters in Safari, which does canvas work after the script returns: drawings made straight
+ * from events queued up there unseen (a fast script and a slow screen), and a wipe showed up late. A wait shorter
+ * than a frame isn't kept: the next frame comes soon enough.
+ */
+const FRAME_MS = 16;
+
+export function frameDraw(draw: () => void, env: Env = browser()) {
+  let frame = 0;
+  let timer = 0;
+  let busyUntil = 0;
+  const run = () => {
+    frame = 0;
+    const t = env.now();
+    draw();
+    const end = env.now();
+    busyUntil = end + 2 * (end - t);
+  };
+  return {
+    request() {
+      if (frame || timer) return;
+      // A wait shorter than a frame is served by the next frame anyway (drawing on alternate frames would halve a
+      // running drop's frame rate); a longer one sleeps first.
+      const wait = busyUntil - env.now();
+      if (wait > FRAME_MS)
+        timer = env.setTimeout(() => {
+          timer = 0;
+          frame = env.raf(run);
+        }, wait);
+      else frame = env.raf(run);
+    },
+    cancel() {
+      if (frame) env.caf(frame);
+      if (timer) env.clearTimeout(timer);
+      frame = timer = 0;
+    },
+  };
+}

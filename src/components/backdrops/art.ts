@@ -231,3 +231,20 @@ function easeInOut(x: number) {
   }
   return curve(t, 0, 1);
 }
+
+/**
+ * Gradient stops (offset, alpha) across a layer of `size` px whose own edge fade runs `stops` (fadeStops; null: none)
+ * that leave out `cut0` px at its start and `cut1` at its end: nothing there, then fading in from each cut's edge to
+ * where the layer's own fade is full (at least `min` px on), solid between.
+ */
+export function softCut(stops: [number, number][] | null, size: number, cut0: number, cut1: number, min: number): [number, number][] {
+  const solid = (stops ?? []).filter(([, a]) => a === 1).map(([t]) => t * size);
+  const lo = cut0 ? Math.max(cut0 + min, solid[0] ?? 0) : 0;
+  const hi = cut1 ? Math.min(size - cut1 - min, solid[solid.length - 1] ?? size) : size;
+  const at = (px: number) => Math.min(1, Math.max(0, px / size));
+  const out: [number, number][] = [];
+  if (cut0) out.push([0, 0], [at(cut0), 0]);
+  out.push([at(lo), 1], [Math.max(at(lo), at(hi)), 1]);
+  if (cut1) out.push([at(size - cut1), 0], [1, 0]);
+  return out;
+}

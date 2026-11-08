@@ -1,14 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { backdropSize, BG, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, pushInAnimation, rgb, sampleSquare, zoomAt, zoomOrigin, type Layout, type LoadedArt, type Song } from "./art";
+import { drawBlurred } from "./canvas-blur";
+import { backdropSize, BG, softCut, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, pushInAnimation, rgb, sampleSquare, zoomAt, zoomOrigin, type Layout, type LoadedArt, type Song } from "./art";
 import { coarseNow, phoneNow, wideNow } from "../env";
-import { claim, HOLD_MS, HOLD_SLOP, release } from "../gesture";
+import { claim, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../gesture";
+import { haptic } from "../haptics";
 import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, segmentDistance, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, type Drip } from "./drip";
 import { createFogRenderer } from "./fog-client";
 import type { FogResult } from "./fog-job";
 import { dropPainter, fillParams, fogDrops, glassSeed, mistBlur, thickened } from "./fog-render";
-import { ticker } from "./ticker";
+import { frameDraw, ticker } from "./ticker";
 import { FOG_FONTS, type Params } from "./params";
 
 /** Every style gets the loaded artwork, its tunable settings (see params.ts) and the song. */
@@ -118,7 +120,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const grownC = useRef<HTMLCanvasElement | null>(null);
   const grownCount = useRef(0);
   const regrow = useRef(false);
-  const startRunRef = useRef<(now: number, ask: boolean) => boolean>(() => false);
+  const startRunRef = useRef<(now: number, ask: boolean, at?: { x: number; y: number; reach: number }) => boolean>(() => false);
+  const dropNearRef = useRef<(x: number, y: number, reach: number) => boolean>(() => false);
   const dropLook = useRef({ film: 0.3 });
   // Running drops are painted exactly as their droplets were baked (dropPainter), hazed like the plain and thick fog.
   const painter = useRef<ReturnType<typeof dropPainter> | null>(null);
@@ -278,10 +281,6 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     }
   }, []);
 
-  // Drawing the fog is the page's heaviest work, and many things ask for it: the push-in, running drops, wipes and trails
-  // fogging over, thickening. On a slow phone one drawing can take longer than a frame, and back to back they'd leave it
-  // no time to load a page. So it never runs more than a third of the time: after each, asks wait twice as long as it
-  // took (and meanwhile make one drawing between them). On a fast machine that's a few ms, which changes nothing.
   // The stage's handle: the cover through the mist, the whole pane in fog px (the clear cover under the plain and thick
   // mist, unpushed and unfaded: the stage applies the push-in and the fade), and the fog's thickness.
   const thickMaxNow = p.thickMax;
@@ -317,24 +316,16 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     };
   }, [handleRef, thickMaxNow]);
 
-  const busyUntil = useRef(0);
-  const queued = useRef(0);
   const drawnAt = useRef(0);
   const drawNow = useCallback(() => {
-    const t = performance.now();
     drawFog();
     drawnAt.current = performance.now();
-    busyUntil.current = drawnAt.current + 2 * (drawnAt.current - t);
   }, [drawFog]);
-  const compose = useCallback(() => {
-    if (queued.current) return;
-    const wait = busyUntil.current - performance.now();
-    if (wait <= 0) return drawNow();
-    queued.current = window.setTimeout(() => {
-      queued.current = 0;
-      drawNow();
-    }, wait);
-  }, [drawNow]);
+  // Drawing the fog is the page's heaviest work, and many things ask for it: wipes, running drops, the push-in, trails
+  // fogging over, thickening. All asks in a frame make one drawing, at the next frame, and a slow drawing makes the next
+  // wait (see frameDraw).
+  const frames = useRef<ReturnType<typeof frameDraw> | null>(null);
+  const compose = useCallback(() => (frames.current ??= frameDraw(drawNow)).request(), [drawNow]);
   // The slow changes (the push-in, thickening, wipes and trails fogging back over, the writing fogging over) each ask
   // for a drawing up to ten times a second; they share one: an ask waits until SLOW_MS after the last drawing, and is
   // dropped if a drawing has been made since (every drawing shows them all as they are at that moment).
@@ -349,17 +340,17 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   }, [compose]);
   useEffect(
     () => () => {
-      clearTimeout(queued.current);
+      frames.current?.cancel();
       clearTimeout(slowQueued.current);
-      queued.current = 0; // or every later ask would wait for a drawing that never comes
       slowQueued.current = 0;
     },
     [],
   );
 
   /** Takes a droplet off the glass for good: its spot turns clear, fading back to droplet-free mist. */
-  const takeDrop = useCallback((x: number, y: number, rx: number, ry: number) => {
-    for (const g of [swept.current?.getContext("2d"), clearness.current?.mark()]) if (g) sweep(g, x, y, rx, ry);
+  /** `clear` false: only takes it off the glass, leaving droplet-free mist (a run's spot: its trail clears the glass). */
+  const takeDrop = useCallback((x: number, y: number, rx: number, ry: number, clear = true) => {
+    for (const g of [swept.current?.getContext("2d"), clear ? clearness.current?.mark() : null]) if (g) sweep(g, x, y, rx, ry);
     sweptAny.current = true;
   }, []);
 
@@ -384,7 +375,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const endDrip = useCallback((d: Drip, s: number, rest: boolean) => {
     if (!d.leftSpot) {
       d.leftSpot = true;
-      takeDrop(d.x0, d.y0, ...dripSpot(d));
+      takeDrop(d.x0, d.y0, ...dripSpot(d), false);
     }
     const trail = trailPath(d, s);
     for (const g of [swept.current?.getContext("2d"), clearness.current?.mark()]) {
@@ -652,9 +643,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       clearRaw.current = layer(out.clear); // unfeathered, for the stage (misted)
       // The scene canvas is pushed in about its origin (up to 1 + zoom%), so its edges spread past the fog canvas, which
       // stays put; there the clear cover would show beside the fog's faded edge. It's left out of those strips (the fog
-      // covers the rest of it, but where wipes and trails cut through). Only on sides where the fog canvas ends inside
-      // the window: where it reaches the window's edge (a full-screen pane's top and bottom on a portrait phone), what
-      // spreads past it is off screen, and a strip left out there would show in a wipe as the blurred glow beneath.
+      // covers the rest of it, but where wipes and trails cut through), and fades back in from each strip's inner edge to
+      // where its own edge fade is full: cut off square, a wipe across the line showed it as a hard edge. Only on sides
+      // where the fog canvas ends inside the window: where it reaches the window's edge (a full-screen pane's top and
+      // bottom on a portrait phone), what spreads past it is off screen, and a strip left out there would show in a wipe
+      // as the blurred glow beneath.
       {
         const [ox0, oy0] = getComputedStyle(baseRef.current!).transformOrigin.split(" ").map(parseFloat);
         const spread = (d: number, inside: boolean) => (inside ? Math.max(0, Math.ceil(((zoomPct || 0) / 100) * d * q)) : 0);
@@ -664,12 +657,15 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         const inset = blank(size);
         const o = inset.getContext("2d")!;
         o.drawImage(clearSrc.current, 0, 0);
-        o.globalCompositeOperation = "destination-out";
-        o.fillStyle = "#000";
-        o.fillRect(0, 0, l, size);
-        o.fillRect(size - r, 0, r, size);
-        o.fillRect(0, 0, size, t);
-        o.fillRect(0, size - b, size, b);
+        o.globalCompositeOperation = "destination-in";
+        const fade = fadeStops(f.wide, size, pad, f.fill);
+        for (const [horizontal, cut0, cut1, stops] of [[true, l, r, fade.h], [false, t, b, fade.v]] as const) {
+          if (!cut0 && !cut1) continue;
+          const g = horizontal ? o.createLinearGradient(0, 0, size, 0) : o.createLinearGradient(0, 0, 0, size);
+          for (const [at, a] of softCut(stops, size, cut0, cut1, 40 * q)) g.addColorStop(at, `rgba(0,0,0,${a})`);
+          o.fillStyle = g;
+          o.fillRect(0, 0, size, size);
+        }
         ctx.drawImage(inset, f.ox - edge, f.oy - edge, span, span);
       }
       sceneSrc.current = layer(out.scene);
@@ -795,10 +791,14 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     };
   }, [art, layout, compose, drawNow, paintGrown, write, updateHaze, freeze, thaw, density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, pane, glow, bleed, edgeSoft, thickOn, thickMax, zoomPct]);
 
-  // Wiping. With a mouse: click and drag. With a finger (or pen): press and hold still for a moment (HOLD_MS), then
-  // drag; a quick drag stays the page's (it scrolls a song page, it turns the landing wheel). A hold works over the
-  // song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
-  // follow it at the window and map it onto the fog.
+  // Wiping. With a mouse: click and drag. With a finger (or pen) on a song page that fits the window (nothing to
+  // scroll: upright phones, tablets): the same, at once, and the browser's own drag (overscroll, pull to refresh) is
+  // held off meanwhile. Elsewhere (the landing page, whose wheel a drag turns; a page that scrolls; the player and the
+  // cards' row, data-wipe-hold): press and hold still for a moment (HOLD_MS), then drag; a quick drag stays the page's.
+  // Either way it works over the song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
+  // follow it at the window and map it onto the fog. With `tapDrip`, a quick tap on a droplet heavy enough to run (or a
+  // mouse press on one, which would otherwise wipe it away) sends it down the glass instead, and the pointer shows a
+  // hand over one.
   useEffect(() => {
     let last: { x: number; y: number } | null = null;
     let wiping: number | null = null; // the pointer that's wiping
@@ -819,6 +819,31 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       return { m, x, y, r: (p.brush / 2) * (m.size / rect.width), inside };
     };
     const onControls = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("button, input, select, textarea, a, [role=dialog], [data-backdrop-ui]");
+    // A finger wipes at once: on a song page (not the landing page's wheel), away from the player and the cards, with
+    // nothing to scroll (checked at the press: a phone held sideways can scroll its song page a little).
+    const wipesAtOnce = (e: PointerEvent) => {
+      if (layout === "fill" || (e.target instanceof Element && e.target.closest("[data-wipe-hold]"))) return false;
+      const page = document.scrollingElement ?? root;
+      return page.scrollHeight <= window.innerHeight + 1;
+    };
+    /** How far round a tap reaches for a droplet, fog px: a fingertip's ~16 CSS px, a mouse pointer's ~6. */
+    const reachOf = (at: NonNullable<ReturnType<typeof locate>>, e: PointerEvent) => (e.pointerType === "mouse" ? 6 : 16) * (at.r / (p.brush / 2));
+    /** A tap or click on a runnable droplet: it runs down (an asked fall), and counts as playing with the fog. */
+    const tapDrop = (e: PointerEvent) => {
+      if (!p.tapDrip) return false;
+      const at = locate(e);
+      if (!at?.inside || !startRunRef.current(performance.now(), true, { x: at.x, y: at.y, reach: reachOf(at, e) })) return false;
+      regrow.current = true; // the glass keeps a few big droplets in sight, as after the 💧
+      wakeDrips.current();
+      compose();
+      haptic("tap");
+      window.dispatchEvent(new Event(FOG_PLAYED));
+      return true;
+    };
+    const overDrop = (e: PointerEvent) => {
+      const at = p.tapDrip ? locate(e) : null;
+      return !!at?.inside && dropNearRef.current(at.x, at.y, reachOf(at, e));
+    };
     const stamp = (m: FadingLayer, x: number, y: number, r: number) => {
       const ctx = m.mark();
       const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -831,6 +856,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       ctx.fill();
     };
     const wipeTo = (at: NonNullable<ReturnType<typeof locate>>) => {
+      window.dispatchEvent(new Event(FOG_PLAYED));
       // Stamp along the path so fast strokes stay continuous.
       const from = last ?? at;
       const steps = Math.max(1, Math.ceil(Math.hypot(at.x - from.x, at.y - from.y) / (at.r * 0.25)));
@@ -868,12 +894,22 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         const at = locate(e);
         if (!at?.inside) return;
         e.preventDefault(); // no text selection while wiping
+        if (tapDrop(e)) return;
         wiping = e.pointerId;
         root.style.cursor = "grabbing";
         wipeTo(at);
         return;
       }
       if (!e.isPrimary || hold || wiping !== null || !locate(e)?.inside) return;
+      if (wipesAtOnce(e)) {
+        if (tapDrop(e) || !claim(e.pointerId, "fog")) return;
+        noSelect(true);
+        wiping = e.pointerId;
+        held = null;
+        const at = locate(e);
+        if (at) wipeTo(at);
+        return;
+      }
       noSelect(true); // a held finger mustn't start selecting the title instead
       const id = e.pointerId;
       // Timed from the touch itself (its timestamp), not from when the page got round to handling it.
@@ -897,8 +933,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         return;
       }
       if (wiping === null) {
-        // A grab hand over the fog says it can be wiped.
-        if (e.pointerType === "mouse") root.style.cursor = locate(e)?.inside && !onControls(e) ? "grab" : "";
+        // A grab hand over the fog says it can be wiped; a pointing one over a droplet, that it can be sent running.
+        if (e.pointerType === "mouse") root.style.cursor = onControls(e) || !locate(e)?.inside ? "" : overDrop(e) ? "pointer" : "grab";
         return;
       }
       if (e.pointerId !== wiping) return;
@@ -907,7 +943,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       if (at) wipeTo(at);
     };
     const onUp = (e: PointerEvent) => {
-      if (hold && e.pointerId === hold.id) endHold();
+      if (hold && e.pointerId === hold.id) {
+        // Lifted before the hold was up, without moving off: a tap.
+        if (e.type === "pointerup") tapDrop(e);
+        endHold();
+      }
       if (e.pointerId !== wiping) return;
       wiping = null;
       held = null;
@@ -946,7 +986,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       root.style.cursor = "";
       noSelect(false);
     };
-  }, [compose, endDrip, p.brush, p.softness]);
+  }, [compose, endDrip, p.brush, p.softness, p.tapDrip, layout]);
 
   // Fog creeping back over the wipes in `refog` seconds (0 = never), with no visible steps (see FadingLayer).
   useEffect(() => {
@@ -1019,8 +1059,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   // not wiped or swept away) in the upper 70% of the cover. One of its own (`ask` false): any big enough to run, bigger
   // ones far likelier (by volume, r³); one run in three goes all the way down, off the bottom edge of the pane, the
   // others stop on the glass. One asked for (FogHandle.drip): one of the six biggest showing (bigger ones likelier),
-  // falling off the bottom. Returns
-  // whether one started.
+  // falling off the bottom. One tapped (`at`, fog px, with how far round it a fingertip reaches): the runnable droplet
+  // under it (dropNear), falling off the bottom as an asked one does. Returns whether one started.
   const toBottom = useRef(oneInThree());
   /** Where (x, y), as fractions of the fog layer, sits in the window's visible part: 0–1 across and down; NaN unplaced. */
   const inWindow = useCallback((x: number, y: number) => {
@@ -1030,8 +1070,23 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     if (!c || !host?.clientWidth || !w) return [NaN, NaN] as const;
     return [(parseFloat(c.style.left) + x * w) / host.clientWidth, (parseFloat(c.style.top) + y * w) / host.clientHeight] as const;
   }, []);
+  /** The runnable droplet nearest fog px (x, y), if it's under it (its own extent, or `reach` px round it, whichever is more). */
+  const dropNear = useCallback((x: number, y: number, reach: number) => {
+    const size = fogRef.current?.width ?? 0;
+    const now = performance.now();
+    let best: (typeof allDrops.current)[number] | null = null;
+    let bestD = Infinity;
+    for (const d of [...allDrops.current.filter((d) => d.canRun && !gone.current.has(d.i)), ...grown.current.filter((d) => now >= d.born + GROW_MS)]) {
+      const dist = Math.hypot(d.x * size - x, d.y * size - y);
+      if (dist <= Math.max(d.rd * (1 + d.wob * 1.5) * size * 1.2, reach) && dist < bestD) [best, bestD] = [d, dist];
+    }
+    return best;
+  }, []);
+  useEffect(() => {
+    dropNearRef.current = (x, y, reach) => !!dropNear(x, y, reach);
+  }, [dropNear]);
   const startRun = useCallback(
-    (now: number, ask: boolean) => {
+    (now: number, ask: boolean, at?: { x: number; y: number; reach: number }) => {
       const fogC = fogRef.current;
       const size = fogC?.width ?? 0;
       const { cover, pad, fade } = geom.current;
@@ -1050,7 +1105,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         return edge >= 0.5 && !nearText(x, y) && (isGrown(d) || shown.getImageData(Math.round(x), Math.round(y), 1, 1).data[3] >= 255 * edge * 0.85);
       };
       let pool = [...allDrops.current.filter((d) => d.canRun && !gone.current.has(d.i)), ...grown.current.filter((d) => now >= d.born + GROW_MS)].filter(inArea);
-      if (ask) {
+      if (at) {
+        const d = dropNear(at.x, at.y, at.reach);
+        pool = d && shows(d) ? [d] : [];
+        ask = true;
+      } else if (ask) {
         // In sight: the cover may be cropped by the window (its top and bottom on a wide one, its sides on a phone).
         const seen = (d: { x: number; y: number }) => {
           const [u, v] = inWindow(d.x, d.y);
@@ -1079,7 +1138,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       return false;
     },
-    [inWindow, paintGrown],
+    [dropNear, inWindow, paintGrown],
   );
   useEffect(() => {
     startRunRef.current = startRun;
@@ -1135,15 +1194,16 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const running = drips.current;
       for (const d of running) {
         const s = dripProgress(d, now);
-        // Its spot is swept once it has moved off it; until then it covers its old self exactly.
+        // Its spot is taken off the glass once it has moved off it (its trail clears the glass there, as big as the
+        // drop); until then it covers its old self exactly.
         if (!d.leftSpot && s * d.len >= d.r * 0.6) {
           d.leftSpot = true;
-          takeDrop(d.x0, d.y0, ...dripSpot(d));
+          takeDrop(d.x0, d.y0, ...dripSpot(d), false);
         }
         // Droplets in its path go as it reaches them.
         while (d.absorb[d.taken] && d.absorb[d.taken].s <= s + d.r / d.len) {
           const o = d.absorb[d.taken++];
-          takeDrop(o.x, o.y, o.rx, o.ry);
+          takeDrop(o.x, o.y, o.rx, o.ry, o.clear); // one only overlapping the run's spot just goes, no clear dot
           if (o.i < GROWN_BASE) gone.current.add(o.i);
           else {
             grown.current = grown.current.filter((g) => g.i !== o.i);
@@ -1354,8 +1414,9 @@ function sweep(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry
 }
 
 /**
- * The trail cleared from the start to progress s: a little narrower than the drop, widening up into the spot it left and
- * tapering to an arch above it (trailHalf, trailTop).
+ * The trail from the start to progress s: a little narrower than the drop, widening up into the spot it left, as big as
+ * the drop was, and round at the top like it (trailHalf, trailTop). The rest of its spot (its rim and shadow) is taken
+ * off the glass apart, as it leaves (takeDrop, not clear).
  */
 function trailPath(d: Drip, s: number) {
   const n = Math.max(2, Math.ceil((s * d.len) / 3));
@@ -1741,9 +1802,8 @@ export function drawBleed(ctx: CanvasRenderingContext2D, art: LoadedArt, f: Retu
   ctx.fillStyle = rgb(BG);
   ctx.fillRect(0, 0, W, H);
   ctx.globalAlpha = glow;
-  ctx.filter = "blur(60px)";
-  ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, f.ox - f.side * 0.2, f.oy - f.side * 0.2, f.side * 1.4, f.side * 1.4);
-  ctx.filter = "none";
+  const crop = { x: (img.naturalWidth - s) / 2, y: (img.naturalHeight - s) / 2, w: s, h: s };
+  drawBlurred(ctx, img, crop, { x: f.ox - f.side * 0.2, y: f.oy - f.side * 0.2, w: f.side * 1.4, h: f.side * 1.4 }, 60);
   ctx.globalAlpha = 1;
 }
 
@@ -1838,9 +1898,7 @@ export function padSquare(cover: HTMLCanvasElement, pad: number, soft: number): 
   for (const [sx, sy, dx, dy] of [[0, 0, 0, 0], [e, 0, pad + coverPx, 0], [0, e, 0, pad + coverPx], [e, e, pad + coverPx, pad + coverPx]]) {
     x.drawImage(cover, sx, sy, 1, 1, dx, dy, pad, pad); // corners
   }
-  o.filter = `blur(${Math.max(6, pad * 0.35)}px)`;
-  o.drawImage(ext, 0, 0);
-  o.filter = "none";
+  drawBlurred(o, ext, { x: 0, y: 0, w: size, h: size }, { x: 0, y: 0, w: size, h: size }, Math.max(6, pad * 0.35));
   // The crisp cover, its outer band faded so it melts into the blurred margin.
   const s = Math.min(coverPx / 2, soft) / coverPx;
   if (s > 0) {

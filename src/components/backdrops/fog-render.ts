@@ -129,8 +129,8 @@ function blurRGB(buf: Float32Array, w: number, h: number, sigma: number) {
   }
 }
 
-/** Downsamples RGBA (size²) by `f` into float RGB, blurs it, and returns a bilinear sampler in full-size pixels. */
-function blurredSampler(src: Img, size: number, sigma: number) {
+/** Downsamples RGBA (size²) by `f` into float RGB and blurs it, for sampleAt to read in full-size pixels. */
+function blurredSampler(src: Img, size: number, sigma: number): Sampler {
   const f = Math.max(1, Math.min(8, Math.floor(sigma / 3)));
   const w = Math.ceil(size / f);
   const buf = new Float32Array(w * w * 3);
@@ -153,21 +153,79 @@ function blurredSampler(src: Img, size: number, sigma: number) {
     }
   }
   blurRGB(buf, w, w, sigma / f);
-  return (x: number, y: number, out: Float32Array) => {
-    const fx = Math.min(w - 1.001, Math.max(0, (x + 0.5) / f - 0.5));
-    const fy = Math.min(w - 1.001, Math.max(0, (y + 0.5) / f - 0.5));
-    const x0 = fx | 0;
-    const y0 = fy | 0;
-    const ax = fx - x0;
-    const ay = fy - y0;
-    const i = (y0 * w + x0) * 3;
-    const j = i + w * 3;
-    for (let c = 0; c < 3; c++) {
-      const top = buf[i + c] + (buf[i + 3 + c] - buf[i + c]) * ax;
-      const bottom = buf[j + c] + (buf[j + 3 + c] - buf[j + c]) * ax;
-      out[c] = top + (bottom - top) * ay;
+  return { buf, w, f };
+}
+
+type Sampler = { buf: Float32Array; w: number; f: number };
+
+/** Samples a blurredSampler bilinearly at full-size pixel (x, y) into `out`. */
+function sampleAt(s: Sampler, x: number, y: number, out: Float32Array) {
+  const { buf, w, f } = s;
+  const fx = Math.min(w - 1.001, Math.max(0, (x + 0.5) / f - 0.5));
+  const fy = Math.min(w - 1.001, Math.max(0, (y + 0.5) / f - 0.5));
+  const x0 = fx | 0;
+  const y0 = fy | 0;
+  const ax = fx - x0;
+  const ay = fy - y0;
+  const i = (y0 * w + x0) * 3;
+  const j = i + w * 3;
+  for (let c = 0; c < 3; c++) {
+    const top = buf[i + c] + (buf[i + 3 + c] - buf[i + c]) * ax;
+    const bottom = buf[j + c] + (buf[j + 3 + c] - buf[j + c]) * ax;
+    out[c] = top + (bottom - top) * ay;
+  }
+}
+
+/** A pixel's grain, 0–1, the same for the same (x, y). Math.imul keeps it in 32-bit integers (the same values as a plain multiply here). */
+function hash(x: number, y: number) {
+  let h = Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * The mist, pixel by pixel, into `fog`: the blurred scene with bloom from the wide blur, contrast pulled towards the
+ * mean, a little lift, then the haze (`hide` of the way to `veil`); kept vivid, grained and streaked, thinner in patches.
+ * A function of its own with its channels written out and every number passed in plain: inside renderFog, Safari's
+ * engine stopped optimizing this loop after a few renders and it ran ~10× slower than in Chrome (over a second per
+ * pane, which held up every change of cover).
+ */
+function mistPass(fog: Uint8ClampedArray, size: number, blurred: Sampler, wide: Sampler, mean: number, veil: number[], hide: number, d: number, b: number, bloom: number, pw: number, patchTab: Float32Array, streakTab: Float32Array) {
+  const [v0, v1, v2] = veil;
+  const A = new Float32Array(3);
+  const B = new Float32Array(3);
+  for (let y = 0; y < size; y++) {
+    const srow = (y >> 3) * size;
+    const prow = (y >> 2) * pw;
+    for (let x = 0; x < size; x++) {
+      sampleAt(blurred, x, y, A);
+      sampleAt(wide, x, y, B);
+      // Fine microdroplet grain: the mist isn't perfectly smooth up close.
+      const grain = (hash(x, y) - 0.5) * 10 * d;
+      // Faint run streaks: noise stretched vertically.
+      const streak = streakTab[srow + x];
+      let r = A[0] + (Math.max(A[0], B[0] * 1.15) - A[0]) * bloom; // bloom: brights spread into darks
+      let g = A[1] + (Math.max(A[1], B[1] * 1.15) - A[1]) * bloom;
+      let u = A[2] + (Math.max(A[2], B[2] * 1.15) - A[2]) * bloom;
+      r = r + (mean - r) * d * 0.25; // scattering flattens contrast
+      g = g + (mean - g) * d * 0.25;
+      u = u + (mean - u) * d * 0.25;
+      r = r + (255 - r) * d * 0.08; // and lifts the blacks
+      g = g + (255 - g) * d * 0.08;
+      u = u + (255 - u) * d * 0.08;
+      r = r + (v0 - r) * hide; // opacity: the scene disappears into the haze
+      g = g + (v1 - g) * hide;
+      u = u + (v2 - u) * hide;
+      // Keep the colour vivid: light through fogged glass glows in the scene's own hues.
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * u;
+      const o = (y * size + x) * 4;
+      fog[o] = ((luma + (r - luma) * 1.2) * (1 + streak) + grain) * b;
+      fog[o + 1] = ((luma + (g - luma) * 1.2) * (1 + streak) + grain) * b;
+      fog[o + 2] = ((luma + (u - luma) * 1.2) * (1 + streak) + grain) * b;
+      // Patchy thickness: thinner mist shows more of the clear scene beneath.
+      fog[o + 3] = 255 * patchTab[prow + (x >> 2)];
     }
-  };
+  }
 }
 
 type Drop = { x: number; y: number; r: number; e: number; wob: number; ph: number };
@@ -369,37 +427,8 @@ export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
   const { mean, veil } = sceneVeil(src, size);
   const hide = p.opacity * 0.92;
   const { trails, bySize } = layout(p.drops, p.trails, p.seed);
-  const A = new Float32Array(3);
-  const B = new Float32Array(3);
-  const hash = (x: number, y: number) => {
-    let h = (x * 73856093) ^ (y * 19349663);
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-  };
   const { pw, patchTab, streakTab } = mistNoise(size, p.patchiness, p.opacity);
-  const tone = [0, 0, 0]; // the mist's colour at a pixel
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      blurred(x, y, A);
-      wide(x, y, B);
-      // Fine microdroplet grain: the mist isn't perfectly smooth up close.
-      const grain = (hash(x, y) - 0.5) * 10 * d;
-      // Faint run streaks: noise stretched vertically.
-      const streak = streakTab[(y >> 3) * size + x];
-      const o = (y * size + x) * 4;
-      for (let c = 0; c < 3; c++) {
-        let v = A[c] + (Math.max(A[c], B[c] * 1.15) - A[c]) * p.bloom; // bloom: brights spread into darks
-        v = v + (mean - v) * d * 0.25; // scattering flattens contrast
-        v = v + (255 - v) * d * 0.08; // and lifts the blacks
-        tone[c] = v + (veil[c] - v) * hide; // opacity: the scene disappears into the haze
-      }
-      // Keep the colour vivid: light through fogged glass glows in the scene's own hues.
-      const luma = 0.2126 * tone[0] + 0.7152 * tone[1] + 0.0722 * tone[2];
-      for (let c = 0; c < 3; c++) fog[o + c] = ((luma + (tone[c] - luma) * 1.2) * (1 + streak) + grain) * b;
-      // Patchy thickness: thinner mist shows more of the clear scene beneath.
-      fog[o + 3] = 255 * patchTab[(y >> 2) * pw + (x >> 2)];
-    }
-  }
+  mistPass(fog, size, blurred, wide, mean, veil, hide, d, b, p.bloom, pw, patchTab, streakTab);
 
   // Drip trails: the mist cleared (mostly) along a wavering path that tapers at the top.
   for (const t of trails) {

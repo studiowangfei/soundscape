@@ -32,37 +32,32 @@ export type Drip = {
   taken: number; // first of those not taken yet
 };
 
-export type PathDrop = { i: number; s: number; x: number; y: number; rx: number; ry: number };
+/** `clear`: it touches the trail, so its spot is wiped clear with it; else it only overlaps the run's own spot (spotReach) and just goes. */
+export type PathDrop = { i: number; s: number; x: number; y: number; rx: number; ry: number; clear: boolean };
 
 /** A sideways wave along a run: `amp` px either way, every `wl` px down the glass (so long and short runs bend alike). */
 export type Meander = { amp: number; wl: number; ph: number };
 
 /**
  * A run's meander, for a drop of radius r: a long gentle wave and a shorter, smaller one at an unrelated wavelength on
- * it, so the path bends irregularly instead of weaving evenly. Slight: mostly straight down, never more than ~4° off.
+ * it, so the path bends irregularly instead of weaving evenly. Slight: mostly straight down, never more than ~6° off.
  */
 export function newMeander(r: number): Meander[] {
-  const wl = r * (40 + Math.random() * 20);
+  const wl = r * (34 + Math.random() * 16);
   return [
-    { amp: r * (0.1 + Math.random() * 0.05), wl, ph: Math.random() * 6.3 },
-    { amp: r * (0.03 + Math.random() * 0.02), wl: wl * (0.35 + Math.random() * 0.1), ph: Math.random() * 6.3 },
+    { amp: r * (0.18 + Math.random() * 0.08), wl, ph: Math.random() * 6.3 },
+    { amp: r * (0.06 + Math.random() * 0.03), wl: wl * (0.35 + Math.random() * 0.1), ph: Math.random() * 6.3 },
   ];
 }
 
-/** How far down from the droplet's spot the trail narrows, in drop radii: from the spot's width to its own. */
+/** How far down from the droplet's spot the trail narrows, in drop radii: from the drop's width to its own. */
 export const NECK = 7;
-
-/**
- * The top of the trail's arch, as the radius of its two sides in units of the spot's half-width: under 1 would be
- * rounder than the spot, 1 a half-circle; larger is more pointed (and reaches higher above the spot).
- */
-const ARCH = 1.6;
 
 /** A run of the droplet at (x0, y0) with body radius r and the given shape, so it starts out looking exactly like itself. */
 export function newDrip(x0: number, y0: number, r: number, len: number, start: number, cover: number, rests = true, shape = { e: 1, wob: 0, ph: 0 }): Drip {
   const stops = 2 + Math.floor(Math.random() * 2);
   const dur = Math.min(rests ? 8000 : 11000, 2200 + (len / cover) * 12000); // a run off the bottom may take longer
-  return { x0, y0, r, len, start, dur, stops, amp: r * (0.05 + Math.random() * 0.07), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, meander: newMeander(r), rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
+  return { x0, y0, r, len, start, dur, stops, amp: r * (0.08 + Math.random() * 0.06), freq: 0.25 + Math.random() * 0.25, phase: Math.random() * 6.3, meander: newMeander(r), rests, ...shape, leftSpot: false, absorb: [], taken: 0 };
 }
 
 /**
@@ -106,17 +101,29 @@ export function dripAt(d: Drip, s: number) {
 
 /**
  * Half the trail's width at progress s: its own (TRAIL_HALF of the drop), except near the top, where it starts as wide as
- * the cleared spot the droplet left (dripSpot, sweepRadii) and narrows smoothly over NECK radii, so the spot and the
- * trail read as one streak with a rounded top, not a round hole with a line hanging from it.
+ * the drop was (dropOutline) and narrows smoothly over NECK radii, so the drop's spot and the trail read as one streak
+ * with a rounded top, not a round hole with a line hanging from it.
  */
 export function trailHalf(d: Drip, s: number) {
   const own = dripAt(d, s).r * TRAIL_HALF;
-  const [spot] = spotReach(d);
+  const [spot] = dropOutline(d);
   const t = Math.min(1, Math.max(0, (s * d.len) / (NECK * d.r)));
   return own + Math.max(0, spot - own) * (0.5 + 0.5 * Math.cos(Math.PI * t));
 }
 
-/** How far the cleared spot a droplet leaves reaches, across and up: all its sweep covers (variants.tsx sweep). */
+/**
+ * The droplet's own outline (dripSpot), 2% over: as far as the glass is wiped clear at the spot a run sets off from.
+ * (Wiped as far as its whole spot (spotReach), a ring of clear glass showed round the drop as it set off.)
+ */
+export function dropOutline(d: Drip) {
+  const [rx, ry] = dripSpot(d);
+  return [rx * 1.02, ry * 1.02] as const;
+}
+
+/**
+ * All the spot a droplet leaves covers (variants.tsx sweep), its faint rim and shadow too: taken off the glass when the
+ * run leaves it, which only turns droplet-free mist (it looks like the rest), not clear.
+ */
 export function spotReach(d: Drip) {
   const [rx, ry] = dripSpot(d);
   const [a, b] = sweepRadii(rx, ry);
@@ -124,18 +131,12 @@ export function spotReach(d: Drip) {
   return [a + soft, b + soft] as const;
 }
 
-/**
- * The top of the trail, above where the droplet sat: a gently pointed arch (two arcs meeting at the top) instead of
- * the round spot, so the streak starts tapered rather than as a circle. It still holds all of the spot (the arch of any
- * ARCH ≥ 1 contains the half-ellipse under it). Points from the top down to the droplet's middle: [half-width, height
- * above y0].
- */
+/** The top of the trail, above where the droplet sat: round, as the drop was (dropOutline). Points from the top down to its middle: [half-width, height above y0]. */
 export function trailTop(d: Drip, steps = 8): [number, number][] {
-  const [a, b] = spotReach(d);
-  const top = Math.sqrt(2 * ARCH - 1);
+  const [a, b] = dropOutline(d);
   return Array.from({ length: steps + 1 }, (_, i) => {
-    const v = top * (1 - i / steps);
-    return [Math.max(0, Math.sqrt(ARCH * ARCH - v * v) - (ARCH - 1)) * a, v * b];
+    const v = 1 - i / steps;
+    return [Math.sqrt(1 - v * v) * a, v * b];
   });
 }
 
@@ -145,13 +146,17 @@ export function trailTop(d: Drip, steps = 8): [number, number][] {
  * of `size`); `self` is the running drop's own index.
  */
 export function pathDrops(d: Drip, drops: { i: number; x: number; y: number; rx: number; ry: number }[], size: number, self: number): PathDrop[] {
-  const above = (trailTop(d, 1)[0][1] + 2 * TRAIL_SOFT * d.r) / d.len; // up to the top of its arch, soft edge included
+  const above = (dropOutline(d)[1] + 2 * TRAIL_SOFT * d.r) / d.len; // up to the top of the trail, soft edge included
+  const [sa, sb] = spotReach(d);
   return drops
     .flatMap((o) => {
+      if (o.i === self) return [];
       const s = (o.y * size - d.y0) / d.len;
       const at = dripAt(d, s);
-      const touches = o.i !== self && s > -above && s < 1 && Math.abs(o.x * size - at.x) < trailHalf(d, s) + 2 * TRAIL_SOFT * at.r + o.rx * size;
-      return touches ? [{ i: o.i, s, x: o.x * size, y: o.y * size, rx: o.rx * size, ry: o.ry * size }] : [];
+      const clear = s > -above && s < 1 && Math.abs(o.x * size - at.x) < trailHalf(d, s) + 2 * TRAIL_SOFT * at.r + o.rx * size;
+      // Overlapping the run's own spot, which is taken off the glass in full: it goes too, or it'd be left cut.
+      const spot = ((o.x * size - d.x0) / (sa + o.rx * size)) ** 2 + ((o.y * size - d.y0) / (sb + o.ry * size)) ** 2 < 1;
+      return clear || spot ? [{ i: o.i, s, x: o.x * size, y: o.y * size, rx: o.rx * size, ry: o.ry * size, clear }] : [];
     })
     .sort((a, b) => a.s - b.s);
 }

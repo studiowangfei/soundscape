@@ -83,9 +83,9 @@ export const PARAMS = {
     { key: "blur", label: "Mist blur (half on phones)", min: 2, max: 120, step: 1, value: 6, unit: "px" },
     { key: "bloom", label: "Light bloom", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0 },
-    { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.35, unit: "×" },
-    { key: "dropSize", label: "Droplet size", min: 0.4, max: 2.5, step: 0.05, value: 0.7, unit: "×" },
-    { key: "refraction", label: "Droplet refraction", min: 1, max: 6, step: 0.1, value: 3, unit: "×" },
+    { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.3, unit: "×" },
+    { key: "dropSize", label: "Droplet size", min: 0.4, max: 2.5, step: 0.05, value: 0.75, unit: "×" },
+    { key: "refraction", label: "Droplet refraction", min: 1, max: 6, step: 0.1, value: 4, unit: "×" },
     { key: "trails", label: "Drip trails", min: 0, max: 30, step: 1, value: 0 },
     { key: "brush", label: "Wipe size", min: 10, max: 240, step: 2, value: 90, unit: "px" },
     { key: "softness", label: "Wipe softness", min: 0, max: 1, step: 0.05, value: 0.5 },
@@ -96,10 +96,12 @@ export const PARAMS = {
     // Now and then one of the larger droplets runs down, clearing a trail; never more than one per `dripEvery`.
     { key: "autoDrips", label: "Drops run down on their own", min: 0, max: 1, step: 1, value: 1 },
     ...[
-      { key: "dripFirst", label: "First run after", min: 0, max: 60, step: 1, value: 2, unit: "s" },
+      { key: "dripFirst", label: "First run after", min: 0, max: 60, step: 1, value: 10, unit: "s" },
       { key: "dripEvery", label: "Time between runs (at least)", min: 3, max: 60, step: 1, value: 15, unit: "s" },
       { key: "dripFade", label: "Run trails fog over (0 = never)", min: 0, max: 300, step: 10, value: 60, unit: "s" },
     ].map(shownWhen("autoDrips")),
+    // A click or tap on one of the droplets heavy enough to run sends it down the glass (as the 💧 does one).
+    { key: "tapDrip", label: "Tap a droplet to let it run", min: 0, max: 1, step: 1, value: 1 },
     // Off removes the title and artist written in the fog, the drips from their letters, and the haze behind them.
     { key: "text", label: "Finger-written text & drips", min: 0, max: 1, step: 1, value: 0 },
     ...[
@@ -118,7 +120,7 @@ export const PARAMS = {
     ].map(shownWhen("text")),
     { key: "bleed", label: "Edge bleed", min: 0, max: 300, step: 5, value: 300, unit: "px" },
     { key: "edgeSoft", label: "Edge softness", min: 0, max: 200, step: 5, value: 200, unit: "px" },
-    brightness(0.7),
+    brightness(0.8),
     { key: "glow", label: "Ambient glow", min: 0, max: 0.8, step: 0.05, value: 0 },
     ...zoom(20, 20),
   ],
