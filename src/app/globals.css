@@ -66,6 +66,9 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
 }
 
+/* On a song page a finger drag wipes the fog: no pull to refresh or rubber-band bounce taking it instead. */
+html:has([data-song-page]) { overscroll-behavior: none; }
+
 @keyframes ring {
   from { transform: scale(1); opacity: 0.55; }
   to { transform: scale(2.1); opacity: 0; }
@@ -93,7 +96,11 @@ body {
 }
 .svg-glass .glass { backdrop-filter: var(--glass-filter); }
 /* The open card carries its glass in a layer under its content (see CardDetail), so its shadow goes on the card. */
-.glass-shadow { box-shadow: var(--glass-shadow, 0 0 0 0.5px rgba(0, 0, 0, 0.28), 0 22px 44px -22px rgba(0, 0, 0, 0.6)); }
+.glass-shadow { box-shadow: var(--glass-shadow, 0 0 0 0.5px rgb(0 0 0 / calc(0.28 * var(--card-fade, 1))), 0 22px 44px -22px rgb(0 0 0 / calc(0.6 * var(--card-fade, 1)))); }
+/* Moving to the next card, it fades (--card-fade, set by CardDetail) layer by layer rather than as a whole: opacity on
+   the card itself would cut its glass off from the page behind (a backdrop root), and the frost would drop out. */
+.glass-shadow > .glass, .glass-shadow > .glass-ring { opacity: var(--card-fade, 1); }
+.glass-shadow > .glass-edge { opacity: calc(0.8 * var(--card-fade, 1)); transition: none; }
 
 /* A card's hover: it lifts a little, its fill and rim light brighten. All transitions, so on and off are smooth. Only
    where there is hover (a mouse or trackpad): on touch screens a tapped card would stay lifted. The press works on all. */
