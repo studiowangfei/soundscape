@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { haptic, useSwitchTicks } from "./haptics";
 
 /**
@@ -48,10 +49,12 @@ export const LANDING_MUSIC =
  * An emoji as an icon button: drawn as big as the others in a box `box` px square (null: not measured yet, so hidden),
  * fully opaque, 1.4× as big under the pointer (hover screens only). A click leaves the focus where it was, so the
  * arrow keys still turn the wheel. A tap on a touch screen ticks (haptics.ts): a pulse on Android, the switch's own
- * tick on an iPhone (SwitchTick).
+ * tick on an iPhone (SwitchTick). With `pop`, a click or tap also swells the emoji a little and lets it settle back
+ * (POP; not for reduced motion), on top of any hover growth.
  */
-export function EmojiButton({ emoji, box, className, onClick, ...button }: { emoji: string; box: number | null } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "style">) {
+export function EmojiButton({ emoji, box, className, onClick, pop = false, ...button }: { emoji: string; box: number | null; pop?: boolean } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "style">) {
   const ticks = useSwitchTicks();
+  const face = useRef<HTMLSpanElement>(null);
   return (
     <button
       type="button"
@@ -59,17 +62,24 @@ export function EmojiButton({ emoji, box, className, onClick, ...button }: { emo
       {...button}
       onClick={(e) => {
         haptic("tap");
+        if (pop && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          face.current?.animate([{ transform: "scale(1)" }, { transform: `scale(${POP.scale})`, offset: POP.peak }, { transform: "scale(1)" }], { duration: POP.ms, easing: "ease-out" });
         onClick?.(e);
       }}
       className={`${className} cursor-pointer leading-none transition-transform hover:scale-[1.4] ${box ? "" : "invisible"}`}
       style={{ width: box ?? 0, height: box ?? 0, fontSize: ((box ?? 0) * DRAWING) / EMOJI_INK }}
     >
       {box && <Hit size={box} />}
-      {emoji}
+      <span ref={face} className="inline-block">
+        {emoji}
+      </span>
       {box && ticks && <SwitchTick size={box} />}
     </button>
   );
 }
+
+/** An emoji button's pop on a click: up to `scale` × at `peak` of the way through, and back, over `ms`. */
+const POP = { scale: 1.25, peak: 0.35, ms: 300 };
 
 /**
  * An iPhone's tick for a tap (it has no vibrate): an invisible native switch over the whole target (a `size` px icon's,

@@ -80,7 +80,7 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
 
   return (
     <GlassProvider value={glass.settings}>
-    <main className={`flex min-h-dvh w-full flex-col ${held ? "entrance-hold" : ""}`} style={{ "--corner-box": box ? `${box}px` : undefined } as React.CSSProperties}>
+    <main data-song-page className={`flex min-h-dvh w-full flex-col ${held ? "entrance-hold" : ""}`} style={{ "--corner-box": box ? `${box}px` : undefined } as React.CSSProperties}>
       {/* Back to all songs: the landing page, its wheel on this song. In the top right corner, and drawn as
           big as it and the search bar's icons (Phosphor's x-circle, svg/x-circle.svg, its ring 13/16 of its box). */}
       <Link
@@ -120,7 +120,8 @@ export function SongView({ entry, visitors = [], nav = null, titles }: { entry: 
           at their own gap above them (CardGrid). One player either way: elsewhere its group is see-through to the page's
           layout (contents), and the order puts it under the header and the cards at the foot; on phones the group is one
           block, after the space, held at the foot. */}
-      <div className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
+      {/* A finger here wipes the fog only after a hold (the row scrolls sideways; the player has its controls). */}
+      <div data-wipe-hold className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
         {/* The player stays put from song to song (no entrance coming from another song's page). */}
         <div className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
           <Entrance stayFrom="song">

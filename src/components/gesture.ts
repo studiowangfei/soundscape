@@ -1,6 +1,7 @@
 /**
  * Who a touch belongs to, when several things follow it at the window: on the landing page a drag turns the wheel; on
- * every page a press held still wipes the fog (and on song pages a plain drag scrolls). The first to claim a pointer
+ * every page a press held still wipes the fog (and on song pages a plain drag scrolls, or wipes at once where nothing
+ * would scroll: backdrops/variants.tsx). The first to claim a pointer
  * keeps it until it lifts; the others let it go.
  */
 const owners = new Map<number, string>();
@@ -21,6 +22,12 @@ export function onClaim(fn: (pointerId: number, who: string) => void) {
   listeners.add(fn);
   return () => void listeners.delete(fn);
 }
+
+/**
+ * Told at the window whenever the visitor plays with the fog: every stroke wiping it (Fog, backdrops/variants.tsx) and
+ * every tap on the landing page's 💧, e.g. so the landing wheel holds still meanwhile.
+ */
+export const FOG_PLAYED = "soundscape:fog-played";
 
 export function ownerOf(pointerId: number): string | null {
   return owners.get(pointerId) ?? null;
