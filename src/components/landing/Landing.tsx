@@ -10,6 +10,7 @@ import { TIMING } from "../backdrops/stage-model";
 import { coverAt } from "../cover";
 import { EmojiButton, LANDING_DICE, LANDING_DROP } from "../icon";
 import { AutoRotate } from "./AutoRotate";
+import { FOG_PLAYED } from "../gesture";
 import { askMotion } from "./shake";
 import { ShakeDrops } from "./ShakeDrops";
 import { BackgroundMusic } from "./BackgroundMusic";
@@ -216,9 +217,10 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
 
           {/* The emoji, placed for desktops and phones (icon.tsx LANDING_*). A drop: one of the big droplets on the glass
               falls, clearing a trail (backdrops/variants.tsx, FogHandle.drip); on an iPhone its first tap also asks for
-              the motion sensor, so shaking the phone lets drops fall too (ShakeDrops). A random song. */}
-          <EmojiButton emoji="💧" box={start !== null ? box : null} onClick={() => (askMotion(), stage.drip("landing"))} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
-          <EmojiButton emoji="🎲" box={start !== null ? box : null} onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="Random song" title="Random song" className={LANDING_DICE} />
+              the motion sensor, so shaking the phone lets drops fall too (ShakeDrops); like wiping, it holds the wheel still a
+              while (AutoRotate). A random song. */}
+          <EmojiButton emoji="💧" box={start !== null ? box : null} pop onClick={() => (askMotion(), window.dispatchEvent(new Event(FOG_PLAYED)), stage.drip("landing"))} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
+          <EmojiButton emoji="🎲" box={start !== null ? box : null} pop onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="Random song" title="Random song" className={LANDING_DICE} />
           <BackgroundMusic src={shownSong ? shownSong.preview : undefined} box={box} />
           <Wordmark leaving={leaving} />
           <ShakeDrops ready={start !== null && !leaving} onDrop={() => stage.drip("landing")} />

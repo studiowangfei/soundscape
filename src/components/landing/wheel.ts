@@ -110,9 +110,32 @@ export function nearestEquivalent(pos: number, i: number, n: number) {
   return base + d;
 }
 
-/** Where a released drag settles, like turning a page: at most one row past where the finger left it. */
+/** Where a released drag settles, like turning a page: at most one row past where the finger left it (a mouse). */
 export function flickTarget(pos: number, vel: number) {
   return Math.round(pos + Math.sign(vel) * Math.min(0.75, Math.abs(vel) * 0.1));
+}
+
+/**
+ * A flick by finger glides on: as far as it would coast at the finger's speed for `tau` s (slowing down all the way),
+ * at most `max` rows, so a gentle swipe moves about a song past where the finger left it and a hard one a few, never a
+ * long run (the scrolling should feel like paging, not traversing, 2026-10-28; but a swipe has to carry, 2026-11-08).
+ */
+export const GLIDE = { tau: 0.3, max: 6 };
+
+/**
+ * A trackpad swipe, likewise: as far as its fastest push in the first `pushMs` (rows/s) would coast for `tau` s, from
+ * one song to GLIDE.max. Shorter than a finger's: the trackpad's own acceleration already makes its deltas big.
+ */
+export const SWIPE = { tau: 0.18, pushMs: 200 };
+
+/** How many songs a trackpad swipe whose fastest push was `vel` rows/s turns: at least one, at most GLIDE.max. */
+export const swipeRows = (vel: number) => Math.min(GLIDE.max, Math.max(1, Math.round(Math.abs(vel) * SWIPE.tau)));
+
+/** Where a flick by finger at `vel` rows/s, let go at `pos`, comes to rest (never short of where a mouse's would). */
+export function glideTarget(pos: number, vel: number) {
+  const page = flickTarget(pos, vel);
+  const glide = Math.round(pos + Math.sign(vel) * Math.min(GLIDE.max, Math.abs(vel) * GLIDE.tau));
+  return Math.sign(vel) * (glide - page) > 0 ? glide : page;
 }
 
 /** One step of a critically damped spring towards `target` (`dt` in seconds). */

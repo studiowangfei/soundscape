@@ -202,7 +202,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       release(e.pointerId);
       const m = motion.current!;
       if (m.mode !== "drag") return;
-      const { open, tap } = m.release(performance.now());
+      const { open, tap } = m.release(performance.now(), true);
       if (tap) haptic("tap");
       if (open !== null) callbacks.current.onOpen(open, false);
       else kick();
