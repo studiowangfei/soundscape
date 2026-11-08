@@ -11,8 +11,9 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   // Covers, posters and icons (copied into public/ at build time) are cached by browsers for a day, instead of being
   // re-checked on every visit (Next's default for public/ is max-age=0). The cost: a replaced image can show the old
-  // one to a returning visitor for up to a day.
+  // one to a returning visitor for up to a day. Not while developing: a cover replaced here shows on the next reload.
   async headers() {
+    if (process.env.NODE_ENV === "development") return [];
     return ["covers", "posters", "icons"].map((dir) => ({ source: `/${dir}/:file*`, headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] }));
   },
   turbopack: {
