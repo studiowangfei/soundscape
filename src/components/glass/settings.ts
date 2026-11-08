@@ -34,18 +34,18 @@ export const GLASS_PARAMS: Param[] = [
   // 1 bends the rim as far as it goes before the view folds over (see map.ts); above that, a mirrored sliver.
   { key: "refraction", label: "Refraction", min: 0, max: 1.6, step: 0.05, value: 1.6 },
   // How far in from the rim the bend reaches; it builds gradually over all of it (map.ts), so wide is smooth.
-  { key: "edge", label: "Edge width", min: 6, max: 120, step: 1, value: 50, unit: "px" },
-  { key: "frost", label: "Frost", min: 0, max: 30, step: 0.5, value: 10.5, unit: "px" },
-  { key: "glow", label: "Edge glow", min: 0, max: 1, step: 0.05, value: 0.4 },
-  { key: "light", label: "Edge light", min: 0, max: 1, step: 0.05, value: 0.2 },
+  { key: "edge", label: "Edge width", min: 6, max: 120, step: 1, value: 30, unit: "px" },
+  { key: "frost", label: "Frost", min: 0, max: 30, step: 0.5, value: 4, unit: "px" },
+  { key: "glow", label: "Edge glow", min: 0, max: 1, step: 0.05, value: 0.3 },
+  { key: "light", label: "Edge light", min: 0, max: 1, step: 0.05, value: 0.5 },
   { key: "dispersion", label: "Dispersion", min: 0, max: 0.3, step: 0.01, value: 0 },
-  { key: "fill", label: "Fill (dark – light)", min: -0.6, max: 0.3, step: 0.01, value: 0.1 },
-  { key: "vibrancy", label: "Vibrancy", min: 0.5, max: 2.5, step: 0.05, value: 1.25 },
+  { key: "fill", label: "Fill (dark – light)", min: -0.6, max: 0.3, step: 0.01, value: 0.05 },
+  { key: "vibrancy", label: "Vibrancy", min: 0.5, max: 2.5, step: 0.05, value: 1.5 },
   { key: "shade", label: "Shade bright backdrops", min: 0, max: 1, step: 0.05, value: 0 },
   { key: "dim", label: "Dim behind an open card", min: 0, max: 0.9, step: 0.05, value: 0.6 },
   { key: "blurBehind", label: "Blur behind an open card", min: 0, max: 24, step: 0.5, value: 8, unit: "px" },
   // More frost and a fuller fill on the open card: less of the page shows through it.
-  { key: "openOpacity", label: "Open card opacity", min: 0, max: 1, step: 0.05, value: 0.5 },
+  { key: "openOpacity", label: "Open card opacity", min: 0, max: 1, step: 0.05, value: 0.8 },
 ];
 
 export const glassDefaults = (): Params => defaults(GLASS_PARAMS);
