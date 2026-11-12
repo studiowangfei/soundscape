@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { Neighbours, SongLink } from "@/content/neighbours";
+import { neighbours, type NavSong, type SongLink } from "@/content/neighbours";
 import type { Entry } from "@/content/schema";
 import type { VisitorComment } from "@/content/visitors";
 import { BackdropSwitcher, songScene, useBackdropParams, useBackdropVariant } from "./backdrops/Backdrop";
@@ -15,6 +15,7 @@ import { useMobileCard } from "./cards/useMobileCard";
 import { GlassProvider, useGlassTune } from "./glass/Glass";
 import { Hit, ICON_HOVER, TOP_RIGHT } from "./icon";
 import { iconBox, LANDING_FOCUS_KEY, landingScene, searchBarLook, sessionSet, useLandingSettings, wheelSettings } from "./landing/settings";
+import { landingOrder, visitOrder } from "./landing/sort";
 import { useWheelLayout } from "./landing/useWheelLayout";
 import { ShakeDrops } from "./landing/ShakeDrops";
 import { PreviewBar } from "./player/Players";
@@ -28,7 +29,15 @@ import { useTypeface } from "./useTypeface";
  * the cards at the foot. (Spacing in px: 64 from the left and the header 64 from the top on desktops and tablets, the cards 40 from the bottom.
  * The design's wordmark is hidden for now.)
  */
-export function SongView({ entry, visitors = [], nav = null, titles }: { entry: Entry; visitors?: VisitorComment[]; nav?: Neighbours | null; titles: string[] }) {
+export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry; visitors?: VisitorComment[]; songs: NavSong[]; titles: string[] }) {
+  // Previous and next step through the songs as the landing wheel lists them this visit (its shuffle and the sort
+  // chosen), which only the browser knows: until it's read, as the catalogue lists them.
+  const [nav, setNav] = useState(() => neighbours(songs, entry.slug));
+  useEffect(() => {
+    const { sort, seed } = visitOrder();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the order lives in the browser's storage
+    setNav(neighbours(landingOrder(songs, seed, sort), entry.slug));
+  }, [songs, entry.slug]);
   const [variant, setVariant] = useBackdropVariant();
   const tune = useBackdropParams();
   const typeface = useTypeface();
