@@ -10,7 +10,7 @@ export const TYPE_LABEL: Record<CardType, string> = {
 };
 
 /** The labels of the cards after the song's own: visitors' comments, and the end card where a visitor leaves one. */
-export const ROW_LABEL = { visitor: "From visitors", end: "Your take" } as const;
+export const ROW_LABEL = { visitor: "Visitor comment", end: "Your take" } as const;
 
 /** What the end card asks. */
 export const END_PROMPT = "Say something about this song";

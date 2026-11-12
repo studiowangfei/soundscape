@@ -1,4 +1,5 @@
 import type { EntryCard } from "@/content/schema";
+import type { VisitorComment } from "@/content/visitors";
 import { formatDate } from "./meta";
 
 /** Display names for the sites cards cite (the domain is the icon: public/icons/<domain>.png, from content/icons/). */
@@ -62,4 +63,9 @@ export function attribution(card: EntryCard, expanded = false): { domain: string
         ? [name, channel, expanded ? card.version?.popularityObserved : null]
         : [name, expanded ? formatDate(card.sourceDate) : null];
   return { domain, inset, text: parts.filter(Boolean).join(" · ") };
+}
+
+/** A visitor's comment, signed as the site's own (its mark is Soundscape's): "Soundscape · name", and the day once opened. */
+export function visitorAttribution(comment: VisitorComment, expanded = false): string {
+  return ["Soundscape", comment.name ?? "Anonymous", expanded ? formatDate(comment.date) : null].filter(Boolean).join(" · ");
 }

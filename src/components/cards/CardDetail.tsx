@@ -7,9 +7,9 @@ import type { EntryCard } from "@/content/schema";
 import { GlassEdge, useGlass, useGlassSettings } from "../glass/Glass";
 import { glassLook } from "../glass/settings";
 import { CardVideo } from "../player/CardVideo";
-import { Attribution } from "./Attribution";
+import { Attribution, VisitorAttribution } from "./Attribution";
 import { cardMedia, RowTileFace } from "./CardTile";
-import { formatDate, ROW_LABEL, TYPE_LABEL } from "./meta";
+import { ROW_LABEL, TYPE_LABEL } from "./meta";
 import { flip, morphFrame, type Box, type Flip } from "./morph";
 import { PosterStage } from "./PosterStage";
 import { isEntryCard, rowCardLabel, type RowCard } from "./row";
@@ -456,7 +456,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   );
 }
 
-/** A visitor's comment, opened: the label, the comment quoted as a comment card's is, and their name and the day. */
+/** A visitor's comment, opened: the label, the comment quoted as a comment card's is, and its source line (Soundscape · name · day). */
 function VisitorDetail({ comment }: { comment: VisitorComment }) {
   return (
     <>
@@ -464,9 +464,9 @@ function VisitorDetail({ comment }: { comment: VisitorComment }) {
         <p className={LABEL}>{ROW_LABEL.visitor}</p>
         <Quote text={comment.text} />
       </div>
-      <p className="mt-auto truncate px-8 pt-8 pb-8 text-[16px] text-[#888]">
-        {comment.name ?? "Anonymous"} · {formatDate(comment.date)}
-      </p>
+      <div className="mt-auto px-8 pt-8 pb-8">
+        <VisitorAttribution comment={comment} expanded />
+      </div>
     </>
   );
 }
@@ -510,17 +510,30 @@ type Reply = NonNullable<NonNullable<EntryCard["comment"]>["replies"]>[number];
 /**
  * The comment's top replies, threaded as the design draws them: a 2px line drops from 9px under the comment and curves
  * into the middle of each reply's first line, 16px short of the text. Each reply draws its own curve, a screen tall and
- * clipped at the top of the list, so all of them start from the same point.
+ * clipped at the top of the list, so all of them start from the same point. The line is see-through white, not a grey:
+ * the open card is glass, as light or dark as the cover behind it, and the design's #555 vanished on lighter ones. The
+ * curves overlap (the trunk above the first reply, each curve where it leaves it), so they're drawn solid on a layer of
+ * their own, faded as a whole: faded one by one, the overlaps would add up and show brighter.
  */
 function Replies({ replies }: { replies: Reply[] }) {
+  const list = "flex flex-col gap-8 overflow-hidden pt-[23px] pl-[49px]";
+  const text = (r: Reply, className = "") => <p className={`whitespace-pre-line ${BODY} ${className}`}>“{r.text.trim()}”</p>;
   return (
-    <ul aria-label="Top replies" className="relative -mt-[11px] flex flex-col gap-8 overflow-hidden pt-[23px] pl-[49px]">
-      {replies.map((r) => (
-        <li key={r.commentId ?? r.text} className="relative">
-          <span aria-hidden className="absolute bottom-[calc(100%_-_14px)] -left-[33px] h-screen w-[17px] rounded-bl-[17px] border-b-2 border-l-2 border-[#555]" />
-          <p className={`whitespace-pre-line ${BODY}`}>“{r.text.trim()}”</p>
-        </li>
-      ))}
-    </ul>
+    <div className="relative -mt-[11px]">
+      <ul aria-label="Top replies" className={list}>
+        {replies.map((r) => (
+          <li key={r.commentId ?? r.text}>{text(r)}</li>
+        ))}
+      </ul>
+      {/* The lines' layer, over the list exactly: an unseen copy of the replies lays it out the same, so each curve meets its reply. */}
+      <div aria-hidden className={`pointer-events-none absolute inset-0 opacity-40 ${list}`}>
+        {replies.map((r) => (
+          <div key={r.commentId ?? r.text} className="relative">
+            <span className="absolute bottom-[calc(100%_-_14px)] -left-[33px] h-screen w-[17px] rounded-bl-[17px] border-b-2 border-l-2 border-white" />
+            {text(r, "invisible")}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

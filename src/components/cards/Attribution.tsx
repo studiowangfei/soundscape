@@ -1,5 +1,8 @@
+import type { ReactNode } from "react";
 import type { EntryCard } from "@/content/schema";
-import { attribution } from "./sources";
+import type { VisitorComment } from "@/content/visitors";
+import { SoundscapeMark } from "./SoundscapeMark";
+import { attribution, visitorAttribution } from "./sources";
 
 /**
  * The source line at the foot of a card: the site's mark and "Site · author". The collapsed card draws the mark in the
@@ -23,17 +26,29 @@ export function Attribution({ card, expanded = false }: { card: EntryCard; expan
     // A site without a mark yet shows nothing here (a mask that doesn't load hides the box).
     <span aria-hidden className="size-4 shrink-0 bg-current" style={{ mask: mono, WebkitMask: mono }} />
   );
+  return <SourceLine icon={icon} text={text} expanded={expanded} href={expanded ? card.url : undefined} />;
+}
+
+/** A visitor's comment's source line: Soundscape's mark and "Soundscape · name", and the day once opened. */
+export function VisitorAttribution({ comment, expanded = false }: { comment: VisitorComment; expanded?: boolean }) {
+  return <SourceLine icon={<SoundscapeMark expanded={expanded} />} text={visitorAttribution(comment, expanded)} expanded={expanded} />;
+}
+
+/** How a source line is set: the mark, then the text; opened, larger, and a link to the source when there is one. */
+function SourceLine({ icon, text, expanded, href }: { icon: ReactNode; text: string; expanded: boolean; href?: string }) {
   const body = (
     <>
       {icon}
       <span className="truncate">{text}</span>
     </>
   );
-  return expanded ? (
-    <a href={card.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-3 text-[16px] text-[#888] transition-colors hover:text-white/80">
+  if (!expanded) return <p className="flex min-w-0 items-center gap-2 text-[12px] text-white/55">{body}</p>;
+  const line = "flex min-w-0 items-center gap-3 text-[16px] text-[#888]";
+  return href ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={`${line} transition-colors hover:text-white/80`}>
       {body}
     </a>
   ) : (
-    <p className="flex min-w-0 items-center gap-2 text-[12px] text-white/55">{body}</p>
+    <p className={line}>{body}</p>
   );
 }
