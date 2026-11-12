@@ -19,7 +19,7 @@ import { TUNING } from "../tuning";
 import { useTypeface } from "../useTypeface";
 import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
 import { SongWheel, type WheelHandle } from "./SongWheel";
-import { isSortKey, newShuffleSeed, SHUFFLE_STORE, shuffleSongs, SORT_STORE, sortSongs, type SortKey } from "./sort";
+import { landingOrder, shuffleSongs, SORT_STORE, sortSongs, visitOrder, type SortKey } from "./sort";
 import { useWheelLayout } from "./useWheelLayout";
 import { prefetchRows } from "./wheel";
 
@@ -77,21 +77,13 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   useEffect(() => {
     // The order, the shuffle and the start position are only known after mount (localStorage and sessionStorage), and
     // together, so the wheel comes up already in order.
-    let saved: unknown = null;
-    try {
-      saved = localStorage.getItem(SORT_STORE);
-    } catch {
-      // Blocked storage: the default order.
-    }
-    const order = isSortKey(saved) ? saved : "default";
-    let seed = sessionGet(SHUFFLE_STORE);
-    if (seed === null) sessionSet(SHUFFLE_STORE, (seed = newShuffleSeed()));
+    const { sort: order, seed } = visitOrder();
     const mixed = shuffleSongs(catalogue, seed);
     const slug = sessionGet(LANDING_FOCUS_KEY);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- see above
     setShuffled(mixed);
     setSort(order);
-    setStart(Math.max(0, sortSongs(mixed, order).findIndex((s) => s.slug === slug)));
+    setStart(Math.max(0, landingOrder(catalogue, seed, order).findIndex((s) => s.slug === slug)));
   }, [catalogue]);
 
   // A new order: the song in focus stays in focus (the wheel comes back up on it, now among other neighbours), and so

@@ -53,3 +53,40 @@ export function shuffleSongs<T>(songs: T[], seed: string | null): T[] {
   }
   return out;
 }
+
+/**
+ * The landing wheel's order: the catalogue shuffled by this visit's seed (the Default order), then sorted by `key`. A
+ * song page's previous and next go by it too, so they step through the songs as the wheel lists them.
+ */
+export function landingOrder<T extends { title: string; year: number | null }>(songs: T[], seed: string | null, key: SortKey): T[] {
+  return sortSongs(shuffleSongs(songs, seed), key);
+}
+
+/**
+ * This visit's order, as any page reads it (browser only; the storages are passed in tests): the sort chosen, remembered
+ * in this browser (else Default), and the visit's shuffle seed, made now if this is the visit's first page, so that the
+ * pages after it (the landing page, other songs) all keep to the same order.
+ */
+export function visitOrder(local: Storage = globalThis.localStorage, session: Storage = globalThis.sessionStorage): { sort: SortKey; seed: string } {
+  let saved: unknown = null;
+  try {
+    saved = local.getItem(SORT_STORE);
+  } catch {
+    // Blocked storage: the default order.
+  }
+  let seed: string | null = null;
+  try {
+    seed = session.getItem(SHUFFLE_STORE);
+  } catch {
+    // Blocked storage: a seed for this page alone.
+  }
+  if (seed === null) {
+    seed = newShuffleSeed();
+    try {
+      session.setItem(SHUFFLE_STORE, seed);
+    } catch {
+      // Not remembered; fine.
+    }
+  }
+  return { sort: isSortKey(saved) ? saved : "default", seed };
+}
