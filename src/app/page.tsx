@@ -1,18 +1,11 @@
 import { loadEntries } from "@/content/load";
+import { navSong } from "@/content/neighbours";
 import { Landing } from "@/components/landing/Landing";
 
 export default async function Home() {
   const entries = await loadEntries();
-  const songs = entries.map(({ slug, title, artist, aliases, tags, cover, preview, releaseYear }) => ({
-    slug,
-    title,
-    artist,
-    aliases,
-    tags,
-    cover: { file: cover.file, kind: cover.kind },
-    preview: preview?.url ?? null,
-    year: releaseYear ?? null,
-  }));
+  // Each song as the wheel orders it (navSong: as a song page's previous / next go by it too), and what it shows of it.
+  const songs = entries.map((e) => ({ ...navSong(e), aliases: e.aliases, tags: e.tags, preview: e.preview?.url ?? null }));
   return (
     <>
       <Landing songs={songs} />
