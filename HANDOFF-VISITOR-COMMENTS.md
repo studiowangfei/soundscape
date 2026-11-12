@@ -9,7 +9,7 @@ explains the change.
 Every song page now ends with a **"Your take"** card where any visitor can leave a comment and, optionally, a name.
 Each submission becomes a **pull request on this repo** that adds one file under `content/visitor-comments/`. The
 site's owner reads it on GitHub and **merges it to publish** (Vercel redeploys and the comment appears as a
-**"From visitors"** card on that song's page) or **closes it to discard** it. Nothing a visitor writes is on the site
+**"Visitor comment"** card on that song's page) or **closes it to discard** it. Nothing a visitor writes is on the site
 until the owner merges it. To make this work, the site is **no longer a static export**: every page is still
 prerendered, but one server route, `src/app/api/visitor-comments`, runs on Vercel.
 
@@ -63,7 +63,7 @@ Also:
 
 ## 3. What the cards look like (don't change `src/`)
 
-The song page's card row is now: **the song's own cards** (unchanged) → **"From visitors" cards**, newest first →
+The song page's card row is now: **the song's own cards** (unchanged) → **"Visitor comment" cards**, newest first →
 **the "Your take" card**, always last.
 
 - **"Your take", collapsed:** label `YOUR TAKE`; headline *Say something about this song* in italics, centred up and
@@ -71,9 +71,10 @@ The song page's card row is now: **the song's own cards** (unchanged) → **"Fro
 - **"Your take", opened:** the same label and italic headline, then a text box **"Write anything"**, a line
   **"Name (optional)"**, the note "Comments appear once approved." and a **Send** button. After sending: "Thanks.
   It'll show up here once it's approved." A half-written comment is kept if the card is closed or the page reloaded.
-- **"From visitors", collapsed:** label `FROM VISITORS`, the comment in quotes (cut like a "People say" card), and at
-  the foot the visitor's name, or "Anonymous".
-- **"From visitors", opened:** the full comment, then `name · date`.
+- **"Visitor comment", collapsed:** label `VISITOR COMMENT`, the comment in quotes (cut like a "People say" card), and
+  at the foot, as other cards name their source, Soundscape's mark (the favicon's S) and `Soundscape · name` (or
+  "Anonymous").
+- **"Visitor comment", opened:** the full comment, then Soundscape's mark and `Soundscape · name · date`.
 
 Visitor cards are not entry cards: they aren't in `content/songs/*.json`, don't count toward the 9-card limit, and you
 never write them by hand.
@@ -120,7 +121,7 @@ Without sending anything:
 
 A real end-to-end test opens a real pull request on this public repo, so **only with the owner's go-ahead**: send a
 comment from the live site, check the pull request arrived (and the owner's notification), then close it (or merge it
-to see the "From visitors" card, and delete the file afterwards).
+to see the "Visitor comment" card, and delete the file afterwards).
 
 ## 8. If something's wrong
 
