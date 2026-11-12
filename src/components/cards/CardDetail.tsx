@@ -427,7 +427,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
                     <p className={BODY}>{entry.film.plotDetails}</p>
                   ) : (
                     <button onClick={() => setRevealed(true)} className="self-start text-[16px] text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white/75">
-                      Reveal plot details (spoilers)
+                      Spoiler
                     </button>
                   ))}
               </div>

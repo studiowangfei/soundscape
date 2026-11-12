@@ -84,7 +84,7 @@ export function VisitorForm({ song }: { song: string }) {
           {/* For bots only: people never see or reach it, so anything typed here marks the comment as a bot's. */}
           <input ref={honeypot} name="website" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] h-px w-px opacity-0" />
           <div className="mt-auto flex items-center justify-between gap-4">
-            <p className="text-[14px] text-white/45">Comments appear once approved.</p>
+            <p className="text-[14px] text-white/45">Comments appear once reviewed.</p>
             <button
               type="submit"
               disabled={sending || length === 0 || length > MAX}
