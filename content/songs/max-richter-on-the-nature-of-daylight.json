@@ -211,10 +211,82 @@
         "popularityObserved": "627K views",
         "observedAt": "2026-10-26"
       }
+    },
+    {
+      "id": "max-richter-on-the-nature-of-daylight-g9",
+      "type": "film",
+      "headline": "It opens and closes Denis Villeneuve's Arrival",
+      "snippet": "Denis Villeneuve's Arrival (2016) uses it at the beginning and the end. Richter calls it the piece's most prominent screen use, and he thinks it worked very beautifully there.",
+      "context": "His reason: Arrival is \"essentially an anti-war film,\" so it chimed with the theme of a piece he wrote against the Iraq War.",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/arrival-2016/",
+      "sourceDate": "2016-11-10",
+      "supporting": [
+        {
+          "label": "Vanity Fair",
+          "url": "https://www.vanityfair.com/hollywood/story/max-richter-hamnet-on-the-nature-of-daylight-interview"
+        },
+        {
+          "label": "The A.V. Club",
+          "url": "https://www.avclub.com/on-the-nature-of-daylight-max-richter-hamnet-cliche"
+        }
+      ],
+      "film": {
+        "association": "Denis Villeneuve's Arrival (2016) uses it at the beginning and the end. Richter calls it the piece's most prominent screen use, and he thinks it worked very beautifully there.",
+        "plotDetails": "The shapes match too, Richter says: the piece is palindromic, \"and the movie is kind of palindromic as well.\" The A.V. Club hears it in Louise embracing the pain she knows is coming, for the joy that comes with it.",
+        "title": "Arrival",
+        "year": 2016,
+        "kind": "film",
+        "poster": {
+          "file": "max-richter-on-the-nature-of-daylight-g9.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/df/Arrival%2C_Movie_Poster.jpg"
+        }
+      }
+    },
+    {
+      "id": "max-richter-on-the-nature-of-daylight-g10",
+      "type": "film",
+      "headline": "Jessie Buckley sent it to Chloé Zhao, and it changed Hamnet's ending",
+      "snippet": "Richter scored Chloé Zhao's Hamnet (2025), but this older piece joined only days before filming wrapped: Jessie Buckley sent it to Zhao, and the film's ending came to her as she listened. On set, it then played on repeat for 10 hours.",
+      "context": "Richter's own score for the film was Oscar-nominated. Not everyone was moved: The Guardian's Tom Service said the needle-drop left him cold.",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/hamnet/",
+      "sourceDate": "2025-08-29",
+      "supporting": [
+        {
+          "label": "Vanity Fair",
+          "url": "https://www.vanityfair.com/hollywood/story/max-richter-hamnet-on-the-nature-of-daylight-interview"
+        },
+        {
+          "label": "IndieWire",
+          "url": "https://www.indiewire.com/features/craft/hamnet-score-max-richter-interview-1235164947/"
+        },
+        {
+          "label": "The Guardian",
+          "url": "https://www.theguardian.com/music/2026/jan/28/tom-service-on-music-max-richter-hamnet-philip-glass"
+        }
+      ],
+      "film": {
+        "association": "Richter scored Chloé Zhao's Hamnet (2025), but this older piece joined only days before filming wrapped: Jessie Buckley sent it to Zhao, and the film's ending came to her as she listened. On set, it then played on repeat for 10 hours.",
+        "plotDetails": "The last shot, Agnes reaching out to the dying Hamlet on stage and the whole audience reaching out with her, wasn't the plan: Richter told IndieWire it \"comes directly from the music.\"",
+        "title": "Hamnet",
+        "year": 2025,
+        "kind": "film",
+        "poster": {
+          "file": "max-richter-on-the-nature-of-daylight-g10.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/1f/Hamnet_film_poster.jpeg"
+        }
+      }
     }
   ],
   "provenance": {
-    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":2,\"film\":0,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":2,\"film\":0,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years. Updated 2026-11-11 (user request): film cards for Arrival (g9) and Hamnet (g10) added on top of the 8.",
     "generation": {
       "generatedAt": "2026-10-26T21:49:25.541Z",
       "model": "claude-sonnet-5-5 (effort low)",

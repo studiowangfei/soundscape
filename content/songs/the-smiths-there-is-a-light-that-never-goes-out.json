@@ -241,10 +241,39 @@
           "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d1/Five_hundred_days_of_summer.jpg"
         }
       }
+    },
+    {
+      "id": "the-smiths-there-is-a-light-that-never-goes-out-g10",
+      "type": "film",
+      "headline": "The Killer (2023) ends on this song",
+      "snippet": "David Fincher's 2023 film The Killer plays the song at its end, in a film that features many Smiths songs.",
+      "context": "",
+      "source": {
+        "name": "Letterboxd",
+        "platform": "letterboxd"
+      },
+      "url": "https://letterboxd.com/film/the-killer-2023/",
+      "sourceDate": "2023-09-03",
+      "supporting": [
+        {
+          "label": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/There_Is_a_Light_That_Never_Goes_Out"
+        }
+      ],
+      "film": {
+        "association": "David Fincher's 2023 film The Killer plays the song at its end, in a film that features many Smiths songs.",
+        "title": "The Killer",
+        "year": 2023,
+        "kind": "film",
+        "poster": {
+          "file": "the-smiths-there-is-a-light-that-never-goes-out-g10.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/32/The_Killer_2023_poster.jpg"
+        }
+      }
     }
   ],
   "provenance": {
-    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":1,\"film\":1,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years.",
+    "researchNotes": "Auto-generated 2026-10-26 without human review. Mix: {\"background\":2,\"comment\":4,\"version\":1,\"film\":1,\"lyric\":0}. Updated 2026-10-28: fuller background stories, comment replies, no event years. Updated 2026-11-11 (change 18 film pass, user-approved): a film card for The Killer (g10) on top of the 8.",
     "generation": {
       "generatedAt": "2026-10-26T22:04:33.325Z",
       "model": "claude-sonnet-5-5 (effort low)",
