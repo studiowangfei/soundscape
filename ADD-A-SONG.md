@@ -49,8 +49,9 @@ errors. In short:
 - `preview`: `{ url, source: "itunes", link }`, the song's 30-second Apple Music preview (design doc §9.3).
 - `spotifyId`, `youtubeMusicId` (an 11-character video id) and `youtubeUrl`: null when not found (the player then
   searches that service instead).
-- `cards`: at most 8, mixed as in design doc §7, plus an optional 9th **lyric card** (design doc §7.1) when listeners are
-  seen quoting a line. In the order they show: Background → Lyric → Comments → Version → Film. Card ids are `<slug>-g<n>`,
+- `cards`: at most 8, mixed as in design doc §7; on top of them, up to 2 **film cards**, only for a strong use of the
+  song in a film or show and never a film and its sequel (design doc §10), and an optional **lyric card** (design doc §7.1)
+  when listeners are seen quoting a line. In the order they show: Background → Lyric → Comments → Version → Film. Card ids are `<slug>-g<n>`,
   numbered in that order, unique across the repo, and permanent.
 - `provenance` (optional): your research notes and generation details; never shown.
 

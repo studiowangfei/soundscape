@@ -69,7 +69,7 @@ The song page's card row is now: **the song's own cards** (unchanged) → **"Vis
 - **"Your take", collapsed:** label `YOUR TAKE`; headline *Say something about this song* in italics, centred up and
   down in the card.
 - **"Your take", opened:** the same label and italic headline, then a text box **"Write anything"**, a line
-  **"Name (optional)"**, the note "Comments appear once approved." and a **Send** button. After sending: "Thanks.
+  **"Name (optional)"**, the note "Comments appear once reviewed." and a **Send** button. After sending: "Thanks.
   It'll show up here once it's approved." A half-written comment is kept if the card is closed or the page reloaded.
 - **"Visitor comment", collapsed:** label `VISITOR COMMENT`, the comment in quotes (cut like a "People say" card), and
   at the foot, as other cards name their source, Soundscape's mark (the favicon's S) and `Soundscape · name` (or
