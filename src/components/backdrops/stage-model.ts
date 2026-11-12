@@ -3,7 +3,7 @@
  * (a scene). Each scene key gets a pane of its own (the landing page one for its whole visit, a song page one per song);
  * a new pane builds unseen under the one on screen, and takes over only once it has drawn, so the window never goes
  * dark between pages. Going between the landing page and a song moves the cover itself, as seen through the mist,
- * from one frame to the other; the next page's fog starts as thick as the last one's. Pure, so it's tested in Node.
+ * from one frame to the other; the landing page's fog starts as thick as the song's was (a song's starts clear). Pure, so it's tested in Node.
  */
 import type { Box } from "../cards/morph";
 import { STACK, type coverFrame, type Layout, type Song } from "./art";
@@ -112,6 +112,12 @@ function step(s: StageState, a: StageAction): StageState {
       return { ...s, moving: false };
   }
 }
+
+/**
+ * How thick a page's fog starts, given how thick the page left's had got (`carried`): a song page's starts clear, so it
+ * thickens over its own time from when the song opens; the landing page's carries on from where the song's had got.
+ */
+export const startThickness = (mode: Mode, carried: number) => (mode === "song" ? 0 : carried);
 
 /** The scene `key` is fully on screen: its pane has finished fading in (and isn't fading out). */
 export const isShown = (s: StageState, key: string) => s.panes.some((p) => p.scene.key === key && p.phase === "shown");

@@ -161,6 +161,19 @@ export function pathDrops(d: Drip, drops: { i: number; x: number; y: number; rx:
     .sort((a, b) => a.s - b.s);
 }
 
+/**
+ * Whether a droplet of radius r at fog px (x, y) would sit in the way of a run still going: on its path so far or still
+ * to come (its trail, `margin` px to spare), below where it set off. New droplets keep clear of them.
+ */
+export function inRunsWay(x: number, y: number, r: number, runs: Drip[], margin = 0) {
+  return runs.some((d) => {
+    const s = (y - d.y0) / d.len;
+    if (s < -(d.r * 1.5 + r + margin) / d.len || s > 1) return false;
+    const at = dripAt(d, Math.max(0, s));
+    return Math.abs(x - at.x) < trailHalf(d, Math.max(0, s)) + 2 * TRAIL_SOFT * at.r + r + margin;
+  });
+}
+
 /** Distance from (px, py) to the segment a–b. */
 export function segmentDistance(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax;
@@ -169,8 +182,28 @@ export function segmentDistance(px: number, py: number, ax: number, ay: number, 
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
+/**
+ * The droplets (fog px) a wipe stroke from `a` to `b`, brush radius `brush`, has wiped away: of those whose middle it
+ * reaches, the ones the glass is now at least half cleared over (`cleared`, 0–1, asked only for those).
+ */
+export function wipedAway<T extends { x: number; y: number }>(drops: T[], a: { x: number; y: number }, b: { x: number; y: number }, brush: number, cleared: (x: number, y: number) => number) {
+  return drops.filter((d) => segmentDistance(d.x, d.y, a.x, a.y, b.x, b.y) < brush && cleared(d.x, d.y) >= 0.5);
+}
+
 /** The radii of all the droplet covered where it sat (wobble and elongation included), to sweep its spot once it leaves. */
 export function dripSpot(d: Drip) {
   const rx = d.r * (1 + d.wob * 1.5);
   return [rx, rx * d.e] as const;
+}
+
+/**
+ * Whether a droplet shows well enough to run from: `edge`, how far the pane's soft edge lets it show (fadeAt, 0–1); not
+ * by the writing; and not wiped or swept away: the fog canvas under it nearly opaque (`fogAlpha`, 0–255; unwiped it is
+ * opaque at every fade, the pane's edge being backed by what's behind it), unless it condensed since (over the fog). One
+ * the glass picks itself (its own run, the drop button) shows fully, at least half; one tapped only needs to be in
+ * sight (a tenth: about where droplets fade from view), so that any droplet seen there runs when tapped, while a click
+ * where they have all but faded out still wipes.
+ */
+export function showsToRun(d: { edge: number; nearText: boolean; grown: boolean; fogAlpha: number }, tapped: boolean) {
+  return d.edge >= (tapped ? 0.1 : 0.5) && !d.nearText && (d.grown || d.fogAlpha >= 255 * 0.85);
 }

@@ -10,7 +10,7 @@ import { landingFogDefaults } from "../landing/settings";
 import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
 import { VARIANTS } from "./Backdrop";
 import { defaults, PARAMS, type Params } from "./params";
-import { EMPTY_STAGE, edgeStops, isShown, kindOf, needsMove, READY_TIMEOUT_MS, sceneOrigin, stageReducer, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
+import { EMPTY_STAGE, edgeStops, isShown, kindOf, needsMove, READY_TIMEOUT_MS, sceneOrigin, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
 import { Fog, padSquare, type FogHandle } from "./variants";
 
 /**
@@ -112,7 +112,8 @@ type Move = {
   /** The cover as seen through the outgoing fog's mist (FogHandle.misted), carried instead of the clear cover so the
    * fog travels with it: no clear frame between the two fogs. Null for the other styles: the clear cover then. */
   snap: HTMLCanvasElement | null;
-  /** How thick the outgoing fog had got; the incoming pane (ids from `firstPane` on) starts there. */
+  /** How thick the outgoing fog had got; the incoming pane (ids from `firstPane` on) starts there if it's the landing
+   * page's (startThickness: a song's starts clear). */
   thickness: number;
   firstPane: number;
   /** The opened song's cover, when it isn't the one on screen (the search bar can open a song before its cover is up). */
@@ -343,7 +344,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
             pane={pane}
             dispatch={dispatch}
             handles={handles}
-            startThick={move && pane.id >= move.firstPane ? move.thickness : 0}
+            startThick={move && pane.id >= move.firstPane ? startThickness(pane.scene.mode, move.thickness) : 0}
             enter={enter}
             leaveMs={move ? TIMING.dropsOut : TIMING.handover}
           />
@@ -468,7 +469,7 @@ type PaneProps = {
   dispatch: (a: StageAction) => void;
   /** Where each pane's FogHandle is kept, by pane id (the stage asks the outgoing one for its misted cover). */
   handles: { current: Map<number, { current: FogHandle | null }> };
-  /** The fog's thickness to start at (carried over from the page left). */
+  /** The fog's thickness to start at (carried over from the page left to the landing page; 0 for a song's). */
   startThick: number;
   /** How it fades in, asked as it starts to (see StageProvider). */
   enter: () => { ms: number; easing: string };

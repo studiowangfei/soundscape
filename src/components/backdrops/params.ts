@@ -80,19 +80,19 @@ export const PARAMS = {
   fog: [
     { key: "density", label: "Mist thickness", min: 0, max: 1, step: 0.02, value: 0 },
     { key: "opacity", label: "Mist opacity", min: 0, max: 1, step: 0.02, value: 0.1 },
-    { key: "blur", label: "Mist blur (half on phones)", min: 2, max: 120, step: 1, value: 6, unit: "px" },
+    { key: "blur", label: "Mist blur (half on phones)", min: 2, max: 120, step: 1, value: 4, unit: "px" },
     { key: "bloom", label: "Light bloom", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "patchiness", label: "Patchiness", min: 0, max: 1, step: 0.05, value: 0 },
     { key: "drops", label: "Droplets", min: 0, max: 2.5, step: 0.05, value: 0.3, unit: "×" },
     { key: "dropSize", label: "Droplet size", min: 0.4, max: 2.5, step: 0.05, value: 0.75, unit: "×" },
-    { key: "refraction", label: "Droplet refraction", min: 1, max: 6, step: 0.1, value: 4, unit: "×" },
+    { key: "refraction", label: "Droplet refraction", min: 1, max: 6, step: 0.1, value: 2, unit: "×" },
     { key: "trails", label: "Drip trails", min: 0, max: 30, step: 1, value: 0 },
     { key: "brush", label: "Wipe size", min: 10, max: 240, step: 2, value: 90, unit: "px" },
     { key: "softness", label: "Wipe softness", min: 0, max: 1, step: 0.05, value: 0.5 },
     { key: "refog", label: "Fog returns (0 = never)", min: 0, max: 120, step: 1, value: 60, unit: "s" },
     // While a song is shown the pane keeps fogging up, from the settings above to the thickest fog, over `thicken`.
     { key: "thicken", label: "Fog thickens over (0 = never)", min: 0, max: 600, step: 10, value: 90, unit: "s" },
-    shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.6 }),
+    shownWhen("thicken")({ key: "thickMax", label: "Thickest fog", min: 0.1, max: 1, step: 0.05, value: 0.7 }),
     // Now and then one of the larger droplets runs down, clearing a trail; never more than one per `dripEvery`.
     { key: "autoDrips", label: "Drops run down on their own", min: 0, max: 1, step: 1, value: 1 },
     ...[

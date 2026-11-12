@@ -6,7 +6,8 @@ import { backdropSize, BG, softCut, coverFrame, edgeBleed, fillDropScale, fitCan
 import { coarseNow, phoneNow, wideNow } from "../env";
 import { claim, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../gesture";
 import { haptic } from "../haptics";
-import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, segmentDistance, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, type Drip } from "./drip";
+import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, inRunsWay, segmentDistance, showsToRun, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, wipedAway, type Drip } from "./drip";
+import { marksNear } from "./fading";
 import { createFogRenderer } from "./fog-client";
 import type { FogResult } from "./fog-job";
 import { dropPainter, fillParams, fogDrops, glassSeed, mistBlur, thickened } from "./fog-render";
@@ -90,8 +91,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const thickSrc = useRef<HTMLCanvasElement | null>(null);
   const thickSpecksSrc = useRef<HTMLCanvasElement | null>(null); // its tiniest droplets, for run trails fogging back over
   const thickLensSrc = useRef<HTMLCanvasElement | null>(null);
-  // Fogging up from where the last page's fog had got to (the stage carries it over), as a share of this pane's thick
-  // pane: so the first build waits for the thick pane too, and the clock starts that far along.
+  // Fogging up from where the last page's fog had got to (the stage carries it over to the landing page; a song page's
+  // starts clear), as a share of this pane's thick pane: so the first build waits for the thick pane too, and the clock
+  // starts that far along.
   const startShare = Math.min(1, Math.max(0, startThick / (p.thickMax || 1)));
   const thick = useRef(startShare);
   const thickT0 = useRef(unsmooth(startShare));
@@ -868,6 +870,16 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         const o = dripAt(d, s);
         if (segmentDistance(o.x, o.y, from.x, from.y, at.x, at.y) < at.r + o.r) endDrip(d, s, false);
       }
+      // Droplets condensed since the pane was built go with the wipe once it has cleared the glass at least halfway over
+      // their middle, so none is left hidden under it for the 💧 to send running from clear glass (the baked ones are
+      // part of the fog, and come back with it).
+      const size = at.m.size;
+      const condensed = grown.current.map((d) => ({ d, x: d.x * size, y: d.y * size }));
+      const taken = new Set(wipedAway(condensed, from, at, at.r, (x, y) => at.m.alphaAt(Math.round(x), Math.round(y)) / 255).map((w) => w.d));
+      if (taken.size) {
+        grown.current = grown.current.filter((g) => !taken.has(g));
+        paintGrown();
+      }
       compose();
     };
     const noSelect = (on: boolean) => {
@@ -986,7 +998,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       root.style.cursor = "";
       noSelect(false);
     };
-  }, [compose, endDrip, p.brush, p.softness, p.tapDrip, layout]);
+  }, [compose, endDrip, paintGrown, p.brush, p.softness, p.tapDrip, layout]);
 
   // Fog creeping back over the wipes in `refog` seconds (0 = never), with no visible steps (see FadingLayer).
   useEffect(() => {
@@ -1082,32 +1094,52 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     }
     return best;
   }, []);
+  /** How a droplet shows where it is (showsToRun): the pane's edge fade there, the writing, and the fog under it. */
+  const showing = useCallback((d: { i: number; x: number; y: number }) => {
+    const fogC = fogRef.current;
+    const size = fogC?.width ?? 0;
+    const fade = geom.current.fade;
+    const [x, y] = [d.x * size, d.y * size];
+    const w = writing.current;
+    return {
+      edge: fogC && fade ? fadeAt(fade, size, x, y) : 0,
+      nearText: !!w && x > w.box.x0 - w.fontPx && x < w.box.x1 + w.fontPx && y > w.box.y0 - w.fontPx && y < w.box.y1 + w.fontPx,
+      grown: d.i >= GROWN_BASE,
+      fogAlpha: fogC ? fogC.getContext("2d")!.getImageData(Math.round(x), Math.round(y), 1, 1).data[3] : 0,
+    };
+  }, []);
+  /** The droplet a tap at fog px (x, y) sends running: the runnable one under it, if it's in sight there. */
+  const tappable = useCallback((x: number, y: number, reach: number) => {
+    const d = dropNear(x, y, reach);
+    return d && showsToRun(showing(d), true) ? d : null;
+  }, [dropNear, showing]);
   useEffect(() => {
-    dropNearRef.current = (x, y, reach) => !!dropNear(x, y, reach);
-  }, [dropNear]);
+    // The hand over a droplet: only where a tap runs it. Judged once per droplet for a moment, not on every move (each
+    // judgement reads the fog canvas back, which done often can make the browser take it off the GPU).
+    let memo: { d: object; ok: boolean; t: number } | null = null;
+    dropNearRef.current = (x, y, reach) => {
+      const d = dropNear(x, y, reach);
+      const now = performance.now();
+      if (!d) return false;
+      if (memo?.d !== d || now - memo.t > 300) memo = { d, ok: showsToRun(showing(d), true), t: now };
+      return memo.ok;
+    };
+  }, [dropNear, showing]);
   const startRun = useCallback(
     (now: number, ask: boolean, at?: { x: number; y: number; reach: number }) => {
       const fogC = fogRef.current;
       const size = fogC?.width ?? 0;
       const { cover, pad, fade } = geom.current;
       if (!built.current || !fogC || !swept.current || !cover || !fade || mask.current?.size !== size) return false;
-      const w = writing.current;
-      const nearText = (x: number, y: number) => !!w && x > w.box.x0 - w.fontPx && x < w.box.x1 + w.fontPx && y > w.box.y0 - w.fontPx && y < w.box.y1 + w.fontPx;
-      const shown = fogC.getContext("2d")!;
       const lo = pad / size;
       const span = cover / size;
       const inArea = (d: { x: number; y: number }) => d.x > lo + span * 0.04 && d.x < lo + span * 0.96 && d.y > lo + span * 0.03 && d.y < lo + span * 0.7;
       const isGrown = (d: { i: number }) => d.i >= GROWN_BASE;
-      const shows = (d: { i: number; x: number; y: number }) => {
-        const [x, y] = [d.x * size, d.y * size];
-        const edge = fadeAt(fade, size, x, y);
-        // Condensed droplets are over the fog; the rest are in it, so the fog canvas there is as opaque as its edge allows.
-        return edge >= 0.5 && !nearText(x, y) && (isGrown(d) || shown.getImageData(Math.round(x), Math.round(y), 1, 1).data[3] >= 255 * edge * 0.85);
-      };
+      const shows = (d: { i: number; x: number; y: number }) => showsToRun(showing(d), false);
       let pool = [...allDrops.current.filter((d) => d.canRun && !gone.current.has(d.i)), ...grown.current.filter((d) => now >= d.born + GROW_MS)].filter(inArea);
       if (at) {
-        const d = dropNear(at.x, at.y, at.reach);
-        pool = d && shows(d) ? [d] : [];
+        const d = tappable(at.x, at.y, at.reach);
+        pool = d ? [d] : [];
         ask = true;
       } else if (ask) {
         // In sight: the cover may be cropped by the window (its top and bottom on a wide one, its sides on a phone).
@@ -1138,7 +1170,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       return false;
     },
-    [dropNear, inWindow, paintGrown],
+    [inWindow, paintGrown, showing, tappable],
   );
   useEffect(() => {
     startRunRef.current = startRun;
@@ -1147,8 +1179,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   /**
    * Once the 💧 has been used, the glass keeps STOCK big droplets for it in sight: when fewer of its biggest are left
    * there (and those condensed since), a new one condenses somewhere clear of them in the upper part of what's in sight
-   * of the cover, growing to a size among the biggest baked ones, shaped like one of them. Returns false if it found
-   * nowhere to grow one.
+   * of the cover, growing to a size among the biggest baked ones, shaped like one of them. Never on a run's trail or a
+   * wipe until it has fogged over completely (nor in the way of a run still going): a droplet doesn't form where the
+   * glass has been cleared until the mist is back. Returns false if it found nowhere to grow one.
    */
   const condense = useCallback((now: number) => {
     const size = fogRef.current?.width ?? 0;
@@ -1175,6 +1208,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const like = runners[Math.floor(Math.random() * Math.min(runners.length, STOCK + 2))];
       const rd = big + Math.random() * (runners[0].rd - big);
       const rx = rd * (1 + like.wob * 1.5);
+      // Clear of trails and wipes still showing (all of what it'd cover, rim and all, and a little more) and of runs
+      // going on.
+      const reach = rx * size * 1.3 + 2;
+      const [fx, fy] = [x * size, y * size];
+      if (clearness.current?.showsNear(fx, fy, reach) || mask.current?.showsNear(fx, fy, reach) || inRunsWay(fx, fy, reach, drips.current)) continue;
       grown.current.push({ i: GROWN_BASE + grownCount.current++, x, y, rd, rx, ry: rx * like.e, e: like.e, wob: like.wob, ph: Math.random() * 6.3, canRun: true, born: now });
       return true;
     }
@@ -1329,6 +1367,20 @@ class FadingLayer {
     ctx.drawImage(this.aged, 0, 0, w, h);
     ctx.globalAlpha = a;
     if (this.marked) ctx.drawImage(this.fresh, 0, 0, w, h);
+  }
+
+  /** Whether any mark still shows (as drawn now, from about 1%: see SHOWS_FROM) within `r` of (x, y). */
+  showsNear(x: number, y: number, r: number) {
+    if (!this.live) return false;
+    const x0 = Math.max(0, Math.floor(x - r));
+    const y0 = Math.max(0, Math.floor(y - r));
+    const w = Math.min(this.size, Math.ceil(x + r)) - x0;
+    const h = Math.min(this.size, Math.ceil(y + r)) - y0;
+    if (w <= 0 || h <= 0) return false;
+    const strength = (c: HTMLCanvasElement) => (c === this.aged ? 1 - this.pending : 1); // as drawOn draws them
+    for (const c of this.marked ? [this.aged, this.fresh] : [this.aged])
+      if (marksNear(c.getContext("2d")!.getImageData(x0, y0, w, h).data, w, h, x0, y0, x, y, r, strength(c))) return true;
+    return false;
   }
 
   /** How strongly (x, y) is marked, 0–255. */
