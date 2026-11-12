@@ -55,7 +55,7 @@ If the result is still over 250 KB, lower `formatOptions` (for example 50).
   `preview.link`, they're where the player's Spotify, Apple Music and YouTube Music icons go; a missing one searches
   that service for the song instead.
 - `cover`: `{ file, kind: "album" | "artist" (default "album"), album?, sourceUrl? }`
-- `cards`: 1 to 9 cards: up to 8 regular cards plus at most one lyric card (see Lyric card below).
+- `cards`: 1 to 11 cards: up to 8, plus on top up to 2 film cards and at most one lyric card (see Lyric card below).
 - `provenance` (object, optional): free-form generation details, never rendered.
 
 ## Card fields
@@ -81,7 +81,7 @@ Card ID convention: `<slug>-<suffix>` (for example `a-song-comment-1`), unique a
 
 ## Lyric card
 
-The optional 9th card highlights one line listeners keep quoting. It doesn't take any other card's slot.
+The optional lyric card highlights one line listeners keep quoting. It doesn't take any other card's slot.
 
 - Only on observed evidence: `selectionBasis: "observed_frequency"`, with `selectionNote` saying what was seen (e.g. how many
   top comments quote the line) and `reactionCardIds` listing the comment cards in this entry that quote it (checked: each must
