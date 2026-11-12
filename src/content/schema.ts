@@ -98,16 +98,18 @@ export const EntrySchema = z
         sourceUrl: httpUrl.optional(),
       })
       .strict(),
-    // Up to 8 regular cards plus, on top, one lyric card (the 9th card).
-    cards: z.array(EntryCardSchema).min(1).max(9),
+    // Up to 8 cards, plus on top up to 2 film cards and one lyric card.
+    cards: z.array(EntryCardSchema).min(1).max(11),
     // Free-form generation details; never rendered.
     provenance: z.record(z.string(), z.unknown()).optional(),
   })
   .strict()
   .superRefine((entry, ctx) => {
     const lyrics = entry.cards.filter((c) => c.type === "lyric");
-    const regular = entry.cards.length - lyrics.length;
-    if (regular > 8) ctx.addIssue({ code: "custom", path: ["cards"], message: `at most 8 cards plus one lyric card (has ${regular} regular cards)` });
+    const films = entry.cards.filter((c) => c.type === "film").length;
+    const others = entry.cards.length - lyrics.length - films;
+    if (others > 8) ctx.addIssue({ code: "custom", path: ["cards"], message: `at most 8 cards besides film and lyric cards (has ${others})` });
+    if (films > 2) ctx.addIssue({ code: "custom", path: ["cards"], message: `at most 2 film cards (has ${films})` });
     if (lyrics.length > 1) ctx.addIssue({ code: "custom", path: ["cards"], message: `only one lyric card per entry (has ${lyrics.length})` });
     // A lyric card names the comment cards that quote its line.
     const comments = new Set(entry.cards.filter((c) => c.type === "comment").map((c) => c.id));

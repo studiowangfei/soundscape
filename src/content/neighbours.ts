@@ -1,3 +1,5 @@
+import type { Entry } from "./schema";
+
 /**
  * A link to a song page: enough for a previous / next button, and for that page's backdrop to start building at the
  * click (its cover, as the backdrop loads it).
@@ -5,9 +7,13 @@
 export type SongLink = { slug: string; title: string; artist: string; cover: string; coverKind: "album" | "artist" };
 export type Neighbours = { prev: SongLink; next: SongLink };
 
+/** A song as the landing wheel orders it (landing/sort.ts landingOrder) and a previous / next button links to it. */
+export type NavSong = { slug: string; title: string; artist: string; cover: { file: string; kind: "album" | "artist" }; year: number | null };
+export const navSong = ({ slug, title, artist, cover, releaseYear }: Entry): NavSong => ({ slug, title, artist, cover: { file: cover.file, kind: cover.kind }, year: releaseYear ?? null });
+
 /**
- * The songs either side of `slug` in `songs` (the entries in their loaded order, the landing wheel's), looping like the
- * wheel: before the first is the last. Null for a lone song or one that isn't in the list.
+ * The songs either side of `slug` in `songs` (in the landing wheel's order, landingOrder), looping like the wheel:
+ * before the first is the last. Null for a lone song or one that isn't in the list.
  */
 export function neighbours(songs: { slug: string; title: string; artist: string; cover: { file: string; kind: "album" | "artist" } }[], slug: string): Neighbours | null {
   const n = songs.length;
