@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { missingIcons } from "../src/content/icons";
 import { checkEntries, CONTENT_DIR } from "../src/content/load";
 import { checkVisitorComments } from "../src/content/visitors";
 
@@ -8,6 +11,11 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`${entries.length} entries OK`);
+
+// Every site the cards cite needs its icon and its mark (a missing one is just hidden on the site, so only a warning).
+const icons = new Set(await fs.readdir(path.join(CONTENT_DIR, "icons")).catch(() => [] as string[]));
+for (const m of missingIcons(entries, icons))
+  console.warn(`warning: no icon for ${m.domain} (missing content/icons/${m.files.join(", ")}; cited by ${m.songs.join(", ")}): run npm run icons`);
 
 // Approved visitor comments (content/visitor-comments/<song>/), checked against the songs. A bad one is only a
 // warning: the site leaves it out (loadVisitorComments) rather than failing every deploy over it.
