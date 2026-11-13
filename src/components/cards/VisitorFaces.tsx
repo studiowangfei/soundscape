@@ -5,7 +5,8 @@ import { quoted, TILE_HEADLINE, TILE_LABEL } from "./styles";
 
 /**
  * A visitor's comment on its tile, laid out as a People say tile: the label, the comment quoted (five lines at most;
- * three on the short phone card), and at the foot, where People say names its source, Soundscape's mark and
+ * three on the short phone card; a long web address in it breaks onto the next line, not off the tile's edge; it's only
+ * a link on the open card, since the tile itself is a button), and at the foot, where People say names its source, Soundscape's mark and
  * "Soundscape · name" (or Anonymous).
  */
 export function VisitorTileFace({ comment, short = false }: { comment: VisitorComment; short?: boolean }) {
@@ -13,7 +14,7 @@ export function VisitorTileFace({ comment, short = false }: { comment: VisitorCo
     <>
       <div className="absolute inset-x-0 top-0 flex flex-col gap-4 px-5 pt-5">
         <p className={TILE_LABEL}>{ROW_LABEL.visitor}</p>
-        <p className={`line-clamp-5 whitespace-pre-line ${TILE_HEADLINE} ${short ? "phone:line-clamp-3" : ""}`}>{quoted(comment.text)}</p>
+        <p className={`line-clamp-5 whitespace-pre-line wrap-break-word ${TILE_HEADLINE} ${short ? "phone:line-clamp-3" : ""}`}>{quoted(comment.text)}</p>
       </div>
       <div className="absolute bottom-5 left-5 w-[210px]">
         <VisitorAttribution comment={comment} />

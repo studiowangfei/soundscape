@@ -1,7 +1,7 @@
 "use client";
 
 import { animate, useMotionValue } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { EntryCard } from "@/content/schema";
 import { GlassEdge, useGlass, useGlassSettings } from "../glass/Glass";
@@ -16,8 +16,10 @@ import { isEntryCard, rowCardLabel, type RowCard } from "./row";
 import { DETAIL_BODY as BODY, DETAIL_HEADLINE as HEADLINE, DETAIL_LABEL as LABEL } from "./styles";
 import type { VisitorComment } from "@/content/visitors";
 import { keyStaysInForm, startsInField } from "./form";
+import { linkParts } from "./linkify";
 import { VisitorForm } from "./VisitorForm";
 import { pagerFade, pagerStep } from "./switch";
+import { CjkMedium } from "../CjkMedium";
 
 type Props = {
   /** One of the entry's cards, a visitor's comment, or the end card (its form). */
@@ -99,7 +101,7 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   // paragraph (its headline and album line stay in the data).
   const lyric = entry?.type === "lyric" ? entry.lyric : undefined;
   const context = !entry || entry.type === "background" || entry.type === "version" || entry.type === "comment" ? null : entry.context;
-  const parts = entry ? [entry.type === "film" ? (entry.film?.association ?? entry.snippet) : entry.type === "comment" ? null : entry.snippet, context].filter(Boolean) : [];
+  const parts = entry ? [entry.type === "film" ? (entry.film?.association ?? entry.snippet) : entry.type === "comment" ? null : entry.snippet, context].filter((t): t is string => !!t) : [];
   const body = lyric && parts.length ? [parts.join(" ")] : parts;
 
   const pane = useRef<HTMLDivElement | null>(null);
@@ -419,12 +421,14 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
                 {entry.comment?.replies?.length ? <Replies replies={entry.comment.replies} /> : null}
                 {body.map((text, i) => (
                   <p key={i} className={BODY}>
-                    {text}
+                    <CjkMedium text={text} />
                   </p>
                 ))}
                 {entry.film?.plotDetails &&
                   (revealed ? (
-                    <p className={BODY}>{entry.film.plotDetails}</p>
+                    <p className={BODY}>
+                      <CjkMedium text={entry.film.plotDetails} />
+                    </p>
                   ) : (
                     <button onClick={() => setRevealed(true)} className="self-start text-[16px] text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white/75">
                       Spoiler
@@ -456,13 +460,16 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
   );
 }
 
-/** A visitor's comment, opened: the label, the comment quoted as a comment card's is, and its source line (Soundscape · name · day). */
+/**
+ * A visitor's comment, opened: the label, the comment quoted as a comment card's is (any web address in it a link, opening
+ * in a new tab), and its source line (Soundscape · name · day).
+ */
 function VisitorDetail({ comment }: { comment: VisitorComment }) {
   return (
     <>
       <div className="flex flex-col gap-5 px-8 pt-8">
         <p className={LABEL}>{ROW_LABEL.visitor}</p>
-        <Quote text={comment.text} />
+        <Quote text={comment.text} links />
       </div>
       <div className="mt-auto px-8 pt-8 pb-8">
         <VisitorAttribution comment={comment} expanded />
@@ -471,8 +478,11 @@ function VisitorDetail({ comment }: { comment: VisitorComment }) {
   );
 }
 
-/** A quoted passage (a comment, a lyric line) as the design sets it. */
-function Quote({ text }: { text: string }) {
+/**
+ * A quoted passage (a comment, a lyric line) as the design sets it. `links`: the web addresses in it are links (a
+ * visitor's comment), underlined faintly, opening in a new tab; a long one breaks anywhere rather than run off the card.
+ */
+function Quote({ text, links = false }: { text: string; links?: boolean }) {
   return (
     <blockquote className={HEADLINE}>
       {/* The opening mark is large, on a line of its own; the closing one stays with the last word. */}
@@ -480,7 +490,23 @@ function Quote({ text }: { text: string }) {
         “
       </span>
       <span className="mt-2 block whitespace-pre-line">
-        {text.trim()}
+        {links
+          ? linkParts(text.trim()).map((p, i) =>
+              typeof p === "string" ? (
+                <Fragment key={i}>{p}</Fragment>
+              ) : (
+                <a
+                  key={i}
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow ugc"
+                  className="underline decoration-white/35 underline-offset-4 transition-colors wrap-anywhere hover:decoration-white/80"
+                >
+                  {p.text}
+                </a>
+              ),
+            )
+          : text.trim()}
         <span aria-hidden>{"\u00a0”"}</span>
       </span>
     </blockquote>

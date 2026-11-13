@@ -9,6 +9,7 @@ import { PosterStage } from "./PosterStage";
 import { isEntryCard, rowCardLabel, type RowCard } from "./row";
 import { quoted, TILE_HEADLINE as HEADLINE, TILE_LABEL as LABEL } from "./styles";
 import { EndTileFace, VisitorTileFace } from "./VisitorFaces";
+import { CjkMedium } from "../CjkMedium";
 
 
 /**
@@ -140,7 +141,7 @@ function HeadlineAndStory({ headline, story, short }: { headline: string; story:
         {headline}
       </h3>
       <p className={`line-clamp-2 text-[15px] leading-[20px] text-white/68 ${short ? "phone:hidden" : ""}`} style={{ WebkitLineClamp: lines }}>
-        {story}
+        <CjkMedium text={story} />
       </p>
     </>
   );

@@ -2,7 +2,7 @@ import type { EntryCard } from "@/content/schema";
 import type { VisitorComment } from "@/content/visitors";
 import { formatDate } from "./meta";
 
-/** Display names for the sites cards cite (the domain is the icon: public/icons/<domain>.png, from content/icons/). */
+/** Display names for the sites cards cite (the domain is the icon: public/icons/<domain>.png, from content/icons/: npm run icons). */
 const NAMES: Record<string, string> = {
   "youtube.com": "YouTube",
   "wikipedia.org": "Wikipedia",
@@ -23,13 +23,15 @@ const NAMES: Record<string, string> = {
   "theguardian.com": "The Guardian",
   "letterboxd.com": "Letterboxd",
   "douban.com": "Douban",
+  "kworb.net": "Kworb",
 };
 
 /**
  * Icons whose logo doesn't fill its disc: a wide or transparent-edged mark that the round crop would cut (YouTube's
- * play button), so it's shown whole, inset in the white disc. Solid tiles and round logos fill theirs.
+ * play button; Kworb's square of pixel letters, edge to edge), so it's shown whole, inset in the white disc. Solid
+ * tiles and round logos fill theirs.
  */
-const INSET = new Set(["youtube.com"]);
+const INSET = new Set(["youtube.com", "kworb.net"]);
 
 function hostOf(url: string): string {
   try {

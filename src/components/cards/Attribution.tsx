@@ -6,7 +6,7 @@ import { attribution, visitorAttribution } from "./sources";
 
 /**
  * The source line at the foot of a card: the site's mark and "Site · author". The collapsed card draws the mark in the
- * text's grey, like the player's streaming icons (content/icons/<domain>.mono.png, from generator/scripts/mono-icons.mts).
+ * text's grey, like the player's streaming icons (content/icons/<domain>.mono.png, from scripts/mono-icons.mts).
  * The expanded card's is larger: the site's colour icon on a white disc, so dark logos show on the glass; it adds
  * the date (or likes, or views) and links to the source.
  */
