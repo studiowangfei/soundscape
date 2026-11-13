@@ -26,8 +26,8 @@ brief covers what to deliver here and how to check it.
 | `content/songs/<slug>.json` | always | the entry: the song and its cards |
 | `content/covers/<slug>.jpg` | always | its cover |
 | `content/posters/<card id>.jpg` | a film card with a poster | the film's or show's poster |
-| `content/icons/<domain>.png` | a card cites a site with no icon yet | the site's icon |
-| `content/icons/<domain>.mono.png` | with every new icon | its one-colour mark for collapsed cards (see Icons) |
+| `content/icons/<domain>.png` | a card cites a site with no icon yet | the site's icon (`npm run icons`, see Icons) |
+| `content/icons/<domain>.mono.png` | with every new icon | its one-colour mark for collapsed cards (the same command) |
 
 ### The slug
 
@@ -91,23 +91,34 @@ For film cards (design doc §9.2): `content/posters/<card id>.jpg`, named in the
 ### Icons
 
 Each card shows its source site's icon, `content/icons/<domain>.png`: a 64×64 PNG, the domain without `www.` or `m.`
-(all of Wikipedia is `wikipedia.org`, YouTube `youtube.com`, Douban `douban.com`). A missing icon is simply hidden, so add one for a new
-site when you can.
+(all of Wikipedia is `wikipedia.org`, YouTube `youtube.com`, Douban `douban.com`). Collapsed cards draw it as a one-colour
+mark, `content/icons/<domain>.mono.png`. A site missing either shows no icon there, so every site your cards cite needs
+both.
 
-Collapsed cards draw the icon as a one-colour mark, `content/icons/<domain>.mono.png`. After adding an icon, make its mark from
-`web/`: `NODE_USE_ENV_PROXY=1 npx tsx generator/scripts/mono-icons.mts` (it only makes marks that are missing; `--force`
-remakes all). Without one, the site shows no icon on collapsed cards.
+When a card cites a site that has no icon yet (`npm run content:check` warns: `warning: no icon for <domain> …`), run:
+
+```
+npm run icons
+```
+
+It saves the icon of every cited site that lacks one (from Google's favicon service) and makes the marks that are missing
+(it never touches existing ones). Look at the new `<domain>.png`: if it's a generic globe rather than the site's logo, put
+the site's own 64×64 icon there instead and run `npm run icons` again for its mark. Commit both files with the song.
 
 ## Before you push
 
 ```
 npm ci                  # once
-npm run content:check   # must end with "N entries OK"
+npm run content:check   # must end with "N entries OK", with no "no icon" warning
 npm run build           # optional: builds the whole site (about 30 s)
 ```
 
 The check lists each problem as `<file>: <message>`. Vercel runs the same check on every push and won't publish a bad
 entry (the live site keeps its last good version), but catch problems here.
+
+A song with Chinese in it needs nothing extra: every build makes the site's Chinese font (Noto Serif SC) from the
+characters in `content/`, fetching it from Google Fonts (`scripts/sync-cjk-font.mts`; the build log says "made the
+Chinese typeface: … for N characters"). So `npm run build` needs a network connection.
 
 ## Pushing
 

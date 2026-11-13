@@ -41,7 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 
-# copied from content/ at build time
+# made from content/ at build time
 /public/covers/
 /public/posters/
 /public/icons/
+/public/fonts/

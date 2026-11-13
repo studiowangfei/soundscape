@@ -12,9 +12,14 @@ const nextConfig: NextConfig = {
   // Covers, posters and icons (copied into public/ at build time) are cached by browsers for a day, instead of being
   // re-checked on every visit (Next's default for public/ is max-age=0). The cost: a replaced image can show the old
   // one to a returning visitor for up to a day. Not while developing: a cover replaced here shows on the next reload.
+  // The Chinese typeface's files (public/fonts, made at build time: src/content/cjk-font.ts) are named after their
+  // contents, so a browser keeps them for good: changed characters make new names.
   async headers() {
     if (process.env.NODE_ENV === "development") return [];
-    return ["covers", "posters", "icons"].map((dir) => ({ source: `/${dir}/:file*`, headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] }));
+    return [
+      ...["covers", "posters", "icons"].map((dir) => ({ source: `/${dir}/:file*`, headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] })),
+      { source: "/fonts/:dir/:file([0-9a-f]{12}\\.woff2)", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    ];
   },
   turbopack: {
     rules: {

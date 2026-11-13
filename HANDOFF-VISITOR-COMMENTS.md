@@ -104,8 +104,9 @@ it out, so it never blocks a deploy, but tell the owner if you see one.
 
 ## 6. What the site does to keep spam out (so you can explain it)
 
-- Text 1–600 characters, name up to 40; links (`http…`, `www.`) refused; an email address as the name refused ("Just
-  a name, please: no email addresses."); a short list of slurs refused.
+- Text 1–600 characters, name up to 40. Links are allowed in the text (clickable on the opened card, opening in a new
+  tab) but not in the name ("Just a name, please: no links."); an email address as the name refused ("Just a name,
+  please: no email addresses."); a short list of slurs refused.
 - A hidden field and a 3-second minimum catch simple bots (they get a fake "Thanks" and no pull request).
 - At most 5 comments an hour per visitor and 30 an hour overall per server instance; new comments pause while 50 are
   waiting for approval ("Lots of comments right now. Try again later.").

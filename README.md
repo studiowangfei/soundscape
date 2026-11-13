@@ -36,6 +36,6 @@ format and rules: `content/README.md`; the full schema: `src/content/schema.ts`.
 npm install
 npm run dev            # http://localhost:3000
 npm run content:check  # check the songs
-npm run build          # the site, every page prerendered
+npm run build          # the site, every page prerendered (needs network: it fetches the Chinese font)
 npm start              # serve the build at http://localhost:3200
 ```

@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts",
+    "predev": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts --soft",
     "dev": "next dev",
-    "prebuild": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts",
+    "prebuild": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts",
     "build": "next build",
     "start": "next start -p 3200",
     "lint": "eslint",
     "content:check": "tsx scripts/check-content.mts",
-    "cover": "tsx scripts/cover.mts"
+    "cover": "tsx scripts/cover.mts",
+    "icons": "tsx scripts/fetch-icons.mts && tsx scripts/mono-icons.mts"
   },
   "dependencies": {
     "motion": "^14.6.0",
