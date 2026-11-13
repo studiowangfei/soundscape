@@ -12,6 +12,7 @@ export type Verdict =
 
 /** The fastest a person writes and sends a comment, from the moment the form opened. */
 const MIN_ELAPSED_MS = 3000;
+// Links are welcome in the text (clickable on the open card) but not in the name, which signs it.
 const LINK = /https?:\/\/|www\./i;
 // Names are published (on the card and in the public repo), so an email address is kept out of them.
 const EMAIL = /[^\s@()<>]+@[^\s@()<>]+\.[a-z]{2,}/i;
@@ -30,7 +31,7 @@ export function checkSubmission(body: unknown): Verdict {
   if (!text) return invalid("Write something first.");
   if (codePoints(text) > 600) return invalid("That's a bit long: 600 characters at most.");
   if (codePoints(name) > 40) return invalid("Names are 40 characters at most.");
-  if (LINK.test(text) || LINK.test(name)) return invalid("Links aren't allowed.");
+  if (LINK.test(name)) return invalid("Just a name, please: no links.");
   if (EMAIL.test(name)) return invalid("Just a name, please: no email addresses.");
   if (hasBlockedWord(text) || hasBlockedWord(name)) return invalid("This comment can't be posted.");
   return { kind: "ok", song: b.song, text, name: name || null };
