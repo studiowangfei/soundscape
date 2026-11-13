@@ -156,7 +156,8 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
           params={tune.params[variant]}
           onParam={(key, v) => tune.setParam(variant, key, v)}
           onReset={() => tune.reset(variant)}
-          extra={[typeface.section, glass.section, mobileCard.section]}
+          lead={[typeface.section]}
+          extra={[glass.section, mobileCard.section]}
         />
       )}
     </main>
