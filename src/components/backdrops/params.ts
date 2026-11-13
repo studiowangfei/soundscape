@@ -20,15 +20,15 @@ const bleed = (value: number): Param => ({ key: "bleed", label: "Edge bleed", mi
 /** Marks settings that only matter while another one is on, e.g. the Fog style's text settings. */
 const shownWhen = (key: string) => (s: Param): Param => ({ ...s, when: key });
 
-/** Typefaces for the Fog style's finger-written title. Families fall back across macOS/Windows/web; `var(--…)` names
- * are the app's own next/font families, resolved at draw time. */
+/** Typefaces for the Fog style's finger-written title. Families fall back across macOS/Windows/web; `var(--font-serif)`
+ * is the app's own serif, resolved at draw time. */
 export const FOG_FONTS = [
   { label: "Handwriting", family: '"Bradley Hand", "Segoe Print", "Noteworthy", cursive', weight: 700 },
   { label: "Marker", family: '"Marker Felt", "Permanent Marker", "Segoe Print", fantasy', weight: 400 },
   { label: "Script", family: '"Snell Roundhand", "Brush Script MT", "Segoe Script", cursive', weight: 700 },
   { label: "Comic Sans", family: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", cursive', weight: 700 },
   { label: "Serif", family: "var(--font-serif)", weight: 500 }, // the app's serif, as chosen in Tune → Text
-  { label: "Sans serif", family: 'var(--font-geist-sans), "Helvetica Neue", Arial, sans-serif', weight: 500 },
+  { label: "Sans serif", family: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif', weight: 500 }, // the app's sans (SF)
   { label: "Typewriter", family: '"American Typewriter", "Courier New", monospace', weight: 400 },
   { label: "Chalkboard", family: '"Chalkboard SE", "Chalkboard", "Comic Sans MS", cursive', weight: 400 },
 ];

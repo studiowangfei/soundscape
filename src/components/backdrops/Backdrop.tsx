@@ -121,17 +121,19 @@ type SwitcherProps = {
   params: Params;
   onParam: (key: string, value: number) => void;
   onReset: () => void;
-  /** More Tune groups after the style's own (e.g. the app's typeface). */
+  /** Tune groups before the style's own settings, right under the style picker (e.g. the app's typefaces). */
+  lead?: TuneSection[];
+  /** More Tune groups after the style's own (e.g. the glass). */
   extra?: TuneSection[];
   /** Where the Tune button sits (fixed-position classes). */
   className?: string;
 };
 
 /** The Tune button and its panel: the background style picker, then sliders for the selected style's settings. */
-export function BackdropSwitcher({ value, onChange, params, onParam, onReset, extra = [], className }: SwitcherProps) {
+export function BackdropSwitcher({ value, onChange, params, onParam, onReset, lead = [], extra = [], className }: SwitcherProps) {
   const current = VARIANTS.find((x) => x.key === value)!;
   return (
-    <TunePanel sections={[{ title: current.label, specs: PARAMS[value], values: params, onParam }, ...extra]} onReset={onReset} className={className}>
+    <TunePanel sections={[...lead, { title: current.label, specs: PARAMS[value], values: params, onParam, onReset }, ...extra]} className={className}>
       <p className="mb-3 font-medium text-white">Background</p>
       <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Background style">
         {VARIANTS.map((x, i) => (
@@ -152,7 +154,7 @@ export function BackdropSwitcher({ value, onChange, params, onParam, onReset, ex
   );
 }
 
-/** A headed group in the Tune panel. The first group's Reset is the panel's; a later group shows one if it has its own. */
+/** A headed group in the Tune panel. A group with its own `onReset` shows a Reset; the first group otherwise shows the panel's (if any). */
 export type TuneSection = { title: string; specs: Param[]; values: Params; onParam: (key: string, value: number) => void; onReset?: () => void };
 
 /**
@@ -161,7 +163,7 @@ export type TuneSection = { title: string; specs: Param[]; values: Params; onPar
  * settings (a slider, dropdown, radio buttons or switch each; see params.ts), a setting hidden while the switch it
  * depends on is off.
  */
-export function TunePanel({ sections, onReset, children, className = "top-[18px] left-[60px]" }: { sections: TuneSection[]; onReset: () => void; children?: React.ReactNode; className?: string }) {
+export function TunePanel({ sections, onReset, children, className = "top-[18px] left-[60px]" }: { sections: TuneSection[]; onReset?: () => void; children?: React.ReactNode; className?: string }) {
   const [tuning, setTuning] = useState(false);
   return (
     <div data-backdrop-ui className={`fixed z-30 flex flex-col items-start gap-2 text-[12px] ${className}`}>
@@ -195,8 +197,8 @@ export function TunePanel({ sections, onReset, children, className = "top-[18px]
               <section key={section.title} className={i > 0 ? "mt-5 border-t border-white/10 pt-4" : ""}>
                 <div className="mb-3 flex items-baseline justify-between">
                   <p className="font-medium text-white">{section.title}</p>
-                  {(i === 0 || section.onReset) && (
-                    <button onClick={i === 0 ? onReset : section.onReset} className="text-white/45 hover:text-white">
+                  {(section.onReset ?? (i === 0 ? onReset : undefined)) && (
+                    <button onClick={section.onReset ?? onReset} className="text-white/45 hover:text-white">
                       Reset
                     </button>
                   )}

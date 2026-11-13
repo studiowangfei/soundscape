@@ -10,7 +10,7 @@ import { landingFogDefaults } from "../landing/settings";
 import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
 import { VARIANTS } from "./Backdrop";
 import { defaults, PARAMS, type Params } from "./params";
-import { EMPTY_STAGE, edgeStops, isShown, kindOf, needsMove, READY_TIMEOUT_MS, sceneOrigin, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
+import { EMPTY_STAGE, edgeStops, enterHow, isShown, kindOf, needsMove, paneClock, READY_TIMEOUT_MS, sceneOrigin, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
 import { Fog, padSquare, type FogHandle } from "./variants";
 
 /**
@@ -136,7 +136,7 @@ type Move = {
 };
 
 /** The stage's own side of its actions (for the Mover and the provider). */
-type Internal = { moveDone: (id: number) => void; clearMove: () => void; started: (id: number) => void; mistOpen: (id: number) => void };
+type Internal = { moveDone: (id: number) => void; clearMove: () => void; started: (id: number) => void };
 
 /** A CSS transform's scale (the scene's push-in): matrix(a, …) → a; none → 1. */
 const scaleOf = (transform: string) => (transform.startsWith("matrix(") ? parseFloat(transform.slice(7)) || 1 : 1);
@@ -299,10 +299,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
         const m = moveRef.current;
         return m && !m.done ? Math.max(0, m.startedAt + TIMING.move * TIMING.entranceAt - performance.now()) : 0;
       },
-      // The move's last part: the incoming pane, once drawn, may mist over, to be fully up as the cover lands.
-      mistOpen: (id: number) => {
-        if (moveRef.current?.id === id) dispatch({ type: "mistOpen" });
-      },
+      // The cover has landed: the incoming pane, once drawn, mists over it (enterHow).
       moveDone: (id: number) => {
         const m = moveRef.current;
         if (!m || m.id !== id) return;
@@ -312,15 +309,12 @@ export function StageProvider({ children }: { children: ReactNode }) {
       clearMove: () => setBoth(null),
     } as StageActions & Internal;
   }, []);
-  const { moveDone, clearMove, started, mistOpen } = actions as StageActions & Internal;
-  // How an incoming pane fades in: during a move, over what's left of it (slowly at first, so it's faint while the cover
-  // is still on its way), or if that's too short (it was drawn late), over TIMING.mistMin; otherwise a plain handover.
-  const enter = useCallback(() => {
-    const m = moveRef.current;
-    if (!m) return { ms: TIMING.handover, easing: "ease" };
-    const left = m.startedAt + TIMING.move - performance.now();
-    return left >= TIMING.mistMin ? { ms: left, easing: "ease-in" } : { ms: TIMING.mistMin, easing: "ease" };
-  }, []);
+  const { moveDone, clearMove, started } = actions as StageActions & Internal;
+  // How an incoming pane fades in: over the landed cover, at rest, or a plain handover (enterHow).
+  const enter = useCallback(() => enterHow(!!moveRef.current), []);
+  // When a pane's push-in and thickening start: the move's landing for the panes it brings in (paneClock), asked as the
+  // fog starts (the move's start is known only once the moving cover is moving: started).
+  const clockFrom = useCallback((id: number) => paneClock(moveRef.current, id, performance.now()), []);
 
   const top = state.panes[state.panes.length - 1];
   const mode = move?.target ?? top?.scene.mode ?? null;
@@ -337,7 +331,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
           Bottom to top: the moving cover, the panes, the calm shade for the page's content, what pages draw on it
           (OnBackdrop). */}
       <div ref={boxRef} aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh bg-[#0d0b0a]">
-        {move && <Mover key={move.id} move={move} elRef={moverRef} onStart={started} onMistOpen={mistOpen} onDone={moveDone} />}
+        {move && <Mover key={move.id} move={move} elRef={moverRef} onStart={started} onDone={moveDone} />}
         {state.panes.map((pane) => (
           <PaneLayer
             key={pane.id}
@@ -346,6 +340,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
             handles={handles}
             startThick={move && pane.id >= move.firstPane ? startThickness(pane.scene.mode, move.thickness) : 0}
             enter={enter}
+            clockFrom={clockFrom}
             leaveMs={move ? TIMING.dropsOut : TIMING.handover}
           />
         ))}
@@ -365,7 +360,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
  * on the way. A resize mid-move ends it
  * at once (the incoming fog, laid out for the new size, mists over it).
  */
-function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef: React.RefObject<HTMLDivElement | null>; onStart: (id: number) => void; onMistOpen: (id: number) => void; onDone: (id: number) => void }) {
+function Mover({ move, elRef, onStart, onDone }: { move: Move; elRef: React.RefObject<HTMLDivElement | null>; onStart: (id: number) => void; onDone: (id: number) => void }) {
   const { from, to } = move;
   const masked = useRef<HTMLDivElement>(null);
   const picture = useRef<HTMLCanvasElement>(null);
@@ -396,7 +391,6 @@ function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef
     // Up first, still, where the cover is now (see startMove); moving from the next frame but one.
     Object.assign(el.style, { transform: start, filter: `brightness(${dim[0]})` });
     let anims: (Animation | undefined)[] = [];
-    let mist = 0;
     const onResize = () => anims.forEach((x) => x?.finish());
     let raf = requestAnimationFrame(() => {
       raf = requestAnimationFrame(() => {
@@ -408,14 +402,12 @@ function Mover({ move, elRef, onStart, onMistOpen, onDone }: { move: Move; elRef
           glow.current?.animate([{ opacity: Math.min(1, move.fromGlow * lift) }, { opacity: Math.min(1, move.toGlow * lift) }], opts),
         ];
         a.finished.then(() => onDone(move.id), () => {});
-        mist = window.setTimeout(() => onMistOpen(move.id), Math.max(0, TIMING.move - TIMING.mistOver));
         window.addEventListener("resize", onResize);
         onStart(move.id);
       });
     });
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(mist);
       window.removeEventListener("resize", onResize);
       anims.forEach((x) => x?.cancel());
     };
@@ -473,10 +465,12 @@ type PaneProps = {
   startThick: number;
   /** How it fades in, asked as it starts to (see StageProvider). */
   enter: () => { ms: number; easing: string };
+  /** When its push-in and thickening start, for a pane id (performance.now() ms; see StageProvider). */
+  clockFrom: (id: number) => number;
   leaveMs: number;
 };
 
-function PaneLayer({ pane, dispatch, handles, startThick, enter, leaveMs }: PaneProps) {
+function PaneLayer({ pane, dispatch, handles, startThick, enter, clockFrom, leaveMs }: PaneProps) {
   const { id, scene, phase } = pane;
   const handleRef = useRef<FogHandle | null>(null);
   useEffect(() => {
@@ -538,6 +532,7 @@ function PaneLayer({ pane, dispatch, handles, startThick, enter, leaveMs }: Pane
             onReady={() => dispatch({ type: "ready", id })}
             handleRef={handleRef}
             startThick={startThick}
+            clockFrom={() => clockFrom(id)}
           />
         ) : (
           // A Tune-only style loads on first use (Backdrop.tsx tuneOnly).

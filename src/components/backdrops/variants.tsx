@@ -59,7 +59,7 @@ function unsmooth(x: number) {
   return (lo + hi) / 2;
 }
 
-export function Fog({ art, p, song, layout = "beside", hold = false, seed, onReady, handleRef, startThick = 0 }: V & { layout?: Layout; hold?: boolean; seed?: number; onReady?: () => void; handleRef?: { current: FogHandle | null }; startThick?: number }) {
+export function Fog({ art, p, song, layout = "beside", hold = false, seed, onReady, handleRef, startThick = 0, clockFrom }: V & { layout?: Layout; hold?: boolean; seed?: number; onReady?: () => void; handleRef?: { current: FogHandle | null }; startThick?: number; clockFrom?: () => number }) {
   // Told once, when the first build is on screen (the backdrop stage waits for it before showing this pane).
   const readyRef = useRef(onReady);
   useEffect(() => {
@@ -1007,9 +1007,13 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   }, [composeSlow, p.refog]);
 
   // The pane starts out freshly fogged when first shown. A song changing in place (the landing page) keeps the same
-  // glass, wipes, trails, drops and thickening and all; only the cover behind it changes (see build).
+  // glass, wipes, trails, drops and thickening and all; only the cover behind it changes (see build). Its push-in and
+  // thickening count from now, or from when the stage says (`clockFrom`: built under a moving cover, from its landing,
+  // so the cover lands exactly where this pane has it).
   useEffect(() => {
-    shownAt.current = performance.now();
+    shownAt.current = clockFrom?.() ?? performance.now();
+    // Once, as the pane first shows.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fogging up: eases the thick pane in over `thicken` seconds from when the pane was first shown (0 = never),

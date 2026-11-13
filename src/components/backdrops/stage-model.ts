@@ -18,8 +18,8 @@ export type Scene = { mode: Mode; key: string; song: Song; variant: VariantKey; 
 /** hidden: building unseen; entering: fading in; shown: on screen; leaving: fading out, then gone. */
 export type Phase = "hidden" | "entering" | "shown" | "leaving";
 export type Pane = { id: number; scene: Scene; ready: boolean; phase: Phase };
-/** Panes bottom to top; `moving`: the cover is moving between frames and a new pane waits (until it mists over: the
- * move's last TIMING.mistOver ms, so the incoming fog is fully up as the cover lands). */
+/** Panes bottom to top; `moving`: the cover is moving between frames and a new pane waits (until it has landed, to mist
+ * over it at rest: enterHow). */
 export type StageState = { panes: Pane[]; moving: boolean; nextId: number };
 export type StageAction =
   | { type: "show"; scene: Scene }
@@ -27,7 +27,6 @@ export type StageAction =
   | { type: "entered"; id: number }
   | { type: "gone"; id: number }
   | { type: "moveStart" }
-  | { type: "mistOpen" }
   | { type: "moveDone" };
 
 export const EMPTY_STAGE: StageState = { panes: [], moving: false, nextId: 1 };
@@ -42,11 +41,8 @@ export const TIMING = {
   dropsOut: 200,
   move: 500,
   moveEase: "cubic-bezier(0.65, 0, 0.35, 1)",
-  /** The incoming fog over the moving (misted) cover: over the move's last this many ms, ending as it lands (fading in
-   * slowly at first, so it's faint while the cover is still on its way)… */
+  /** The incoming fog over the moving (misted) cover, once it has landed (or once drawn, if later): over this long. */
   mistOver: 300,
-  /** …or, if it's drawn later than that, over at least this long once it has. */
-  mistMin: 180,
   /** One pane over another in place (song to song, a backdrop style switched), and a fresh page's fade-in. */
   handover: 400,
   /** The incoming page's own text and controls fade up… */
@@ -107,7 +103,6 @@ function step(s: StageState, a: StageAction): StageState {
       return { ...s, panes: s.panes.filter((p) => p.id !== a.id) };
     case "moveStart":
       return { ...s, moving: true, panes: s.panes.map((p) => (visible(p) ? { ...p, phase: "leaving" } : p)) };
-    case "mistOpen":
     case "moveDone":
       return { ...s, moving: false };
   }
@@ -118,6 +113,25 @@ function step(s: StageState, a: StageAction): StageState {
  * thickens over its own time from when the song opens; the landing page's carries on from where the song's had got.
  */
 export const startThickness = (mode: Mode, carried: number) => (mode === "song" ? 0 : carried);
+
+/**
+ * How an incoming pane fades in: with a move, over the cover once it has landed and is at rest, for TIMING.mistOver
+ * however late the pane was drawn (fading in while the cover was still on its way, the incoming page, still and at the
+ * cover's end, and clearer than the mist the cover carries, caught the eye first: the cover seemed to jump the last
+ * stretch); otherwise a handover.
+ */
+export function enterHow(moving: boolean): { ms: number; easing: string } {
+  return moving ? { ms: TIMING.mistOver, easing: "ease-in-out" } : { ms: TIMING.handover, easing: "ease" };
+}
+
+/**
+ * When a pane's clocks start (its push-in and its fog thickening; performance.now() ms). One a move brings in (ids from
+ * its `firstPane` on): as the cover lands (it lands on the push-in's start, so the two meet exactly), or now if that's
+ * past (it waits there at that start); any other pane: now.
+ */
+export function paneClock(move: { firstPane: number; startedAt: number } | null, id: number, now: number): number {
+  return move && id >= move.firstPane ? Math.max(now, move.startedAt + TIMING.move) : now;
+}
 
 /** The scene `key` is fully on screen: its pane has finished fading in (and isn't fading out). */
 export const isShown = (s: StageState, key: string) => s.panes.some((p) => p.scene.key === key && p.phase === "shown");
