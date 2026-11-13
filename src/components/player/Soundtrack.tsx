@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { startsOnOpen } from "./music-choice";
 import { announcePlay, onOtherPlay } from "./youtube";
 
 const ID = "soundtrack";
@@ -12,12 +13,18 @@ const FADE_IN = 700;
 export type Soundtrack = {
   /** The song's preview being followed (null: this song has none, so it's quiet). */
   src: string | null;
-  /** Switched on (by the landing page's 🔇/🔊 or a song page's play button). */
+  /** Switched on (by opening a song from the landing page, the landing page's 🔇/🔊 or a song page's play button). */
   on: boolean;
   time: number;
   duration: number;
   /** The page shows this song now: the soundtrack moves to its preview, from 0:00 (fading over, if it's playing). */
   follow: (src: string | null) => void;
+  /**
+   * The landing page opens this song (call it in the click): it's followed, and its music starts right there, unless
+   * it's on already (music-choice.ts).
+   */
+  open: (src: string | null) => void;
+  /** The visitor's own switch (the play / pause button, the landing page's 🔇 / 🔊). */
   toggle: () => void;
   seek: (s: number) => void;
 };
@@ -33,8 +40,10 @@ export function useSoundtrack(): Soundtrack {
 /**
  * The site's one soundtrack: the 30-second preview of the song you're looking at, on a loop. It lives in the root
  * layout, above the pages, so it plays on without a break from the landing page into a song page and from song to song:
- * each page says which song it shows (`follow`), and the track changes with a fade. Off until switched on (browsers only
- * let sound start from a click); a card video starting switches it off.
+ * each page says which song it shows (`follow`), and the track changes with a fade. Off until a click switches it on
+ * (browsers only let sound start from one): opening a song from the landing page does, and so do the play button and
+ * the landing page's 🔇. It stays on until the visitor switches it off (pause, 🔊) or a card video starts, and the next
+ * song opened from the landing page switches it back on.
  */
 export function SoundtrackProvider({ children }: { children: ReactNode }) {
   const audio = useRef<HTMLAudioElement>(null);
@@ -92,28 +101,38 @@ export function SoundtrackProvider({ children }: { children: ReactNode }) {
     };
   }, [on, src, play]);
 
+  const follow = useCallback((s: string | null) => {
+    if (followed.current === s) return; // the same song, e.g. into its page from the landing wheel: it plays on
+    followed.current = s;
+    fresh.current = true;
+    setTime(0);
+    setSrc(s);
+  }, []);
+  // Switches on with `s` playing, started right in the click (some browsers allow sound only there); the effect above
+  // then fades it in.
+  const switchOn = (s: string | null) => {
+    setOn(true);
+    const a = audio.current;
+    if (a && s) {
+      load(a, s);
+      a.volume = 0;
+      void play(a);
+    }
+  };
+
   const value: Soundtrack = {
     src,
     on,
     time,
     duration,
-    follow: useCallback((s: string | null) => {
-      if (followed.current === s) return; // the same song, e.g. into its page from the landing wheel: it plays on
-      followed.current = s;
-      fresh.current = true;
-      setTime(0);
-      setSrc(s);
-    }, []),
+    follow,
+    open: (s: string | null) => {
+      follow(s);
+      if (startsOnOpen({ on, src: s })) switchOn(s);
+    },
     toggle: () => {
-      const next = !on;
-      setOn(next);
-      // Start right in the click (some browsers allow sound only there); the effect above then fades it in.
-      const a = audio.current;
-      if (next && a && src) {
-        load(a, src);
-        a.volume = 0;
-        void play(a);
-      }
+      if (on) setOn(false);
+      else switchOn(src);
     },
     seek: (s: number) => {
       const a = audio.current;
