@@ -47,23 +47,30 @@
   }
 }
 
+/* Chinese characters: Noto Serif SC (思源宋体), first in every font stack. Its faces (inlined by app/layout.tsx) cover the
+   content's Chinese characters only (content/cjk-font.ts): Latin text keeps its serif or sans, and until they load (or
+   for a character they lack) Chinese falls through to the device's own font. */
+:root {
+  --font-cjk: "Soundscape Noto Serif SC";
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   /* The design's sans: Apple's system face (SF), else the platform's own UI font. */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-sans: var(--font-cjk), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
 }
 
 /* Not inline: the serif typeface is switched while the page runs (Tune → Text sets --font-serif on <html>; see
    components/typeface.ts), so `font-serif` must read the variable rather than have its value baked in. */
 @theme {
-  --font-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-serif: var(--font-cjk), var(--font-libre-baskerville), Georgia, serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  font-family: var(--font-cjk), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
 }
 
 /* On a song page a finger drag wipes the fog: no pull to refresh or rubber-band bounce taking it instead. */

@@ -1,16 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Libre_Baskerville } from "next/font/google";
+import { Libre_Baskerville } from "next/font/google";
 import { glassBoot } from "@/components/glass/settings";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { typefaceBoot } from "@/components/typeface";
+import { CJK_FONT_CSS, CJK_FONT_DIR } from "@/content/cjk-font";
 import { SoundtrackProvider } from "@/components/player/Soundtrack";
 import { StageProvider } from "@/components/backdrops/Stage";
 import "./globals.css";
 import { legacyStorageBoot } from "@/components/legacy-storage";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 // The design's serif (song titles, card headlines, quotes), and the default in Tune → Text.
 const libreBaskerville = Libre_Baskerville({
@@ -34,20 +32,26 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+/** The Chinese typeface's @font-face rules, made with its files at build time (scripts/sync-cjk-font.mts); none until then. */
+const cjkFontCss = () => fs.readFile(path.join(process.cwd(), "public", CJK_FONT_DIR, CJK_FONT_CSS), "utf8").catch(() => "");
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // While developing only: the other serifs Tune → Text offers, and the saved choice applied before the first paint (the
   // condition is written out so the deployed build leaves both out; it always shows Libre Baskerville).
   const developing = process.env.NODE_ENV === "development";
   const tuneFonts = developing ? (await import("./tune-fonts")).tuneFontVariables : "";
+  const cjkFonts = await cjkFontCss();
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${libreBaskerville.variable} ${tuneFonts} h-full antialiased`}
+      className={`${libreBaskerville.variable} ${tuneFonts} h-full antialiased`}
       suppressHydrationWarning // the <head> script below may set --font-serif on <html> before React hydrates
     >
       <head>
-        {/* While developing, the serif typeface chosen in Tune, applied before the first paint (components/typeface.ts). */}
+        {/* While developing, the serif chosen in Tune, applied before the first paint (components/typeface.ts). */}
         <script dangerouslySetInnerHTML={{ __html: legacyStorageBoot() + (developing ? typefaceBoot() : "") + glassBoot() }} />
+        {/* The Chinese typeface, served from this site (content/cjk-font.ts): inline, so no request holds up the page. */}
+        {cjkFonts && <style dangerouslySetInnerHTML={{ __html: cjkFonts }} />}
       </head>
       <body className="min-h-full flex flex-col">
         {/* Above the pages, so the music plays on from page to page (components/player/Soundtrack.tsx), and the backdrop
