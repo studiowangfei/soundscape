@@ -8,12 +8,13 @@ export type WheelLayout = ReturnType<typeof useWheelLayout>;
 
 /**
  * The landing wheel's measurements for this window: the window itself, the titles' widths at 100 px in the serif
- * typeface (measured again on resizing, once the face has loaded, and when it's switched: `fontKey`), and from them the
- * wheel's geometry (wheelGeometry). Its centre text size sizes every icon on the site (iconBox), so the song pages use
- * this too. `ready` once measured in the loaded face.
+ * typeface (measured again on resizing, once the faces have loaded, and when the serif is switched: `fontKey`), and from
+ * them the wheel's geometry (wheelGeometry). Its centre text size sizes every icon on the site (iconBox), so the song
+ * pages use this too. `ready` once measured in the loaded face.
  */
 export function useWheelLayout(titles: string[], fontKey: string | undefined, settings: WheelSettings, look: SearchBarLook) {
   const [view, setView] = useState({ w: 0, h: 0, font: "", loads: 0 });
+  const sample = titles.join(" ") || " ";
   useLayoutEffect(() => {
     const probe = document.createElement("span");
     probe.className = "font-serif";
@@ -22,14 +23,15 @@ export function useWheelLayout(titles: string[], fontKey: string | undefined, se
     probe.remove();
     const measure = () => setView((v) => ({ ...v, w: window.innerWidth, h: window.innerHeight, font }));
     measure();
-    // Measure again once the typeface has loaded (until then the fallback's widths would be measured).
+    // Measure again once the typefaces have loaded (until then the fallback's widths would be measured): the titles'
+    // own text, so the Chinese typeface (limited to Chinese characters) loads too.
     void document.fonts
-      .load(`400 100px ${font}`)
+      .load(`400 100px ${font}`, sample)
       .catch(() => [])
       .then(() => setView((v) => ({ ...v, loads: v.loads + 1 })));
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [fontKey]);
+  }, [fontKey, sample]);
   const widthsAt100 = useMemo(() => {
     if (!view.font) return titles.map(() => 1000);
     const g = document.createElement("canvas").getContext("2d")!;

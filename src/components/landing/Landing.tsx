@@ -14,6 +14,7 @@ import { FOG_PLAYED } from "../gesture";
 import { askMotion } from "./shake";
 import { ShakeDrops } from "./ShakeDrops";
 import { BackgroundMusic } from "./BackgroundMusic";
+import { useSoundtrack } from "../player/Soundtrack";
 import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
 import { useTypeface } from "../useTypeface";
@@ -41,7 +42,7 @@ export type LandingSong = {
  * The landing page: a wheel of song titles in the middle of the screen, over the resting song's album art filling the
  * window under the Fog effect (no writing on the glass), a bar round the centred song (a funnel opening the sort menu,
  * an arrow to open the song), the app's name, a 💧 to let a drop fall down the glass, a 🎲 to spin to a random song, and
- * music (the background song's preview) to switch on (placed as the design has them on desktops and on phones: see
+ * music (the background song's preview) to switch on or off; opening a song switches its music on (placed as the design has them on desktops and on phones: see
  * Wordmark and icon.tsx LANDING_*); while developing, a Tune panel too.
  */
 export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
@@ -159,11 +160,14 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
     gone.current = false;
     return () => void (gone.current = true); // gone already (Back): don't navigate after all
   }, []);
+  const soundtrack = useSoundtrack();
   const open = (i: number, newTab: boolean) => {
     const s = songs[i];
     const url = `/songs/${s.slug}/`;
     if (newTab) return void window.open(url, "_blank", "noopener");
     if (leaving) return;
+    // Its music starts now, in the click (the only time browsers let sound start).
+    soundtrack.open(s.preview);
     // The page changes once the wheel has faded and the cover is moving (its rendering then can't hold the move up).
     const target = { title: s.title, artist: s.artist, cover: `/covers/${s.cover.file}`, coverKind: s.cover.kind };
     // The song page's fog starts building now, under the moving cover, so it's ready to mist over as the cover lands.

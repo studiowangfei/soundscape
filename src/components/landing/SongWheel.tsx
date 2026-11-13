@@ -10,6 +10,7 @@ import { wheelOwnsKeys, type SearchBarLook } from "./settings";
 import type { SortKey } from "./sort";
 import type { WheelLayout } from "./useWheelLayout";
 import { focusGap, rowFit, rowLook, travelling, wheelAction, wrap, type WheelSettings } from "./wheel";
+import { CjkMedium } from "../CjkMedium";
 
 type Props = {
   titles: string[];
@@ -296,7 +297,10 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
         className="pointer-events-auto absolute top-1/2 left-1/2 cursor-pointer touch-none whitespace-nowrap leading-none text-white select-none"
         style={{
           fontSize: fit.size,
-          ...(fit.clip ? { maxWidth: geo.maxText, overflow: "hidden", textOverflow: "ellipsis" } : {}),
+          // Cut short with an ellipsis, which needs overflow hidden: room above and below too, or the clip would also take
+          // what reaches past the 1-line-high box (descenders go 0.11 em below it, Chinese characters too; accents above).
+          // Both sides alike, so the text stays where it is.
+          ...(fit.clip ? { maxWidth: geo.maxText, overflow: "hidden", textOverflow: "ellipsis", paddingBlock: "0.25em" } : {}),
           opacity: look.opacity,
           // The focused song gets focusGap × text more room above and below; the rest keep their spacing. The push is
           // made in the row's own depth on the drum, so it's scaled up to undo the perspective (3 × radius).
@@ -304,7 +308,7 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
           backfaceVisibility: "hidden",
         }}
       >
-        {titles[song]}
+        <CjkMedium text={titles[song]} />
         {ticks && <SwitchTick />}
       </div>,
     );
