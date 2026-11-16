@@ -112,10 +112,12 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
       </Link>
       {/* The title and artist at the top left of the window on every screen (on phones as the Figma's mobile frame has
           them: 20px in from the top and the left, stopping 12px short of the close button's circle). Side margins keep
-          clear of a notch (px-page), and on phones the top clears the status bar. */}
+          clear of a notch (px-page), and on phones the top clears the status bar. The title's box starts at its capitals
+          (text-box trim), so the gap above the letters looks as wide as the one to their left (the line height had put
+          them 6-8px lower). */}
       <header className={`${fade} ${out ? "opacity-0" : ""} px-page pt-16 phone:pt-[max(1.25rem,env(safe-area-inset-top))] phone:pr-[calc(max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))_+_var(--corner-box,40px)*29/32_+_12px)]`}>
         <Entrance>
-          <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
+          <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
         </Entrance>
         {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
         <Entrance as="p" className="mt-1 text-[24px] text-white">
