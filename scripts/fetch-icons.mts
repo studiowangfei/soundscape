@@ -9,6 +9,12 @@ import { CONTENT_DIR } from "../src/content/load";
 const { sourceSite } = await import("../src/components/cards/sources");
 
 const force = process.argv.includes("--force");
+// Icons saved by hand, which even --force leaves alone: Google's favicon for these is wrong.
+const OWN: Record<string, string> = {
+  // Google's crops the play button's sides flat. This is YouTube's own profile picture (facebook.com/youtube, November
+  // 2024: the button, #FF0033, two thirds across a white square), at 128 px.
+  "youtube.com": "YouTube's profile picture",
+};
 const songsDir = path.join(CONTENT_DIR, "songs");
 const iconsDir = path.join(CONTENT_DIR, "icons");
 await fs.mkdir(iconsDir, { recursive: true });
@@ -19,7 +25,7 @@ for (const f of (await fs.readdir(songsDir)).filter((f) => f.endsWith(".json")))
 }
 for (const domain of [...domains].sort()) {
   const file = path.join(iconsDir, `${domain}.png`);
-  if (!force && (await fs.stat(file).catch(() => null))) continue;
+  if (OWN[domain] || (!force && (await fs.stat(file).catch(() => null)))) continue;
   const res = await fetch(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) {
     console.warn(`none ${domain} (${res.status})`);
