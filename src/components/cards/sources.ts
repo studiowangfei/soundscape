@@ -27,11 +27,11 @@ const NAMES: Record<string, string> = {
 };
 
 /**
- * Icons whose logo doesn't fill its disc: a wide or transparent-edged mark that the round crop would cut (YouTube's
- * play button; Kworb's square of pixel letters, edge to edge), so it's shown whole, inset in the white disc. Solid
- * tiles and round logos fill theirs.
+ * Icons whose logo doesn't fill its disc: a mark drawn edge to edge that the round crop would cut (Kworb's square of
+ * pixel letters), so it's shown whole, inset in the white disc. Solid tiles, round logos and logos already framed in
+ * white (YouTube's: its own profile picture, the play button two thirds across) fill theirs.
  */
-const INSET = new Set(["youtube.com", "kworb.net"]);
+const INSET = new Set(["kworb.net"]);
 
 function hostOf(url: string): string {
   try {

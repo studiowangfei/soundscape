@@ -9,10 +9,10 @@ export const TYPE_LABEL: Record<CardType, string> = {
   lyric: "Lyric",
 };
 
-/** The labels of the cards after the song's own: visitors' comments, and the end card where a visitor leaves one. */
-export const ROW_LABEL = { visitor: "Visitor comment", end: "Your take" } as const;
+/** The label of the cards after the song's own: visitors' comments. (The end card, where a visitor leaves one, has none.) */
+export const ROW_LABEL = { visitor: "Visitor comment" } as const;
 
-/** What the end card asks. */
+/** What the end card asks (its only text: it has no label, on the tile or opened). */
 export const END_PROMPT = "Say something about this song";
 
 export function youtubeId(url: string): string | null {

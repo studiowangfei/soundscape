@@ -24,16 +24,13 @@ export function VisitorTileFace({ comment, short = false }: { comment: VisitorCo
 }
 
 /**
- * The end card's tile: its label where every card has it, and what it asks (in italics, here and opened) centred
- * up and down in the card, as a lyric tile centres its line.
+ * The end card's tile: what it asks (in italics, here and opened) centred up and down in the card, as a lyric tile
+ * centres its line. No label, here or opened.
  */
 export function EndTileFace() {
   return (
-    <>
-      <p className={`absolute top-5 left-5 w-[210px] ${TILE_LABEL}`}>{ROW_LABEL.end}</p>
-      <div className="absolute inset-x-5 top-12 bottom-12 flex items-center">
-        <p className={`${TILE_HEADLINE} italic`}>{END_PROMPT}</p>
-      </div>
-    </>
+    <div className="absolute inset-x-5 top-12 bottom-12 flex items-center">
+      <p className={`${TILE_HEADLINE} italic`}>{END_PROMPT}</p>
+    </div>
   );
 }

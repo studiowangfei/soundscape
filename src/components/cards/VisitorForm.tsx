@@ -2,8 +2,8 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { clearDraft, loadDraft, saveDraft, sendComment, type Draft } from "./form";
-import { END_PROMPT, ROW_LABEL } from "./meta";
-import { DETAIL_BODY, DETAIL_HEADLINE, DETAIL_LABEL } from "./styles";
+import { END_PROMPT } from "./meta";
+import { DETAIL_BODY, DETAIL_HEADLINE } from "./styles";
 
 /** The most a comment may say (characters as people count them), and where the count starts showing. */
 const MAX = 600;
@@ -16,7 +16,7 @@ const FIELD =
 type State = { kind: "idle" } | { kind: "sending" } | { kind: "sent" } | { kind: "error"; message: string };
 
 /**
- * The end card, opened: where a visitor leaves their comment on `song`, and a name or signature if they like (left
+ * The end card, opened (no label, as on its tile: just what it asks): where a visitor leaves their comment on `song`, and a name or signature if they like (left
  * blank, it's anonymous). It goes to the site's owner to approve (a pull request, app/api/visitor-comments) and shows
  * on the page once approved. What they've written is kept until it's sent, so closing the card or swiping away loses
  * nothing.
@@ -50,7 +50,6 @@ export function VisitorForm({ song }: { song: string }) {
 
   return (
     <div className="flex flex-1 flex-col gap-5 px-8 pt-8 pb-8">
-      <p className={DETAIL_LABEL}>{ROW_LABEL.end}</p>
       <h2 className={`${DETAIL_HEADLINE} italic`}>{END_PROMPT}</h2>
       {state.kind === "sent" ? (
         <p role="status" className={DETAIL_BODY}>

@@ -22,10 +22,10 @@ export function rowCards(cards: EntryCard[], visitors: VisitorComment[], song: s
   ];
 }
 
-/** A card's name for screen readers: its label and what it says. */
+/** A card's name for screen readers: its label and what it says (the end card, with no label, just what it asks). */
 export function rowCardLabel(card: RowCard): string {
   if (card.type === "visitor") return `${ROW_LABEL.visitor}: ${card.comment.text} (${card.comment.name ?? "Anonymous"})`;
-  if (card.type === "end") return `${ROW_LABEL.end}: ${END_PROMPT}`;
+  if (card.type === "end") return END_PROMPT;
   const what = card.type === "comment" ? card.snippet : card.type === "lyric" && card.lyric ? card.lyric.excerptOrTimestamp : card.headline;
   return `${TYPE_LABEL[card.type]}: ${what}`;
 }
