@@ -17,12 +17,16 @@ export type Scene = { mode: Mode; key: string; song: Song; variant: VariantKey; 
 
 /** hidden: building unseen; entering: fading in; shown: on screen; leaving: fading out, then gone. */
 export type Phase = "hidden" | "entering" | "shown" | "leaving";
-export type Pane = { id: number; scene: Scene; ready: boolean; phase: Phase };
+/**
+ * `drift`: how far (px) the pane moves as it fades, for a turn to another song (driftPath): positive for the next song
+ * (one coming in rises from below, one going rises away), negative for the previous (both move down), 0 in place.
+ */
+export type Pane = { id: number; scene: Scene; ready: boolean; phase: Phase; drift: number };
 /** Panes bottom to top; `moving`: the cover is moving between frames and a new pane waits (until it has landed, to mist
  * over it at rest: enterHow). */
 export type StageState = { panes: Pane[]; moving: boolean; nextId: number };
 export type StageAction =
-  | { type: "show"; scene: Scene }
+  | { type: "show"; scene: Scene; drift?: number }
   | { type: "ready"; id: number }
   | { type: "entered"; id: number }
   | { type: "gone"; id: number }
@@ -78,11 +82,11 @@ export function sameScene(a: Scene, b: Scene): boolean {
 
 const visible = (p: Pane) => p.phase === "shown" || p.phase === "entering";
 
-/** The top pane takes over once it has drawn and no move is under way; the others fade out. */
+/** The top pane takes over once it has drawn and no move is under way; the others fade out, drifting as it does. */
 function promote(s: StageState): StageState {
   const top = s.panes[s.panes.length - 1];
   if (!top || top.phase !== "hidden" || !top.ready || s.moving) return s;
-  return { ...s, panes: s.panes.map((p) => (p === top ? { ...p, phase: "entering" } : visible(p) ? { ...p, phase: "leaving" } : p)) };
+  return { ...s, panes: s.panes.map((p) => (p === top ? { ...p, phase: "entering" } : visible(p) ? { ...p, phase: "leaving", drift: top.drift } : p)) };
 }
 
 function step(s: StageState, a: StageAction): StageState {
@@ -93,7 +97,7 @@ function step(s: StageState, a: StageAction): StageState {
       if (same) return sameScene(same.scene, a.scene) ? s : set(same.id, (p) => ({ ...p, scene: a.scene }));
       // Newest wins: a pane that never got on screen is dropped for this one.
       const kept = s.panes.filter((p) => p.phase !== "hidden");
-      return { ...s, panes: [...kept, { id: s.nextId, scene: a.scene, ready: false, phase: "hidden" }], nextId: s.nextId + 1 };
+      return { ...s, panes: [...kept, { id: s.nextId, scene: a.scene, ready: false, phase: "hidden", drift: a.drift ?? 0 }], nextId: s.nextId + 1 };
     }
     case "ready":
       return set(a.id, (p) => (p.ready ? p : { ...p, ready: true }));
@@ -102,7 +106,7 @@ function step(s: StageState, a: StageAction): StageState {
     case "gone":
       return { ...s, panes: s.panes.filter((p) => p.id !== a.id) };
     case "moveStart":
-      return { ...s, moving: true, panes: s.panes.map((p) => (visible(p) ? { ...p, phase: "leaving" } : p)) };
+      return { ...s, moving: true, panes: s.panes.map((p) => (visible(p) ? { ...p, phase: "leaving", drift: 0 } : p)) };
     case "moveDone":
       return { ...s, moving: false };
   }
@@ -122,6 +126,28 @@ export const startThickness = (mode: Mode, carried: number) => (mode === "song" 
  */
 export function enterHow(moving: boolean): { ms: number; easing: string } {
   return moving ? { ms: TIMING.mistOver, easing: "ease-in-out" } : { ms: TIMING.handover, easing: "ease" };
+}
+
+/**
+ * Where a pane's drift takes it over its fade (px down the window; negative is up): one coming in from `drift` below
+ * its place to its place, one going from its place to `drift` above it. For the previous song `drift` is negative, so
+ * both move down.
+ */
+export const driftPath = (phase: "entering" | "leaving", drift: number): [number, number] => (phase === "entering" ? [drift, 0] : [0, -drift]);
+
+/**
+ * The song cover the backdrop has on screen, for the player's thumbnail (player/PlayerCover.tsx): the newest song pane
+ * shown or fading in (null before one is, or over the landing page's). While it fades in over another song's, `turn`:
+ * the thumbnail hands over with it, from `from`, drifting as it does (`id`: the incoming pane, whose handover it keeps
+ * time with). A song still building leaves the one on screen in place.
+ */
+export function screenCover(panes: Pane[]): { cover: string | null; turn: { id: number; from: string; drift: number } | null } {
+  const songs = panes.filter((p) => p.scene.mode === "song" && p.phase !== "hidden");
+  const top = songs.findLast((p) => p.phase !== "leaving");
+  if (!top) return { cover: null, turn: null };
+  const cover = top.scene.song.cover;
+  const from = top.phase === "entering" ? songs.findLast((p) => p.phase === "leaving" && p.id < top.id) : undefined;
+  return { cover, turn: from && from.scene.song.cover !== cover ? { id: top.id, from: from.scene.song.cover, drift: top.drift } : null };
 }
 
 /**

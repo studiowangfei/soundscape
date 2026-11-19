@@ -6,6 +6,7 @@ import { backdropSize, BG, softCut, coverFrame, edgeBleed, fillDropScale, fitCan
 import { coarseNow, phoneNow, wideNow } from "../env";
 import { claim, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../gesture";
 import { haptic } from "../haptics";
+import { landingDrift } from "../landing/drift-trial";
 import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, inRunsWay, segmentDistance, showsToRun, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, wipedAway, type Drip } from "./drip";
 import { marksNear } from "./fading";
 import { createFogRenderer } from "./fog-client";
@@ -427,14 +428,31 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     if (!wrap || !frozen.current) return;
     frozen.current = false;
     const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    wrap.style.transition = instant ? "none" : "opacity 600ms ease";
-    wrap.style.opacity = "0";
+    // Drift trial (landing/drift-trial.ts): the landing page's old picture drifts away as it fades, the new one, solid
+    // under it, comes in from the other side (its reflection filling the strip of window ahead of it).
+    const drift = layout === "fill" && !instant ? landingDrift.next : 0;
+    landingDrift.next = 0;
+    if (drift) {
+      wrap.style.transition = "none";
+      const out = wrap.animate([{ opacity: 1, translate: "0 0" }, { opacity: 0, translate: `0 ${-drift}px` }], { duration: 600, easing: "ease" });
+      wrap.style.opacity = "0";
+      void out.finished.then(() => out.cancel(), () => {});
+      for (const el of [baseRef.current, fogRef.current, dropsRef.current]) {
+        if (!el) continue;
+        el.style.setProperty("-webkit-box-reflect", drift > 0 ? "above" : "below");
+        const done = () => el.style.removeProperty("-webkit-box-reflect");
+        void el.animate([{ translate: `0 ${drift}px` }, { translate: "0 0" }], { duration: 600, easing: "ease" }).finished.then(done, done);
+      }
+    } else {
+      wrap.style.transition = instant ? "none" : "opacity 600ms ease";
+      wrap.style.opacity = "0";
+    }
     const token = ++thawToken.current;
     window.setTimeout(() => {
       if (token !== thawToken.current || frozen.current) return;
       for (const c of Array.from(wrap.children) as HTMLCanvasElement[]) c.width = c.height = 0; // free the copies
     }, instant ? 0 : 650);
-  }, []);
+  }, [layout]);
 
   /** Draws the title and artist as if written with a fingertip on the fogged glass (see fingerWriting()). */
   const { text, font, textSize, finger, textAngle, textX, textY, textDrips, dripWidth, spacing } = p;
@@ -793,11 +811,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     };
   }, [art, layout, compose, drawNow, paintGrown, write, updateHaze, freeze, thaw, density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, pane, glow, bleed, edgeSoft, thickOn, thickMax, zoomPct]);
 
-  // Wiping. With a mouse: click and drag. With a finger (or pen) on a song page that fits the window (nothing to
-  // scroll: upright phones, tablets): the same, at once, and the browser's own drag (overscroll, pull to refresh) is
-  // held off meanwhile. Elsewhere (the landing page, whose wheel a drag turns; a page that scrolls; the player and the
-  // cards' row, data-wipe-hold): press and hold still for a moment (HOLD_MS), then drag; a quick drag stays the page's.
-  // Either way it works over the song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
+  // Wiping. With a mouse: click and drag. With a finger (or pen): press and hold still for a moment (HOLD_MS), then
+  // drag; a quick drag stays the page's (on the landing page it turns the wheel; on a song page a swipe turns to the
+  // next or previous song, useSongTurn, or scrolls a page that scrolls), and the browser's own drag is held off while
+  // wiping. (Song pages that fit the window wiped at once from 2026-11-08 until swipes turned songs, 2026-11-17.) It
+  // works over the song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
   // follow it at the window and map it onto the fog. With `tapDrip`, a quick tap on a droplet heavy enough to run (or a
   // mouse press on one, which would otherwise wipe it away) sends it down the glass instead, and the pointer shows a
   // hand over one.
@@ -821,13 +839,6 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       return { m, x, y, r: (p.brush / 2) * (m.size / rect.width), inside };
     };
     const onControls = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("button, input, select, textarea, a, [role=dialog], [data-backdrop-ui]");
-    // A finger wipes at once: on a song page (not the landing page's wheel), away from the player and the cards, with
-    // nothing to scroll (checked at the press: a phone held sideways can scroll its song page a little).
-    const wipesAtOnce = (e: PointerEvent) => {
-      if (layout === "fill" || (e.target instanceof Element && e.target.closest("[data-wipe-hold]"))) return false;
-      const page = document.scrollingElement ?? root;
-      return page.scrollHeight <= window.innerHeight + 1;
-    };
     /** How far round a tap reaches for a droplet, fog px: a fingertip's ~16 CSS px, a mouse pointer's ~6. */
     const reachOf = (at: NonNullable<ReturnType<typeof locate>>, e: PointerEvent) => (e.pointerType === "mouse" ? 6 : 16) * (at.r / (p.brush / 2));
     /** A tap or click on a runnable droplet: it runs down (an asked fall), and counts as playing with the fog. */
@@ -913,15 +924,6 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         return;
       }
       if (!e.isPrimary || hold || wiping !== null || !locate(e)?.inside) return;
-      if (wipesAtOnce(e)) {
-        if (tapDrop(e) || !claim(e.pointerId, "fog")) return;
-        noSelect(true);
-        wiping = e.pointerId;
-        held = null;
-        const at = locate(e);
-        if (at) wipeTo(at);
-        return;
-      }
       noSelect(true); // a held finger mustn't start selecting the title instead
       const id = e.pointerId;
       // Timed from the touch itself (its timestamp), not from when the page got round to handling it.
@@ -998,7 +1000,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       root.style.cursor = "";
       noSelect(false);
     };
-  }, [compose, endDrip, paintGrown, p.brush, p.softness, p.tapDrip, layout]);
+  }, [compose, endDrip, paintGrown, p.brush, p.softness, p.tapDrip]);
 
   // Fog creeping back over the wipes in `refog` seconds (0 = never), with no visible steps (see FadingLayer).
   useEffect(() => {

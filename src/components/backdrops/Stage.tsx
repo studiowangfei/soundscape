@@ -10,7 +10,7 @@ import { landingFogDefaults } from "../landing/settings";
 import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
 import { VARIANTS } from "./Backdrop";
 import { defaults, PARAMS, type Params } from "./params";
-import { EMPTY_STAGE, edgeStops, enterHow, isShown, kindOf, needsMove, paneClock, READY_TIMEOUT_MS, sceneOrigin, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
+import { driftPath, EMPTY_STAGE, edgeStops, enterHow, isShown, kindOf, needsMove, paneClock, READY_TIMEOUT_MS, sceneOrigin, screenCover, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
 import { Fog, padSquare, type FogHandle } from "./variants";
 
 /**
@@ -20,8 +20,14 @@ import { Fog, padSquare, type FogHandle } from "./variants";
  */
 
 export type StageActions = {
-  /** Shows a scene: the same key keeps its pane (with these props), a new key builds a new pane to take over. */
-  show: (scene: Scene) => void;
+  /**
+   * Shows a scene: the same key keeps its pane (with these props), a new key builds a new pane to take over. `drift`: a
+   * turn to another song (px; positive for the next song: the new pane rises into place as the old one rises away,
+   * negative for the previous: both move down; stage-model.ts driftPath).
+   */
+  show: (scene: Scene, how?: { drift?: number }) => void;
+  /** Which way the pane of the scene `key` came in: 1 turned to as the next song, -1 as the previous, 0 otherwise. */
+  turnOf: (key: string) => number;
   /**
    * About to go to `next` (called on the click): starts the cover's move at once rather than when the page arrives.
    * Resolves once the move is running on screen (at once if there's no move): change the page then, so its rendering
@@ -45,6 +51,18 @@ export type StageActions = {
 const Actions = createContext<StageActions | null>(null);
 // The top of the backdrop, over its panes and calm shade (see OnBackdrop).
 const Overlay = createContext<HTMLElement | null>(null);
+
+/**
+ * The song cover on screen, for the player's thumbnail (stage-model.ts screenCover); `handover(id)`: that pane's fade
+ * in, while it runs, for the thumbnail to keep time with.
+ */
+export type ScreenCover = ReturnType<typeof screenCover> & { handover: (id: number) => Animation | null };
+const Screen = createContext<ScreenCover>({ cover: null, turn: null, handover: () => null });
+
+/** The song cover the backdrop has on screen, and its handover to the next song's while that runs (see ScreenCover). */
+export function useScreenCover(): ScreenCover {
+  return useContext(Screen);
+}
 
 /**
  * Draws its children on the backdrop itself, over the scene, rather than in the page: for text blended with what's
@@ -154,6 +172,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
   const handles = useRef(new Map<number, { current: FogHandle | null }>());
   const waiters = useRef(new Map<number, () => void>()); // leave()s waiting for their move to be running
   const shownWaiters = useRef(new Set<{ key: string; fn: () => void }>()); // afterShown()s
+  const anims = useRef(new Map<number, Animation>()); // each pane's fade in or out, while it runs (ScreenCover.handover)
   // Before the pages' own effects (which call show) see it.
   useLayoutEffect(() => {
     stateRef.current = state;
@@ -250,7 +269,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
       return id;
     };
     return {
-      show: (scene) => {
+      show: (scene, how) => {
         lastParams.current[scene.mode] = scene.params;
         lastMode.current = scene.mode;
         const m = moveRef.current;
@@ -260,8 +279,9 @@ export function StageProvider({ children }: { children: ReactNode }) {
         }
         const known = stateRef.current.panes.some((p) => p.scene.key === scene.key && p.phase !== "leaving");
         if (!known) startMove(scene.mode, scene.song, true);
-        dispatch({ type: "show", scene });
+        dispatch({ type: "show", scene, drift: how?.drift });
       },
+      turnOf: (key) => Math.sign([...stateRef.current.panes].reverse().find((p) => p.scene.key === key && p.phase !== "leaving")?.drift ?? 0),
       leave: (next) => {
         const id = startMove(next.mode, next.song, false, next.scene?.params);
         if (id === null) return Promise.resolve();
@@ -318,6 +338,14 @@ export function StageProvider({ children }: { children: ReactNode }) {
 
   const top = state.panes[state.panes.length - 1];
   const mode = move?.target ?? top?.scene.mode ?? null;
+  // The cover on screen, for the player's thumbnail: a new value only when it changes, so the page isn't re-rendered.
+  const { cover, turn } = screenCover(state.panes);
+  const [turnId, turnFrom, turnDrift] = [turn?.id, turn?.from, turn?.drift];
+  const handover = useCallback((id: number) => anims.current.get(id) ?? null, []);
+  const screen = useMemo<ScreenCover>(
+    () => ({ cover, turn: turnId === undefined ? null : { id: turnId, from: turnFrom!, drift: turnDrift! }, handover }),
+    [cover, turnId, turnFrom, turnDrift, handover],
+  );
   // The move is over once the page it went to is on screen: the moving cover goes.
   const landed = !!move?.done && top?.scene.mode === move.target && top.phase === "shown";
   useEffect(() => {
@@ -326,7 +354,9 @@ export function StageProvider({ children }: { children: ReactNode }) {
 
   return (
     <Actions.Provider value={actions}>
-      <Overlay.Provider value={overlay}>{children}</Overlay.Provider>
+      <Overlay.Provider value={overlay}>
+        <Screen.Provider value={screen}>{children}</Screen.Provider>
+      </Overlay.Provider>
       {/* As tall as the window with the browser's toolbars away (h-lvh), so the fog isn't rebuilt as they come and go.
           Bottom to top: the moving cover, the panes, the calm shade for the page's content, what pages draw on it
           (OnBackdrop). */}
@@ -338,6 +368,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
             pane={pane}
             dispatch={dispatch}
             handles={handles}
+            anims={anims}
             startThick={move && pane.id >= move.firstPane ? startThickness(pane.scene.mode, move.thickness) : 0}
             enter={enter}
             clockFrom={clockFrom}
@@ -461,6 +492,8 @@ type PaneProps = {
   dispatch: (a: StageAction) => void;
   /** Where each pane's FogHandle is kept, by pane id (the stage asks the outgoing one for its misted cover). */
   handles: { current: Map<number, { current: FogHandle | null }> };
+  /** Where its fade in or out is kept while it runs (ScreenCover.handover). */
+  anims: { current: Map<number, Animation> };
   /** The fog's thickness to start at (carried over from the page left to the landing page; 0 for a song's). */
   startThick: number;
   /** How it fades in, asked as it starts to (see StageProvider). */
@@ -470,7 +503,7 @@ type PaneProps = {
   leaveMs: number;
 };
 
-function PaneLayer({ pane, dispatch, handles, startThick, enter, clockFrom, leaveMs }: PaneProps) {
+function PaneLayer({ pane, dispatch, handles, anims, startThick, enter, clockFrom, leaveMs }: PaneProps) {
   const { id, scene, phase } = pane;
   const handleRef = useRef<FogHandle | null>(null);
   useEffect(() => {
@@ -499,23 +532,44 @@ function PaneLayer({ pane, dispatch, handles, startThick, enter, clockFrom, leav
     if (!el || (phase !== "entering" && phase !== "leaving")) return;
     const to = phase === "entering" ? 1 : 0;
     const how = phase === "entering" ? enter() : { ms: leaveMs, easing: "ease" };
-    const a = el.animate([{ opacity: getComputedStyle(el).opacity }, { opacity: to }], { duration: reducedMotion() ? 0 : how.ms, easing: how.easing, fill: "forwards" });
+    // A turn to another song moves the panes as they hand over (driftPath). The one going stays solid, under the one
+    // coming in, which covers it as it fades in (two panes fading at once dim the window midway). Each is a window's
+    // height, so moved, it leaves a strip of the window: the one going at the edge it moves off (the bottom, moving
+    // up), the one coming in ahead of its leading edge (the top). Each fills its strip with its own reflection, so no
+    // edge of either shows. One leaving goes on from wherever it has got to.
+    const style = getComputedStyle(el);
+    const y = new DOMMatrix(style.transform).m42;
+    const [from, by] = phase === "entering" ? driftPath(phase, pane.drift) : [y, pane.drift ? driftPath(phase, pane.drift)[1] : y];
+    const solid = phase === "leaving" && pane.drift !== 0;
+    if (pane.drift) el.style.setProperty("-webkit-box-reflect", (pane.drift > 0) === (phase === "leaving") ? "below" : "above");
+    else el.style.removeProperty("-webkit-box-reflect");
+    const at = (opacity: string | number, ty: number) => ({ ...(solid ? {} : { opacity }), ...(from || by ? { transform: `translateY(${ty}px)` } : {}) });
+    const a = el.animate([at(style.opacity, from), at(to, by)], { duration: reducedMotion() ? 0 : how.ms, easing: how.easing, fill: "forwards" });
+    const map = anims.current;
+    map.set(id, a);
+    const forget = () => map.get(id) === a && map.delete(id);
     a.finished.then(
       () => {
+        forget();
         el.style.opacity = String(to);
+        el.style.transform = "";
+        el.style.removeProperty("-webkit-box-reflect");
         a.cancel();
         dispatch(phase === "entering" ? { type: "entered", id } : { type: "gone", id });
       },
-      () => {}, // cancelled: a newer phase took over from where it was
+      forget, // cancelled: a newer phase took over from where it was
     );
     return () => {
       if (a.playState !== "running") return;
-      el.style.opacity = getComputedStyle(el).opacity; // hand the next animation the opacity it's at now
+      // Hand the next animation the opacity and place it's at now.
+      el.style.opacity = getComputedStyle(el).opacity;
+      el.style.transform = getComputedStyle(el).transform;
       a.cancel();
     };
-    // Only a new phase starts an animation (the durations are read as it starts).
+    // Only a new phase starts an animation (the durations are read as it starts), or a pane going drifting no more (a
+    // move to the landing page started mid-turn: it fades now).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, id, dispatch]);
+  }, [phase, id, dispatch, pane.drift === 0]);
 
   const V = VARIANTS.find((v) => v.key === scene.variant)!;
   return (
