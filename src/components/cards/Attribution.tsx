@@ -1,22 +1,25 @@
-import type { ReactNode } from "react";
+import { useContext, type ReactNode } from "react";
 import type { EntryCard } from "@/content/schema";
 import type { VisitorComment } from "@/content/visitors";
+import { IconVersions } from "./icon-context";
 import { SoundscapeMark } from "./SoundscapeMark";
-import { attribution, visitorAttribution } from "./sources";
+import { attribution, iconUrl, visitorAttribution } from "./sources";
 
 /**
  * The source line at the foot of a card: the site's mark and "Site · author". The collapsed card draws the mark in the
  * text's grey, like the player's streaming icons (content/icons/<domain>.mono.png, from scripts/mono-icons.mts).
  * The expanded card's is larger: the site's colour icon on a white disc, so dark logos show on the glass; it adds
- * the date (or likes, or views) and links to the source.
+ * the date (or likes, or views) and links to the source. The icons' addresses carry their fingerprints (IconVersions), so
+ * a replaced one isn't shown from a browser's saved copy.
  */
 export function Attribution({ card, expanded = false }: { card: EntryCard; expanded?: boolean }) {
   const { domain, inset, text } = attribution(card, expanded);
-  const mono = `url(/icons/${domain}.mono.png) center / contain no-repeat`;
+  const version = useContext(IconVersions)[domain];
+  const mono = `url(${iconUrl(domain, version, "mono")}) center / contain no-repeat`;
   const icon = expanded ? (
     // eslint-disable-next-line @next/next/no-img-element -- static same-origin icon
     <img
-      src={`/icons/${domain}.png`}
+      src={iconUrl(domain, version)}
       alt=""
       // An inset logo sits whole in the middle of the disc, with 3.5px of room; the rest fill it.
       className={`size-6 shrink-0 rounded-full bg-white ${inset ? "object-contain p-[3.5px]" : "object-cover"}`}

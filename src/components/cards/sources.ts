@@ -44,6 +44,14 @@ function hostOf(url: string): string {
   }
 }
 
+/**
+ * The address of a site's icon (the colour one on a white disc, opened) or its one-colour mark (`mono`, collapsed), with
+ * the icon's fingerprint (content/icon-versions.ts) when there is one, so a replaced icon is fetched afresh.
+ */
+export function iconUrl(domain: string, version: string | undefined, kind: "color" | "mono" = "color"): string {
+  return `/icons/${domain}${kind === "mono" ? ".mono" : ""}.png${version ? `?v=${version}` : ""}`;
+}
+
 /** The site a card comes from: the domain its icon is filed under, its clean name, and whether its logo is inset. */
 export function sourceSite(card: EntryCard): { domain: string; name: string; inset: boolean } {
   const host = hostOf(card.url);

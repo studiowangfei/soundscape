@@ -15,11 +15,12 @@ const STEP = 250 + 13;
  * The song's cards in one row along the foot of the page, running off its right edge (13px apart, snapping card by
  * card). One card opens at a time: its tile hides while the open card (CardDetail) grows out of it and shrinks back.
  * Fingers and sideways trackpad swipes scroll the row natively; a swipe past either end never turns into the
- * browser's back/forward (overscroll-x-contain). A vertical mouse wheel moves the row a card per notch, a vertical
- * trackpad swipe moves it along with the fingers, until it reaches an end and the page scrolls on. `cards`: the
- * song's own, then visitors' comments, then the end card (row.ts). `mobile`: the cards' variant on phones (Tune → Cards).
+ * browser's back/forward (overscroll-x-contain). Up and down are the page's (they turn the song: useSongTurn), but for
+ * a mouse wheel, which has no other way along the row: over it, it moves the row a card per notch, and never turns the
+ * song. `cards`: the song's own, then visitors' comments, then the end card (row.ts). `mobile`: the cards' variant on
+ * phones (Tune → Cards). `style`: the row's own (the page's exit drift).
  */
-export function CardGrid({ cards, mobile = "standard", className = "" }: { cards: RowCard[]; mobile?: MobileCard; className?: string }) {
+export function CardGrid({ cards, mobile = "standard", className = "", style }: { cards: RowCard[]; mobile?: MobileCard; className?: string; style?: React.CSSProperties }) {
   const short = mobile === "short";
   // The cards rise once the page's arrival has got going (partway into the cover's move, coming from another page).
   const { entranceDelay } = useStage();
@@ -40,12 +41,10 @@ export function CardGrid({ cards, mobile = "standard", className = "" }: { cards
     const el = row.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // already sideways (trackpads)
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || wheelAction(e) !== "notch") return; // sideways, or a trackpad's
+      e.preventDefault(); // a mouse wheel's notch: the row's, even at its ends (not a turn)
       const atEnd = e.deltaY > 0 ? el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 : el.scrollLeft <= 0;
-      if (atEnd) return; // let the page scroll on
-      e.preventDefault();
-      if (wheelAction(e) === "notch") el.scrollBy({ left: Math.sign(e.deltaY) * STEP, behavior: "smooth" });
-      else el.scrollBy({ left: e.deltaY });
+      if (!atEnd) el.scrollBy({ left: Math.sign(e.deltaY) * STEP, behavior: "smooth" });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -60,7 +59,7 @@ export function CardGrid({ cards, mobile = "standard", className = "" }: { cards
     <>
       {/* The row starts about the cards' own gap under the player (12px; 13 on phones), and on phones the cards between
           the first and the last come to rest in the middle of the screen (CardTile's snap). */}
-      <div ref={row} className={`scrollbar-hide flex snap-x snap-mandatory scroll-px-page gap-[13px] overflow-x-auto overscroll-x-contain px-page py-3 phone:pt-[13px] ${className}`}>
+      <div ref={row} style={style} className={`scrollbar-hide flex snap-x snap-mandatory scroll-px-page gap-[13px] overflow-x-auto overscroll-x-contain px-page py-3 phone:pt-[13px] ${className}`}>
         {cards.map((card, i) => (
           <CardTile
             key={card.id}
