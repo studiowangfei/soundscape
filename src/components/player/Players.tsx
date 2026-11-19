@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Neighbours, SongLink } from "@/content/neighbours";
-import { useCoverFile } from "../cover";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { PLAYER_HEIGHT, PLAYER_INSET } from "../glass/settings";
 import { ListenOn } from "./ListenOn";
+import { PlayerCover } from "./PlayerCover";
 import type { StreamLinks } from "./stream-links";
 import { useSoundtrack } from "./Soundtrack";
 import { clock } from "./youtube";
@@ -14,25 +14,23 @@ import { clock } from "./youtube";
 /**
  * The song's official 30-second preview (iTunes, streamed from the store), on a loop, in a 499×68 glass bar: the
  * cover on the left; in the middle previous / play / next, with the position bar under them; and on the right the song
- * on Spotify, Apple Music and YouTube Music. Every control shows a light circle on hover. The cover links to the song on Apple Music (Apple asks previews to credit
- * the store). Previous and next go to the songs either side of this one, in the landing wheel's order. Without a
- * preview the bar stays, its play button disabled. It plays through the site's soundtrack (Soundtrack.tsx), so music on
- * from the landing page plays on here without a break, and on into the previous or next song.
+ * on Spotify, Apple Music and YouTube Music. Every control shows a light circle on hover. The cover links to the song on
+ * Apple Music (Apple asks previews to credit the store); on a turn to another song it changes with the backdrop,
+ * drifting `coverDrift` px as it does (PlayerCover). Previous and next go to the songs either side of this one, in the
+ * landing wheel's order. Without a preview the bar stays, its play button disabled. It plays through the site's
+ * soundtrack (Soundtrack.tsx), so music on from the landing page plays on here without a break, and on into the
+ * previous or next song.
  */
-export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: string; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks; onSkip?: (href: string, to: SongLink) => void }) {
+export function PreviewBar({ cover, coverDrift, preview, nav, links, onSkip }: { cover: string; coverDrift: number; preview?: { url: string; link: string }; nav?: Neighbours | null; links?: StreamLinks; onSkip?: (href: string, to: SongLink, dir: 1 | -1) => void }) {
   const track = useSoundtrack();
   const { attach, style, filter, look } = useGlass("player");
 
   const { follow } = track;
-  const coverFile = useCoverFile(cover);
   useEffect(() => follow(preview?.url ?? null), [preview?.url, follow]);
   const mine = !!preview && track.src === preview.url;
 
   // The cover's corners follow the bar's: its radius is the bar's less the inset, so the gap stays even round the bend.
-  const art = (
-    // eslint-disable-next-line @next/next/no-img-element -- local cover
-    <img src={coverFile ?? undefined} alt="" className="size-12 object-cover" style={{ borderRadius: look.radius - PLAYER_INSET }} />
-  );
+  const art = <PlayerCover own={cover} drift={coverDrift} radius={look.radius - PLAYER_INSET} />;
 
   return (
     <div ref={attach} style={{ ...style, height: PLAYER_HEIGHT, paddingLeft: PLAYER_INSET }} className="glass relative flex w-full max-w-[499px] items-center justify-between gap-2 overflow-hidden pr-4 min-[400px]:gap-4">
@@ -70,9 +68,10 @@ export function PreviewBar({ cover, preview, nav, links, onSkip }: { cover: stri
 
 /**
  * Previous or next song (⏮ / ⏭): a quiet icon link either side of the play button. `onSkip` takes the in-app
- * navigation over (the page plays its way out first); a ⌘-click or middle click still opens a new tab.
+ * navigation over (the page plays its way out first, turning the way it goes: 1 to the next song, -1 to the previous);
+ * a ⌘-click or middle click still opens a new tab.
  */
-function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: (href: string, to: SongLink) => void }) {
+function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: (href: string, to: SongLink, dir: 1 | -1) => void }) {
   const label = `${next ? "Next" : "Previous"} song: ${to.title}`;
   const href = `/songs/${to.slug}/`;
   return (
@@ -81,7 +80,7 @@ function SkipLink({ to, next, onSkip }: { to: SongLink; next: boolean; onSkip?: 
       onNavigate={(e) => {
         if (!onSkip) return;
         e.preventDefault();
-        onSkip(href, to);
+        onSkip(href, to, next ? 1 : -1);
       }}
       aria-label={label}
       title={label}
