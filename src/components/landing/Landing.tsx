@@ -17,6 +17,8 @@ import { BackgroundMusic } from "./BackgroundMusic";
 import { useSoundtrack } from "../player/Soundtrack";
 import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
+import { useTurnTune } from "../useTurnTune";
+import { landingDrift, wheelWay } from "./drift-trial";
 import { useTypeface } from "../useTypeface";
 import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
 import { SongWheel, type WheelHandle } from "./SongWheel";
@@ -139,6 +141,15 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   // The backdrop is the site's one window (backdrops/Stage.tsx): the landing's pane on it, one for the whole visit, its
   // cover changing in place as the wheel rests.
   useStageScene(shown && song ? landingScene(song, tune.settings.fog, (arrived ?? rest) !== shown.i) : null);
+  // Drift trial (landing/drift-trial.ts): which way the cover drifts as it changes, the way the wheel went.
+  const coverDrift = useTurnTune({ store: "soundscape.landing.drift", title: "Cover change" });
+  const lastShown = useRef<number | null>(null);
+  useEffect(() => {
+    if (!shown) return;
+    const was = lastShown.current;
+    lastShown.current = shown.i;
+    landingDrift.next = was === null || was === shown.i ? 0 : wheelWay(was, shown.i, songs.length) * coverDrift.drift;
+  }, [shown, songs.length, coverDrift.drift]);
 
   // Covers either side of the focused song load ahead, so wherever the wheel stops its background is ready sooner.
   const fetched = useRef(new Set<string>());
@@ -231,6 +242,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
             { title: "Wheel", specs: WHEEL_PARAMS, values: tune.settings.wheel, onParam: tune.setWheel },
             { title: "Search bar", specs: SEARCH_BAR_PARAMS, values: tune.settings.bar, onParam: tune.setBar },
             typeface.section,
+            coverDrift.section, // drift trial
           ]}
           onReset={tune.reset}
         />
