@@ -10,8 +10,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["10.*.*.*", "192.168.*.*", "172.*.*.*", "*.local"],
   trailingSlash: true,
   // Covers, posters and icons (copied into public/ at build time) are cached by browsers for a day, instead of being
-  // re-checked on every visit (Next's default for public/ is max-age=0). The cost: a replaced image can show the old
-  // one to a returning visitor for up to a day. Not while developing: a cover replaced here shows on the next reload.
+  // re-checked on every visit (Next's default for public/ is max-age=0). The cost: a replaced cover or poster can show
+  // the old one to a returning visitor for up to a day. Icons don't: their addresses carry a fingerprint of the file
+  // (content/icon-versions.ts), so a replaced one is fetched at once. Not while developing: a cover replaced here shows
+  // on the next reload.
   // The Chinese typeface's files (public/fonts, made at build time: src/content/cjk-font.ts) are named after their
   // contents, so a browser keeps them for good: changed characters make new names.
   async headers() {
