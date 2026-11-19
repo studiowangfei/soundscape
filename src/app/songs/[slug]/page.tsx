@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SongView } from "@/components/SongView";
+import { iconVersions } from "@/content/icon-versions";
 import { getEntry, loadEntries } from "@/content/load";
 import { navSong } from "@/content/neighbours";
 import { loadVisitorComments } from "@/content/visitors";
@@ -26,6 +27,7 @@ export default async function SongPage({ params }: PageProps<"/songs/[slug]">) {
   // on the stage, backdrops/Stage.tsx, and the player skips its entrance, so it seems to stay put).
   // Its approved visitor comments (content/visitor-comments/<slug>/) follow its own cards, before the end card.
   const visitors = await loadVisitorComments(slug);
-  // Every song, for its previous and next (in the landing wheel's order this visit, which only the browser knows).
-  return <SongView key={entry.slug} entry={entry} visitors={visitors} songs={entries.map(navSong)} titles={entries.map((e) => e.title)} />;
+  // Every song, for its previous and next (in the landing wheel's order this visit, which only the browser knows). The
+  // fingerprints of its cards' icons go in their addresses, so a replaced icon isn't shown from a browser's saved copy.
+  return <SongView key={entry.slug} entry={entry} visitors={visitors} songs={entries.map(navSong)} titles={entries.map((e) => e.title)} icons={await iconVersions(entry.cards)} />;
 }
