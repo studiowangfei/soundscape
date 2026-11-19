@@ -248,9 +248,10 @@ html:has([data-song-page]) { overscroll-behavior: none; }
 }
 
 /* A page's own text and controls coming up (backdrops/Stage.tsx Entrance): a short fade up, after --enter-delay (partway
-   into the cover's move when arriving from another page). */
+   into the cover's move when arriving from another page); down instead (--enter-y: -8px) on a song page turned to as
+   the previous song (SongView). */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(var(--enter-y, 8px)); }
 }
 .page-enter { animation: page-enter 400ms ease-out var(--enter-delay, 0ms) both; }
 /* Held at their start (hidden) until the page lets them go: a song page arriving from another song, until the cover's
