@@ -20,16 +20,21 @@ import { useWheelLayout } from "./landing/useWheelLayout";
 import { ShakeDrops } from "./landing/ShakeDrops";
 import { PreviewBar } from "./player/Players";
 import { streamLinks } from "./player/stream-links";
+import { IconVersions } from "./cards/icon-context";
+import type { PageDir } from "./paging";
 import { TUNING } from "./tuning";
+import { useSongTurn } from "./useSongTurn";
+import { useTurnTune } from "./useTurnTune";
 import { useTypeface } from "./useTypeface";
 
 /**
  * One song, laid out after the Figma song page: the title, artist and preview player at the top left, and the cards in
  * a row along the foot of the window, over the cover backdrop; on phones (the Figma's mobile frame) the player joins
  * the cards at the foot. (Spacing in px: 64 from the left and the header 64 from the top on desktops and tablets, the cards 40 from the bottom.
- * The design's wordmark is hidden for now.)
+ * The design's wordmark is hidden for now.) Up and down turn to the next and previous song (useSongTurn: a swipe, the
+ * wheel, ↑ / ↓; docs/plans/2026-11-17-song-paging-design.md), as ⏮ / ⏭ do.
  */
-export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry; visitors?: VisitorComment[]; songs: NavSong[]; titles: string[] }) {
+export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { entry: Entry; visitors?: VisitorComment[]; songs: NavSong[]; titles: string[]; icons?: Record<string, string> }) {
   // Previous and next step through the songs as the landing wheel lists them this visit (its shuffle and the sort
   // chosen), which only the browser knows: until it's read, as the catalogue lists them.
   const [nav, setNav] = useState(() => neighbours(songs, entry.slug));
@@ -43,6 +48,7 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
   const typeface = useTypeface();
   const glass = useGlassTune();
   const mobileCard = useMobileCard();
+  const turnTune = useTurnTune({ cover: true });
   // Close is drawn as big as the landing page's icons, so it's sized from the landing wheel's text, measured here too.
   const landing = useLandingSettings().settings;
   const look = searchBarLook(landing.bar);
@@ -54,8 +60,12 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
   const scene = songScene(entry.slug, backdrop, variant, tune.params[variant]);
   const sceneKey = scene.key;
   const stage = useStage();
-  // Leaving this song: its title and cards (and, back to all songs, the player) fade out, then the next page comes.
+  // Turned to as the next song (1) or the previous (-1): its title comes up from below, or down from above.
+  const [turnedIn] = useState(() => stage.turnOf(sceneKey));
+  // Leaving this song: its title and cards (and, back to all songs, the player) fade out, then the next page comes;
+  // to another song, they drift the way the songs turn (up to the next one, down to the previous).
   const [out, setOut] = useState<"landing" | "song" | null>(null);
+  const [outDir, setOutDir] = useState<PageDir | 0>(0);
   // (Not once it's on its way out: song to song, the next song's scene is already up, see go; nor before its saved
   // settings are read, so its fog is built once, with them.)
   useStageScene(out || !tune.ready ? null : scene);
@@ -71,25 +81,43 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
     gone.current = false;
     return () => void (gone.current = true); // gone already (Back): don't navigate after all
   }, []);
-  const go = (href: string, to: "landing" | "song", next?: SongLink) => {
+  // Back to all songs (Close, or Back after turning through songs), the landing wheel comes up on the song last shown.
+  useEffect(() => {
+    sessionSet(LANDING_FOCUS_KEY, entry.slug);
+  }, [entry.slug]);
+  // `dir`: to the next or previous song, which way the page turns (⏮ / ⏭ and the gestures); `replace`: in place of this
+  // page in the history (the gestures: Back goes to the page before the songs, not through each).
+  const go = (href: string, to: "landing" | "song", next?: SongLink, how: { dir?: PageDir; replace?: boolean } = {}) => {
     if (out) return;
     // Back to all songs, the cover moves: the page changes once it's moving (its rendering then can't hold it up). The
     // landing page's fog starts building now, under the moving cover, so it's ready to mist over as the cover lands.
     const moving = to === "landing" ? stage.leave({ mode: "landing", song: backdrop, scene: landingScene(backdrop, landing.fog) }) : Promise.resolve();
     setOut(to);
+    setOutDir(how.dir ?? 0);
     // To another song: its backdrop starts building now, while this page fades out and the next one loads, and
-    // crossfades in as soon as it has drawn (the next page shows the very same scene, so it's kept).
+    // crossfades in as soon as it has drawn, drifting the way the songs turn (the next page shows the very same scene,
+    // so it's kept).
     if (next) {
       const song = { title: next.title, artist: next.artist, cover: next.cover, coverKind: next.coverKind };
-      stage.show(songScene(next.slug, song, variant, tune.params[variant]));
+      stage.show(songScene(next.slug, song, variant, tune.params[variant]), { drift: (how.dir ?? 0) * turnTune.drift });
     }
-    void Promise.all([moving, new Promise((r) => window.setTimeout(r, TIMING.songExit))]).then(() => !gone.current && router.push(href));
+    void Promise.all([moving, new Promise((r) => window.setTimeout(r, TIMING.songExit))]).then(() => !gone.current && (how.replace ? router.replace(href) : router.push(href)));
   };
+  const turnTo = (dir: PageDir) => {
+    const to = nav && (dir === 1 ? nav.next : nav.prev);
+    if (to) go(`/songs/${to.slug}/`, "song", to, { dir, replace: true });
+  };
+  useSongTurn(turnTo);
+  // How far the title and cards drift as they fade out to another song (px; the incoming title's own rise: globals.css
+  // page-enter).
+  const outShift = out === "song" && outDir ? { translate: `0 ${-outDir * 8}px` } : undefined;
   const fade = "transition-[opacity,translate] duration-[180ms] ease-out";
 
   return (
+    // The fingerprints of the cards' icons, for their addresses (cards/Attribution).
+    <IconVersions.Provider value={icons}>
     <GlassProvider value={glass.settings}>
-    <main data-song-page className={`flex min-h-dvh w-full flex-col ${held ? "entrance-hold" : ""}`} style={{ "--corner-box": box ? `${box}px` : undefined } as React.CSSProperties}>
+    <main data-song-page className={`flex min-h-dvh w-full flex-col ${held ? "entrance-hold" : ""}`} style={{ "--corner-box": box ? `${box}px` : undefined, "--enter-y": turnedIn < 0 ? "-8px" : undefined } as React.CSSProperties}>
       {/* Back to all songs: the landing page, its wheel on this song. In the top right corner, and drawn as
           big as it and the search bar's icons (Phosphor's x-circle, svg/x-circle.svg, its ring 13/16 of its box). */}
       <Link
@@ -115,7 +143,7 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
           clear of a notch (px-page), and on phones the top clears the status bar. The title's box starts at its capitals
           (text-box trim), so the gap above the letters looks as wide as the one to their left (the line height had put
           them 6-8px lower). */}
-      <header className={`${fade} ${out ? "opacity-0" : ""} px-page pt-16 phone:pt-[max(1.25rem,env(safe-area-inset-top))] phone:pr-[calc(max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))_+_var(--corner-box,40px)*29/32_+_12px)]`}>
+      <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-page pt-16 phone:pt-[max(1.25rem,env(safe-area-inset-top))] phone:pr-[calc(max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))_+_var(--corner-box,40px)*29/32_+_12px)]`}>
         <Entrance>
           <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
         </Entrance>
@@ -131,18 +159,19 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
           at their own gap above them (CardGrid). One player either way: elsewhere its group is see-through to the page's
           layout (contents), and the order puts it under the header and the cards at the foot; on phones the group is one
           block, after the space, held at the foot. */}
-      {/* A finger here wipes the fog only after a hold (the row scrolls sideways; the player has its controls). */}
-      <div data-wipe-hold className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
-        {/* The player stays put from song to song (no entrance coming from another song's page). */}
+      <div className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
+        {/* The player stays put from song to song (no entrance coming from another song's page); its cover changes with
+            the backdrop (PlayerCover). */}
         <div className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
           <Entrance stayFrom="song">
-            <PreviewBar cover={backdrop.cover} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href, to) => go(href, "song", to)} />
+            <PreviewBar cover={backdrop.cover} coverDrift={turnTune.coverDrift} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href, to, dir) => go(href, "song", to, { dir })} />
           </Entrance>
         </div>
         <CardGrid
           cards={rowCards(entry.cards, visitors, entry.slug)}
           mobile={mobileCard.variant}
-          className={`${fade} ${out ? "translate-y-1.5 opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static`}
+          style={outShift}
+          className={`${fade} ${out === "landing" ? "translate-y-1.5" : ""} ${out ? "opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static`}
         />
       </div>
       <div className="order-2 min-h-10 flex-1 phone:order-1" />
@@ -159,10 +188,11 @@ export function SongView({ entry, visitors = [], songs, titles }: { entry: Entry
           onParam={(key, v) => tune.setParam(variant, key, v)}
           onReset={() => tune.reset(variant)}
           lead={[typeface.section]}
-          extra={[glass.section, mobileCard.section]}
+          extra={[glass.section, mobileCard.section, turnTune.section]}
         />
       )}
     </main>
     </GlassProvider>
+    </IconVersions.Provider>
   );
 }
