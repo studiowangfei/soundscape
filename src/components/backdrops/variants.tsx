@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { drawBlurred } from "./canvas-blur";
 import { backdropSize, BG, softCut, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, pushInAnimation, rgb, sampleSquare, zoomAt, zoomOrigin, type Layout, type LoadedArt, type Song } from "./art";
 import { coarseNow, phoneNow, wideNow } from "../env";
-import { claim, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../gesture";
+import { claim, giveBack, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../gesture";
 import { haptic } from "../haptics";
 import { landingDrift } from "../landing/drift-trial";
+import { touchIntent, type TouchPoint } from "../paging";
 import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, inRunsWay, segmentDistance, showsToRun, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, wipedAway, type Drip } from "./drip";
 import { marksNear } from "./fading";
 import { createFogRenderer } from "./fog-client";
@@ -811,22 +812,27 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     };
   }, [art, layout, compose, drawNow, paintGrown, write, updateHaze, freeze, thaw, density, opacity, blur, bloom, drops, dropSize, refraction, trails, patchiness, brightness, pane, glow, bleed, edgeSoft, thickOn, thickMax, zoomPct]);
 
-  // Wiping. With a mouse: click and drag. With a finger (or pen): press and hold still for a moment (HOLD_MS), then
-  // drag; a quick drag stays the page's (on the landing page it turns the wheel; on a song page a swipe turns to the
-  // next or previous song, useSongTurn, or scrolls a page that scrolls), and the browser's own drag is held off while
-  // wiping. (Song pages that fit the window wiped at once from 2026-11-08 until swipes turned songs, 2026-11-17.) It
-  // works over the song's title and artist too (on phones they sit on the fog), not on controls. The backdrop ignores the pointer, so
+  // Wiping. With a mouse: click and drag. With a finger (or pen) on a song page that fits the window (nothing to scroll:
+  // upright phones, tablets): rest, rub or drag along to wipe, from where it pressed; a finger thrown off swipes instead,
+  // turning the song (paging.ts touchIntent; useSongTurn), and the browser's own drag is held off while that's told.
+  // Elsewhere (the landing page, whose wheel a drag turns; a page that scrolls; the player, data-wipe-hold): press and
+  // hold still for a moment (HOLD_MS), then drag; a quick drag stays the page's. (Song pages wiped at once from
+  // 2026-11-08, then only after a hold from 2026-11-17, when swipes came to turn songs: too hard to start, 2026-11-19.)
+  // It works over the song's title and artist too (on phones they sit on the fog), not on controls or the card row. The backdrop ignores the pointer, so
   // follow it at the window and map it onto the fog. With `tapDrip`, a quick tap on a droplet heavy enough to run (or a
   // mouse press on one, which would otherwise wipe it away) sends it down the glass instead, and the pointer shows a
   // hand over one.
   useEffect(() => {
     let last: { x: number; y: number } | null = null;
     let wiping: number | null = null; // the pointer that's wiping
-    let hold: { id: number; x: number; y: number; timer: number; at: PointerEvent; due: number } | null = null;
-    // A finger wiping after a hold: where it pressed, and when (event time) the hold was complete. A busy page can handle
-    // a drag's first moves late, after the hold's timer; their own timestamps still tell that the finger moved before
-    // the hold was up, so it was a drag after all: the wipe stands down and the page (or the wheel) has the touch.
-    let held: { x: number; y: number; due: number } | null = null;
+    // A finger on the fog that isn't wiping yet: where it pressed and has been since (event times), when a hold would be
+    // up, and whether it's told by its pace (a page that fits) or a hold.
+    let hold: { id: number; x: number; y: number; timer: number; due: number; path: TouchPoint[]; pace: boolean } | null = null;
+    // A finger wiping after a hold: where it pressed, and when (event time) the hold was complete (its path, if told by
+    // its pace). A busy page can handle a drag's first moves late, after the hold's timer; their own timestamps still
+    // tell that the finger moved (or was thrown) before the hold was up, so it was a drag after all: the wipe stands down
+    // and the page (or the wheel) has the touch.
+    let held: { x: number; y: number; due: number; path: TouchPoint[] | null } | null = null;
     const root = document.documentElement;
     const locate = (e: { clientX: number; clientY: number }) => {
       const c = fogRef.current;
@@ -838,7 +844,12 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const inside = x >= 0 && y >= 0 && x <= m.size && y <= m.size;
       return { m, x, y, r: (p.brush / 2) * (m.size / rect.width), inside };
     };
-    const onControls = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("button, input, select, textarea, a, [role=dialog], [data-backdrop-ui]");
+    // The landing page's wheel (data-wheel) is a mouse's to click and drag; a finger held still on it wipes, and the
+    // wheel lets go (a finger lands on a title more often than not: Chrome draws touches to the nearest one).
+    const onControls = (e: PointerEvent) =>
+      e.target instanceof Element &&
+      (!!e.target.closest("button, input, select, textarea, a, [role=dialog], [data-backdrop-ui]:not([data-wheel]), [data-card-row]") ||
+        (e.pointerType === "mouse" && !!e.target.closest("[data-wheel]")));
     /** How far round a tap reaches for a droplet, fog px: a fingertip's ~16 CSS px, a mouse pointer's ~6. */
     const reachOf = (at: NonNullable<ReturnType<typeof locate>>, e: PointerEvent) => (e.pointerType === "mouse" ? 6 : 16) * (at.r / (p.brush / 2));
     /** A tap or click on a runnable droplet: it runs down (an asked fall), and counts as playing with the fog. */
@@ -902,9 +913,28 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       hold = null;
       if (wiping === null) noSelect(false);
     };
-    const movedEarly = (x: number, y: number, t: number) => !!held && t <= held.due && Math.hypot(x - held.x, y - held.y) > HOLD_SLOP;
+    const movedEarly = (x: number, y: number, t: number) => {
+      if (!held || t > held.due) return false;
+      return held.path ? touchIntent([...held.path, { t, x, y }]) === "swipe" : Math.hypot(x - held.x, y - held.y) > HOLD_SLOP;
+    };
+    // Nothing to scroll: the page fits the window.
+    const fits = () => (document.scrollingElement ?? root).scrollHeight <= window.innerHeight + 1;
+    // The fog takes the finger: it wipes from where it pressed, along the way it has come.
+    const begin = (h: NonNullable<typeof hold>) => {
+      clearTimeout(h.timer);
+      hold = null;
+      if (!claim(h.id, "fog")) return noSelect(false); // the wheel took it (a drag) first
+      wiping = h.id;
+      held = { x: h.x, y: h.y, due: h.due, path: h.pace ? h.path : null };
+      navigator.vibrate?.(8); // a tick where there's one to give (Android): wiping has begun
+      last = null;
+      for (const pt of h.path) {
+        const at = locate({ clientX: pt.x, clientY: pt.y });
+        if (at) wipeTo(at);
+      }
+    };
     const standDown = () => {
-      if (wiping !== null) release(wiping);
+      if (wiping !== null) giveBack(wiping, "fog");
       wiping = null;
       held = null;
       last = null;
@@ -926,24 +956,20 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       if (!e.isPrimary || hold || wiping !== null || !locate(e)?.inside) return;
       noSelect(true); // a held finger mustn't start selecting the title instead
       const id = e.pointerId;
+      const pace = layout !== "fill" && !(e.target instanceof Element && e.target.closest("[data-wipe-hold]")) && fits();
       // Timed from the touch itself (its timestamp), not from when the page got round to handling it.
       const due = e.timeStamp + HOLD_MS;
-      const timer = window.setTimeout(() => {
-        const h = hold;
-        hold = null;
-        if (!h || !claim(id, "fog")) return noSelect(false); // the wheel took it (a drag) first
-        wiping = id;
-        held = { x: h.x, y: h.y, due: h.due };
-        navigator.vibrate?.(8); // a tick where there's one to give (Android): wiping has begun
-        const at = locate(h.at);
-        if (at) wipeTo(at);
-      }, Math.max(0, due - performance.now()));
-      hold = { id, x: e.clientX, y: e.clientY, timer, at: e, due };
+      const timer = window.setTimeout(() => hold?.id === id && begin(hold), Math.max(0, due - performance.now()));
+      hold = { id, x: e.clientX, y: e.clientY, timer, due, path: [{ t: e.timeStamp, x: e.clientX, y: e.clientY }], pace };
     };
     const onMove = (e: PointerEvent) => {
       if (hold && e.pointerId === hold.id) {
-        if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > HOLD_SLOP) endHold(); // a drag: scrolling, or the wheel
-        else hold.at = e;
+        hold.path.push({ t: e.timeStamp, x: e.clientX, y: e.clientY });
+        if (hold.pace) {
+          const intent = touchIntent(hold.path);
+          if (intent === "swipe") endHold(); // thrown: the page's (a turn)
+          else if (intent === "wipe") begin(hold);
+        } else if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > HOLD_SLOP) endHold(); // a drag: scrolling, or the wheel
         return;
       }
       if (wiping === null) {
@@ -953,13 +979,15 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       if (e.pointerId !== wiping) return;
       if (movedEarly(e.clientX, e.clientY, e.timeStamp)) return standDown();
+      if (held?.path && e.timeStamp <= held.due) held.path.push({ t: e.timeStamp, x: e.clientX, y: e.clientY });
       const at = locate(e);
       if (at) wipeTo(at);
     };
     const onUp = (e: PointerEvent) => {
       if (hold && e.pointerId === hold.id) {
-        // Lifted before the hold was up, without moving off: a tap.
-        if (e.type === "pointerup") tapDrop(e);
+        // Lifted before the hold was up, without moving off: a tap (on a landing wheel's title, the wheel's: it spins
+        // or opens).
+        if (e.type === "pointerup" && !(e.target instanceof Element && e.target.closest("[data-row]"))) tapDrop(e);
         endHold();
       }
       if (e.pointerId !== wiping) return;
@@ -973,11 +1001,13 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
     };
     // While a finger wipes, the page mustn't scroll under it (the browser would take the touch away): its touchmoves are
-    // cancelled. Such a listener has to say so up front (passive: false); it only cancels while wiping.
+    // cancelled; and on a page that fits, while it's still to be told whether it wipes or swipes (the browser takes a
+    // finger that has moved 10-15 px, before a wiping pace can be told from a flick). Such a listener has to say so up
+    // front (passive: false); it only cancels then.
     const onTouchMove = (e: TouchEvent) => {
       const t = e.touches[0];
       if (wiping !== null && t && movedEarly(t.clientX, t.clientY, e.timeStamp)) return standDown();
-      if (wiping !== null && e.cancelable) e.preventDefault();
+      if ((wiping !== null || hold?.pace) && e.cancelable) e.preventDefault();
     };
     // A long press can bring up the browser's menu (Android) or a text selection: not while holding or wiping.
     const onContextMenu = (e: Event) => {
@@ -1000,7 +1030,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       root.style.cursor = "";
       noSelect(false);
     };
-  }, [compose, endDrip, paintGrown, p.brush, p.softness, p.tapDrip]);
+  }, [compose, endDrip, paintGrown, p.brush, p.softness, p.tapDrip, layout]);
 
   // Fog creeping back over the wipes in `refog` seconds (0 = never), with no visible steps (see FadingLayer).
   useEffect(() => {
