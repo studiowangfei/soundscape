@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Whatever can be clicked shows the hand (Tailwind 4 gives buttons the arrow, cursor: default; 3 gave them the hand):
+   buttons (the cards, the player's, the open card's, Tune's), and the native controls; links have it already. Disabled
+   ones keep the arrow. */
+@layer base {
+  :is(button, [role="button"], [role="switch"], select, summary, label:has(> input:is([type="checkbox"], [type="radio"])), input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="submit"], [type="button"])):not(:disabled, [aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
 /* The environment (components/env.ts has the same rules for scripts):
    wide: the song pages' cover beside the content, on landscape screens 640 px wide and up (desktops, iPads and phones
    held sideways); portrait screens stack it on top. short: phones held sideways. coarse: a finger is the main pointer.
@@ -19,6 +28,15 @@
   /* The page's side margin; never less than a notched phone's safe area (held sideways). 20px on phones held upright,
      80 held sideways, 64 on desktops and tablets (the song's name as far in from the left as from the top). */
   --page-x: 1.25rem;
+  /* The top right corner's inset (icon.tsx TOP_RIGHT: the song page's close button): 20px, or clear of a phone's notch
+     and rounded corner. */
+  --corner-top: max(1.25rem, calc(env(safe-area-inset-top) + 0.5rem));
+  --corner-right: max(1.25rem, calc(env(safe-area-inset-right) + 0.5rem));
+  /* How far short of the close button's ring a song's name stops (px-beside-close). */
+  --close-gap: 24px;
+}
+@media (max-width: 639px), (max-height: 500px) {
+  :root { --close-gap: 16px; }
 }
 @media (min-width: 640px) {
   :root { --page-x: 5rem; }
@@ -31,6 +49,13 @@
 @utility px-page {
   padding-left: max(var(--page-x), env(safe-area-inset-left));
   padding-right: max(var(--page-x), env(safe-area-inset-right));
+}
+/* Side padding for a song page's header, beside the close button in the top right corner (its box --corner-box, set by
+   the page; its ring the middle 13/16 of it): the page's margin on the left, and on the right whichever is further in,
+   the margin or --close-gap short of the ring. So the song's name runs as wide as there's room for. */
+@utility px-beside-close {
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right), calc(var(--corner-right) + var(--corner-box, 40px) * 29 / 32 + var(--close-gap)));
 }
 @utility scroll-px-page {
   scroll-padding-left: max(var(--page-x), env(safe-area-inset-left));
