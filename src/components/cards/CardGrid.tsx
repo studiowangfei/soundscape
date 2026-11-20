@@ -15,9 +15,9 @@ const STEP = 250 + 13;
  * The song's cards in one row along the foot of the page, running off its right edge (13px apart, snapping card by
  * card). One card opens at a time: its tile hides while the open card (CardDetail) grows out of it and shrinks back.
  * Fingers and sideways trackpad swipes scroll the row natively; a swipe past either end never turns into the
- * browser's back/forward (overscroll-x-contain). Up and down are the page's (they turn the song: useSongTurn), but for
- * a mouse wheel, which has no other way along the row: over it, it moves the row a card per notch, and never turns the
- * song. `cards`: the song's own, then visitors' comments, then the end card (row.ts). `mobile`: the cards' variant on
+ * browser's back/forward (overscroll-x-contain). Up and down on it, a finger's or a trackpad's, do nothing (they turn
+ * the song elsewhere: useSongTurn), but for a mouse wheel, which has no other way along the row: over it, it moves the
+ * row a card per notch. `cards`: the song's own, then visitors' comments, then the end card (row.ts). `mobile`: the cards' variant on
  * phones (Tune → Cards). `style`: the row's own (the page's exit drift).
  */
 export function CardGrid({ cards, mobile = "standard", className = "", style }: { cards: RowCard[]; mobile?: MobileCard; className?: string; style?: React.CSSProperties }) {
@@ -58,8 +58,15 @@ export function CardGrid({ cards, mobile = "standard", className = "", style }: 
   return (
     <>
       {/* The row starts about the cards' own gap under the player (12px; 13 on phones), and on phones the cards between
-          the first and the last come to rest in the middle of the screen (CardTile's snap). */}
-      <div ref={row} style={style} className={`scrollbar-hide flex snap-x snap-mandatory scroll-px-page gap-[13px] overflow-x-auto overscroll-x-contain px-page py-3 phone:pt-[13px] ${className}`}>
+          the first and the last come to rest in the middle of the screen (CardTile's snap). A finger moves it sideways
+          only: up and down on it, nothing moves (touch-pan-x, overflow-y-hidden: no page or row scrolling under it), and
+          the song doesn't turn, by finger or trackpad, nor the fog wipe (data-card-row: useSongTurn, backdrops/variants.tsx). */}
+      <div
+        ref={row}
+        data-card-row
+        style={style}
+        className={`scrollbar-hide flex snap-x snap-mandatory scroll-px-page gap-[13px] overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x touch-pinch-zoom px-page py-3 phone:pt-[13px] ${className}`}
+      >
         {cards.map((card, i) => (
           <CardTile
             key={card.id}
