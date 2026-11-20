@@ -322,6 +322,8 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       tabIndex={0}
       aria-activedescendant={`${id}-${centreRow}`}
       data-backdrop-ui
+      // Not a control to the fog: a press held still on it wipes (backdrops/variants.tsx), and the wheel lets go.
+      data-wheel
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
