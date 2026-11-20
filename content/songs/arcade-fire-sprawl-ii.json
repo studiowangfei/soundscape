@@ -1,0 +1,282 @@
+{
+  "slug": "arcade-fire-sprawl-ii",
+  "title": "Sprawl II (Mountains Beyond Mountains)",
+  "artist": "Arcade Fire",
+  "aliases": [
+    "Sprawl II"
+  ],
+  "releaseYear": 2010,
+  "addedAt": "2026-11-20",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=NuSbELCNloc",
+  "spotifyId": "0epAG0WWRlDMsMFJiE5c6I",
+  "youtubeMusicId": "XLDWUSt9uuo",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6d/62/68/6d6268bd-bb40-b1dc-5773-1cb5c89087a0/mzaf_7677968308299640139.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/sprawl-ii-mountains-beyond-mountains/1252757950?i=1252758325&uo=4"
+  },
+  "cover": {
+    "file": "arcade-fire-sprawl-ii.jpg",
+    "kind": "album",
+    "album": "The Suburbs",
+    "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/ea/9f/1a/ea9f1ab0-4cac-c925-590d-14461f676912/886446576510.jpg/3000x3000bb.jpg"
+  },
+  "provenance": {
+    "generator": "Soundscape card pipeline (design-6), chat session 2026-11-19/20",
+    "setNote": "2 background + 1 lyric + 4 comments + 2 versions + 1 TV card on top (design-4/6: screen cards sit above the 8). Owner swap 2026-11-20: @lizzieolsenwife (4K) and @missmissMelissa (338) in for @jassandhar9442 (1.5K) and @davek2687 (954); the owner judged the angel-song comment's center to be the three-year search and directed it in over the 280-char shown-text cap (~540 chars, shipped whole). It is the set's only mourning-centered card.",
+    "observed": "2026-11-19",
+    "uploads": "Pools (Top sort, harvested 2026-11-19; tops re-read, no mismatches): NuSbELCNloc, official video, Arcade Fire channel (10M views, 3,390 comments, top 150); rH_7_XRfTMs, hummingquietly fan upload (5.7M views, 1,857 comments, top 150); XLDWUSt9uuo, official audio on the band's channel (3.7M views, all 77 top-level read of a 113-comment heading that counts replies) — also the entry's youtubeMusicId. Versions checked: Soulwax remix Fn_5Iws10s0 (1,114,735 views), Live in New Orleans Jwm6DQSO8jw (1,145,265 views), Josh Turner cover _pheCYgy34U (171,423 views; alternate, not carded). Reply threads fetched only for the 11 shortlisted comments plus @lizzieolsenwife after the swap (leaner harvest, 2026-11-14 rule). Like counts for the official video's top comments are YouTube's rounded displays (4K/3K/2.7K/1.5K), stored as 4000/3000/2700/1500 where used.",
+    "researchNotes": "Identity: iTunes trackId 1252758325, collectionId 1252757950 'The Suburbs' (artistName + collectionName verified before use); MusicBrainz release-group first release 2010 → releaseYear 2010; Spotify 0epAG0WWRlDMsMFJiE5c6I via kworb (artist id from MusicBrainz url-rels). Lyric: Genius song 1340; winning referent 39321 (+45) with 7 quoting comments. TV card: Stuart Fails to Save the Universe (HBO Max), S1 finale 'Spoiler: Filmed Before a Live Studio Audience' aired 2026-09-24, closes with the song (Processed Media review; TV Insider); poster is the show's key art via Wikipedia, 259×384 native."
+  },
+  "cards": [
+    {
+      "id": "arcade-fire-sprawl-ii-g1",
+      "type": "background",
+      "headline": "Mountains beyond mountains",
+      "snippet": "The subtitle comes from Tracy Kidder's 2003 book Mountains Beyond Mountains, about Dr. Paul Farmer's work in Haiti — its title a Haitian Kreyòl proverb for obstacles that never end. Régine Chassagne sings lead on the album's synth-pop outlier, trading the band's orchestral swell for a sequencer pulse as she plays a singer ordered back to her day job.",
+      "context": "Win Butler cited Kidder's book as the song's primary inspiration in Vanity Fair, August 2010.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Sprawl_II_(Mountains_Beyond_Mountains)",
+      "sourceDate": "2010-08-02"
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g2",
+      "type": "background",
+      "headline": "The video that danced back",
+      "snippet": "Vincent Morisset directed two videos, both released December 13, 2011: a traditional one following Chassagne through a paper-mâché suburb, and an interactive twin in which the viewer dances in front of a webcam to speed the song up — stand still and it slows to a dirge. The song closed the decade on Pitchfork's and NME's best-of-the-2010s lists.",
+      "context": "Pitchfork named it Best New Track on release; it ranks #50 (Pitchfork) and #20 (NME) for the 2010s.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Sprawl_II_(Mountains_Beyond_Mountains)",
+      "sourceDate": "2010-08-02"
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g3",
+      "type": "lyric",
+      "headline": "Told to punch the clock",
+      "snippet": "The song opens with its singer ordered off the stage of her own life: singing is treated as a disturbance, and the day job's clock is the cure. Genius annotators hear 'pretentious' as a jab returned — the word critics kept hanging on Arcade Fire themselves.",
+      "context": "It is the line listeners quote back most; one calls 'punch the clock' the most triggering lyric they know.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/39321",
+      "sourceDate": "2010-08-02",
+      "lyric": {
+        "excerptOrTimestamp": "They heard me singing and they told me to stop\nQuit these pretentious things and just punch the clock",
+        "lyricSource": "The Suburbs, 2010",
+        "reusePermission": "Short quotation (1-2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "7 quoting comments across the three uploads' top-150 pools: @shellysanders8418 (74 likes), @jeffs1546 (16), @sakelambo91 (15), @jesstowns10 (8), @jayclarke7081 (6), @AllAroundTheSun (0), @miiiikku (0). Genius annotation +45, the song's most-voted. Next line scored 5 ('I need the darkness; someone, please cut the lights!'). Full-lyric posts set aside as transcriptions.",
+        "reactionCardIds": []
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g4",
+      "type": "comment",
+      "headline": "The angel song, found after three years",
+      "snippet": "ive been looking for this song for 3 years, its my dads favorite song and he used to play it for me when i was a kid and we would dance around the living room. he passed away in 2018 and all ive been doing is looking for this song and i just remembered me calling it the angel song because he told mne the women singing were angels. i looked up arcade fire angel song so many times i cant count. then i remembered seeing something about mountains. i found it now and i can finally just listen to it.",
+      "context": "The official video's top comment: a three-year search for 'the angel song' she danced to with her father, found again from one remembered word — mountains.",
+      "source": {
+        "name": "YouTube — Arcade Fire",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=NuSbELCNloc",
+      "sourceDate": null,
+      "comment": {
+        "author": "@lizzieolsenwife",
+        "commentId": null,
+        "likesObserved": 4000,
+        "observedAt": "2026-11-19",
+        "replies": [
+          {
+            "author": "@antigonesdirge",
+            "commentId": null,
+            "text": "I'm elated you've found it :) your da had great taste",
+            "likesObserved": 146
+          },
+          {
+            "author": "@MiraRose0267",
+            "commentId": null,
+            "text": "I am almost definitely right around your father's age, if not older, and this song reminds me of the people I love the very most... I feel safe in my assumption that he adored you infinitely ❤️",
+            "likesObserved": 37
+          }
+        ]
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g5",
+      "type": "comment",
+      "headline": "Getting ready for my mall job",
+      "snippet": "i get ready for my mall job to this song",
+      "context": "She gets ready for her job at the mall to the song about dead malls — the thread can't decide if that ruins it or completes it.",
+      "source": {
+        "name": "YouTube — hummingquietly",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=rH_7_XRfTMs",
+      "sourceDate": null,
+      "comment": {
+        "author": "@missmissMelissa",
+        "commentId": null,
+        "likesObserved": 338,
+        "observedAt": "2026-11-19",
+        "replies": [
+          {
+            "author": "@robodude44",
+            "commentId": null,
+            "text": "That would ruin it for me. I'd just think of my job every time I heard it",
+            "likesObserved": 17
+          },
+          {
+            "author": "@GrizzHam99",
+            "commentId": null,
+            "text": "dead shopping malls rise like mountains beyond mountains",
+            "likesObserved": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g6",
+      "type": "comment",
+      "headline": "Nostalgic on the second listen",
+      "snippet": "How does every single Arcade Fire song manage to make you feel so nostalgic? This is only my second time hearing this song and I feel like I've known this band forever. I love coming across bands like this so much <3",
+      "context": "Nostalgia on a second listen — the replies credit the '80s voices the song channels.",
+      "source": {
+        "name": "YouTube — Arcade Fire",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=NuSbELCNloc",
+      "sourceDate": null,
+      "comment": {
+        "author": "@SparklyGutz",
+        "commentId": null,
+        "likesObserved": 761,
+        "observedAt": "2026-11-19",
+        "replies": [
+          {
+            "author": "@AnotherOrangeJulius",
+            "commentId": null,
+            "text": "Because it sound like ABBA.",
+            "likesObserved": 7
+          },
+          {
+            "author": "@AdamBlack",
+            "commentId": null,
+            "text": "siouxsie and the Banshees , kate bush . youve forgotten their music  but they live in you waiting a reminder",
+            "likesObserved": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g7",
+      "type": "comment",
+      "headline": "She dances as if no one's watching",
+      "snippet": "I love everything about Regine, from her child-like mannerisms, to the way she dances as if no ones watching. She's such an inspiration to me.",
+      "context": "On the official video, where Chassagne dances through a paper suburb in a sequined dress.",
+      "source": {
+        "name": "YouTube — Arcade Fire",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=NuSbELCNloc",
+      "sourceDate": null,
+      "comment": {
+        "author": "@NoPlanesGo",
+        "commentId": null,
+        "likesObserved": 744,
+        "observedAt": "2026-11-19",
+        "replies": [
+          {
+            "author": "@ninaperssonsv",
+            "commentId": null,
+            "text": "The Canadian Björk",
+            "likesObserved": 16
+          },
+          {
+            "author": "@anNovaFX",
+            "commentId": null,
+            "text": "Don't infantilize her.",
+            "likesObserved": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g8",
+      "type": "version",
+      "headline": "Soulwax takes it to the disco",
+      "snippet": "Soulwax's remix, previewed on BBC Radio 1 in March 2012 and released that April, stretches the song past six minutes of filter-disco; it has 1.1 million views on Soulwax's channel. One listener: \"Arcade Fire + Soulwax = The Knife\"",
+      "source": {
+        "name": "YouTube — Soulwax Official",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=Fn_5Iws10s0",
+      "sourceDate": "2012-04-10",
+      "version": {
+        "performer": "Soulwax",
+        "versionLabel": "Soulwax remix (2012)",
+        "popularityObserved": "1,114,735 views · 11,544 likes · 401 comments (YouTube, 19 Nov 2026)",
+        "observedAt": "2026-11-19"
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g9",
+      "type": "version",
+      "headline": "Two voices in an empty room",
+      "snippet": "In the summer of 2020 Win Butler and Régine Chassagne performed the song as a duo in New Orleans, her voice over keyboards in an empty room; the video, posted that September, has 1.1 million views. One listener: \"Neighbours: 'People next door are doing Arcade Fire Karaoke.'\"",
+      "source": {
+        "name": "YouTube — Arcade Fire",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=Jwm6DQSO8jw",
+      "sourceDate": "2020-09-07",
+      "version": {
+        "performer": "Arcade Fire",
+        "versionLabel": "Live in New Orleans (2020)",
+        "popularityObserved": "1,145,265 views · 25,586 likes · 1,711 comments (YouTube, 19 Nov 2026)",
+        "observedAt": "2026-11-19"
+      }
+    },
+    {
+      "id": "arcade-fire-sprawl-ii-g10",
+      "type": "film",
+      "headline": "Closes the Stuart Fails finale",
+      "snippet": "The Big Bang Theory spinoff ends its first season (September 24, 2026) with its characters walking off the studio lot into the dark as this song begins — the finale's closing music, and the cue reviewers singled out. Its effect is still visible: the official video's newest comments are full of viewers the finale sent there.",
+      "context": "Processed Media called the ending 'incredibly poignant'; HBO Max renewed the show for a second season.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Stuart_Fails_to_Save_the_Universe",
+      "sourceDate": "2026-09-24",
+      "supporting": [
+        {
+          "label": "Processed Media — Review: 'Spoiler: Filmed Before a Live Studio Audience'",
+          "url": "https://processedmedia.net/stuart-fails-to-save-the-universe-spoiler-filmed-before-a-live-studio-audience-review/"
+        },
+        {
+          "label": "TV Insider — 'Stuart Fails' Bosses on Breaking the Fourth Wall in Meta Finale",
+          "url": "https://www.tvinsider.com/1293013/stuart-fails-to-save-the-universe-season-1-finale-explained-chuck-lorre-exlusive/"
+        }
+      ],
+      "film": {
+        "association": "The Big Bang Theory spinoff ends its first season (September 24, 2026) with its characters walking off the studio lot into the dark as this song begins — the finale's closing music, and the cue reviewers singled out. Its effect is still visible: the official video's newest comments are full of viewers the finale sent there.",
+        "title": "Stuart Fails to Save the Universe",
+        "year": 2026,
+        "kind": "tv",
+        "poster": {
+          "file": "arcade-fire-sprawl-ii-g10.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/17/Stuart_Fails_to_Save_the_Universe.jpg"
+        }
+      }
+    }
+  ]
+}
