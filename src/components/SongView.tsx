@@ -30,8 +30,8 @@ import { useTypeface } from "./useTypeface";
 /**
  * One song, laid out after the Figma song page: the title, artist and preview player at the top left, and the cards in
  * a row along the foot of the window, over the cover backdrop; on phones (the Figma's mobile frame) the player joins
- * the cards at the foot. (Spacing in px: 64 from the left and the header 64 from the top on desktops and tablets, the cards 40 from the bottom.
- * The design's wordmark is hidden for now.) Up and down turn to the next and previous song (useSongTurn: a swipe, the
+ * the cards at the foot. (Spacing in px: 64 from the left and the header 64 from the top on desktops and tablets, the
+ * cards 28 from the bottom, 13 on phones, their own gap. The design's wordmark is hidden for now.) Up and down turn to the next and previous song (useSongTurn: a swipe, the
  * wheel, ↑ / ↓; docs/plans/2026-11-17-song-paging-design.md), as ⏮ / ⏭ do.
  */
 export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { entry: Entry; visitors?: VisitorComment[]; songs: NavSong[]; titles: string[]; icons?: Record<string, string> }) {
@@ -139,13 +139,14 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
         </svg>
       </Link>
       {/* The title and artist at the top left of the window on every screen (on phones as the Figma's mobile frame has
-          them: 20px in from the top and the left, stopping 12px short of the close button's circle). Side margins keep
-          clear of a notch (px-page), and on phones the top clears the status bar. The title's box starts at its capitals
-          (text-box trim), so the gap above the letters looks as wide as the one to their left (the line height had put
-          them 6-8px lower). */}
-      <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-page pt-16 phone:pt-[max(1.25rem,env(safe-area-inset-top))] phone:pr-[calc(max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))_+_var(--corner-box,40px)*29/32_+_12px)]`}>
+          them, 20px in from the left). The title runs as wide as there's room for, on one line where it fits: on the
+          right it stops short of the close button's circle (px-beside-close, which keeps clear of a notch too). Its box
+          starts at its capitals (text-box trim), so the gap above the letters looks as wide as the one to their left
+          (the line height had put them 6-8px lower); on phones they come level with the top of the close button's
+          circle (its corner, plus the 3/32 of its box above the circle), which clears the status bar. */}
+      <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-beside-close pt-16 phone:pt-[calc(var(--corner-top)_+_var(--corner-box,40px)*3/32)]`}>
         <Entrance>
-          <h1 className="max-w-[56rem] font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
+          <h1 className="font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
         </Entrance>
         {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
         <Entrance as="p" className="mt-1 text-[24px] text-white">
@@ -161,8 +162,9 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
           block, after the space, held at the foot. */}
       <div className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
         {/* The player stays put from song to song (no entrance coming from another song's page); its cover changes with
-            the backdrop (PlayerCover). */}
-        <div className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
+            the backdrop (PlayerCover). A finger wipes the fog behind it only after holding still (data-wipe-hold:
+            backdrops/variants.tsx), as it's mostly controls. */}
+        <div data-wipe-hold className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
           <Entrance stayFrom="song">
             <PreviewBar cover={backdrop.cover} coverDrift={turnTune.coverDrift} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href, to, dir) => go(href, "song", to, { dir })} />
           </Entrance>
@@ -171,7 +173,8 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
           cards={rowCards(entry.cards, visitors, entry.slug)}
           mobile={mobileCard.variant}
           style={outShift}
-          className={`${fade} ${out === "landing" ? "translate-y-1.5" : ""} ${out ? "opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static`}
+          // On phones the row ends the cards' own gap above the window's bottom (13px), clear of the home indicator.
+          className={`${fade} ${out === "landing" ? "translate-y-1.5" : ""} ${out ? "opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static phone:pb-[max(13px,env(safe-area-inset-bottom))]`}
         />
       </div>
       <div className="order-2 min-h-10 flex-1 phone:order-1" />

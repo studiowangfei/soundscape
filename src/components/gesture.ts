@@ -1,8 +1,8 @@
 /**
- * Who a touch belongs to, when several things follow it at the window: on the landing page a drag turns the wheel; on
- * every page a press held still wipes the fog (and on song pages a plain drag scrolls, or wipes at once where nothing
- * would scroll: backdrops/variants.tsx). The first to claim a pointer
- * keeps it until it lifts; the others let it go.
+ * Who a touch belongs to, when several things follow it at the window: on the landing page a drag turns the wheel and
+ * a press held still wipes the fog; on a song page that fits the window a finger wipes unless it's thrown (a swipe,
+ * turning the song: paging.ts touchIntent), and where the page scrolls a press held still wipes (backdrops/variants.tsx).
+ * The first to claim a pointer keeps it until it lifts (or gives it back); the others let it go.
  */
 const owners = new Map<number, string>();
 
@@ -38,9 +38,29 @@ export function release(pointerId: number) {
   owners.delete(pointerId);
 }
 
+const givenBack = new Set<(pointerId: number, who: string) => void>();
+
 /**
- * On touch screens a press held this long, the finger still, wipes the fog; moving off sooner turns or scrolls instead.
- * Short (the user found 280 ms hard to hit, 2026-10-30): a deliberate touch-then-drag gets there, a flick doesn't.
+ * `who` lets the pointer go before it lifts, as never theirs: the fog standing down from a press that turns out to have
+ * been a drag or a swipe (its moves handled late, after the hold was up). Heard by onGiveBack, e.g. so a swipe turns the
+ * song after all.
+ */
+export function giveBack(pointerId: number, who: string) {
+  if (owners.get(pointerId) !== who) return;
+  owners.delete(pointerId);
+  for (const fn of givenBack) fn(pointerId, who);
+}
+
+/** Hears every giveBack. Returns the unsubscribe. */
+export function onGiveBack(fn: (pointerId: number, who: string) => void) {
+  givenBack.add(fn);
+  return () => void givenBack.delete(fn);
+}
+
+/**
+ * On touch screens a press held this long, the finger still, wipes the fog; moving off sooner turns or scrolls instead
+ * (on a song page that fits, it's told by its pace instead: paging.ts touchIntent). Short (the user found 280 ms hard to
+ * hit, 2026-10-30): a deliberate touch-then-drag gets there, a flick doesn't.
  */
 export const HOLD_MS = 160;
 /**

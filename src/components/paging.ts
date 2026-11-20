@@ -2,8 +2,10 @@
  * Turning a song page to the next or previous song (the landing wheel's order) by a vertical gesture: a finger's swipe,
  * a trackpad swipe or mouse wheel notch, ↑ / ↓ (docs/plans/2026-11-17-song-paging-design.md). Next is below, as on
  * the landing wheel: swipe up, scroll down or ↓ for the next song. Each rule here decides one gesture, from what the
- * page saw of it (useSongTurn wires them to the window); pure, so it's tested in Node.
+ * page saw of it (useSongTurn wires them to the window); pure, so it's tested in Node. And on the fog, whether a finger
+ * wipes it or swipes (touchIntent).
  */
+import { HOLD_MS } from "./gesture";
 
 /** 1: the next song; -1: the previous one. */
 export type PageDir = 1 | -1;
@@ -25,6 +27,8 @@ export type TouchSwipe = {
   atBottom: boolean;
   /** Pinch-zoomed in: a finger pans the zoomed-in view. */
   zoomed: boolean;
+  /** It started on the card row, which is swiped sideways only (a trackpad's swipe over it doesn't turn either: useSongTurn). */
+  onRow: boolean;
 };
 
 /**
@@ -34,13 +38,44 @@ export type TouchSwipe = {
 export const TOUCH_TURN = { minPx: 40, ratio: 1.5, quickMs: 450, longPx: 140 };
 
 export function touchTurn(s: TouchSwipe): PageDir | 0 {
-  if (s.fog || s.multi || s.zoomed || s.scrolled) return 0;
+  if (s.fog || s.multi || s.zoomed || s.scrolled || s.onRow) return 0;
   const dist = Math.abs(s.dy);
   if (dist < TOUCH_TURN.minPx || dist < Math.abs(s.dx) * TOUCH_TURN.ratio) return 0;
   if (s.ms > TOUCH_TURN.quickMs && dist < TOUCH_TURN.longPx) return 0;
   const dir: PageDir = s.dy < 0 ? 1 : -1;
   // On a page that scrolls, only from the end the swipe goes past (up past the bottom: the next song).
   return (dir === 1 ? s.atBottom : s.atTop) ? dir : 0;
+}
+
+/** Where a finger was on the fog, and when (ms), from where it pressed. */
+export type TouchPoint = { t: number; x: number; y: number };
+
+/**
+ * A finger moving off the fog swipes if it's thrown: once this far (px) from where it pressed, it's judged by its speed
+ * over its last `ms`: at least `flick` px/ms is a swipe. (A flick is still speeding up by then, so it's judged by how
+ * fast it's going now, not on average.)
+ */
+export const WIPE_PACE = { px: 24, ms: 32, flick: 0.45 };
+/** A frame (ms): a finger sends a move a frame, while it moves. */
+const FRAME = 16;
+
+/**
+ * On a song page that fits the window, whether a finger on the fog wipes it or swipes (a swipe turns the song, which
+ * touchTurn decides): a finger resting, rubbing or dragging along wipes; one thrown off swipes, even after a rest. Held
+ * within WIPE_PACE.px of where it pressed for HOLD_MS (`now`, if no move came since), it wipes. null: not yet known.
+ * (Where a drag has to stay the page's, a page that scrolls, the landing page's wheel, a press held still wipes and
+ * any move is the page's: backdrops/variants.tsx.)
+ */
+export function touchIntent(path: TouchPoint[], now = path[path.length - 1].t): "wipe" | "swipe" | null {
+  const first = path[0];
+  const last = path[path.length - 1];
+  if (Math.hypot(last.x - first.x, last.y - first.y) <= WIPE_PACE.px) return now - first.t >= HOLD_MS ? "wipe" : null;
+  const i = Math.max(0, path.findLastIndex((p) => p.t <= last.t - WIPE_PACE.ms));
+  const [from, next] = [path[i], path[i + 1]];
+  // Still, it sends nothing: one quiet since `from` set off at most a frame before its next move (a rest, then a flick).
+  const since = Math.max(from.t, next.t - FRAME);
+  const speed = Math.hypot(last.x - from.x, last.y - from.y) / Math.max(1, last.t - since);
+  return speed >= WIPE_PACE.flick ? "swipe" : "wipe";
 }
 
 /** A trackpad swipe turns the song once it has moved this many px… */

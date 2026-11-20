@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { onClaim } from "./gesture";
+import { onClaim, onGiveBack } from "./gesture";
 import { wheelAction } from "./landing/wheel";
 import { keyTurn, touchTurn, WheelTurn, type PageDir } from "./paging";
 
@@ -15,6 +15,8 @@ const cardOpen = () => !!document.querySelector("[data-card-dialog]");
 const typingIn = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || !!t.closest("input, textarea, select"));
 /** Where a gesture is never a turn: the open card, the Tune panel, form fields. */
 const outOfBounds = (t: EventTarget | null) => typingIn(t) || (t instanceof Element && !!t.closest("[data-card-dialog], [data-backdrop-ui]"));
+/** Over the card row: it's swiped sideways, so up and down on it, by finger or trackpad, never turn. */
+const onCards = (t: EventTarget | null) => t instanceof Element && !!t.closest("[data-card-row]");
 
 /** Whether a wheel's `dy` scrolls something under `target`: a box that can still scroll that way, or the page. */
 function scrollsWith(target: EventTarget | null, dy: number): boolean {
@@ -42,19 +44,20 @@ export function useSongTurn(onTurn: (dir: PageDir) => void) {
       const action = wheelAction(e);
       // Pinches, sideways scrolls (the card row's), and what the card row took (a mouse wheel moves it) aren't turns.
       if (action === "ignore" || e.defaultPrevented || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const blocked = cardOpen() || outOfBounds(e.target) || scrollsWith(e.target, e.deltaY);
+      // A swipe over the cards never turns, its momentum included (blocked: WheelTurn sits the whole swipe out).
+      const blocked = cardOpen() || outOfBounds(e.target) || onCards(e.target) || scrollsWith(e.target, e.deltaY);
       const dir = wheelTurn.wheel(e.deltaY, action, e.timeStamp, blocked);
       if (dir) turn.current(dir);
     };
 
     // A finger, from touchstart to touchend. Touch events go on even once the browser has taken the touch (to scroll),
     // which pointer events don't.
-    let touch: { x: number; y: number; t: number; scroll: number; top: boolean; bottom: boolean; fog: boolean; multi: boolean } | null = null;
+    let touch: { x: number; y: number; t: number; scroll: number; top: boolean; bottom: boolean; fog: boolean; multi: boolean; onRow: boolean } | null = null;
     const onTouchStart = (e: TouchEvent) => {
       if (touch) return void (touch.multi = true);
       const f = e.touches[0];
       if (e.touches.length !== 1 || !f || cardOpen() || outOfBounds(e.target)) return;
-      touch = { x: f.clientX, y: f.clientY, t: e.timeStamp, scroll: page().scrollTop, top: atTop(), bottom: atBottom(), fog: false, multi: false };
+      touch = { x: f.clientX, y: f.clientY, t: e.timeStamp, scroll: page().scrollTop, top: atTop(), bottom: atBottom(), fog: false, multi: false, onRow: onCards(e.target) };
     };
     const onTouchEnd = (e: TouchEvent) => {
       const t = touch;
@@ -63,12 +66,16 @@ export function useSongTurn(onTurn: (dir: PageDir) => void) {
       touch = null;
       if (e.type === "touchcancel") return;
       const zoomed = (window.visualViewport?.scale ?? 1) > 1.01;
-      const dir = touchTurn({ dx: f.clientX - t.x, dy: f.clientY - t.y, ms: e.timeStamp - t.t, fog: t.fog, multi: t.multi, scrolled: page().scrollTop !== t.scroll, atTop: t.top, atBottom: t.bottom, zoomed });
+      const dir = touchTurn({ dx: f.clientX - t.x, dy: f.clientY - t.y, ms: e.timeStamp - t.t, fog: t.fog, multi: t.multi, scrolled: page().scrollTop !== t.scroll, atTop: t.top, atBottom: t.bottom, zoomed, onRow: t.onRow });
       if (dir) turn.current(dir);
     };
-    // A press held still wipes the fog (backdrops/variants.tsx): that touch isn't a swipe.
+    // A finger wiping the fog (backdrops/variants.tsx) isn't swiping; unless the fog gives it back, finding it was a
+    // swipe after all (its moves handled late).
     const offClaim = onClaim((_, who) => {
       if (who === "fog" && touch) touch.fog = true;
+    });
+    const offGiveBack = onGiveBack((_, who) => {
+      if (who === "fog" && touch) touch.fog = false;
     });
 
     const onKey = (e: KeyboardEvent) => {
@@ -85,6 +92,7 @@ export function useSongTurn(onTurn: (dir: PageDir) => void) {
     window.addEventListener("keydown", onKey);
     return () => {
       offClaim();
+      offGiveBack();
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);

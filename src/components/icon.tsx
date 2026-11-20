@@ -20,9 +20,11 @@ export const EMOJI_INK = 0.98;
  */
 export const ICON_HOVER = "opacity-[var(--icon-a,0.5)] transition-opacity hover:opacity-100";
 
-/** The top right corner, 20px in (or clear of a phone's notch and rounded corner: the page runs edge to edge). */
-export const TOP_RIGHT =
-  "fixed top-[max(1.25rem,calc(env(safe-area-inset-top)+0.5rem))] right-[max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))] z-30 grid place-items-center";
+/**
+ * The top right corner, 20px in (or clear of a phone's notch and rounded corner: the page runs edge to edge; globals.css
+ * --corner-top, --corner-right, which the song page's header lines up with).
+ */
+export const TOP_RIGHT = "fixed top-(--corner-top) right-(--corner-right) z-30 grid place-items-center";
 
 /** The bottom right corner, the same way in (clear of a phone's home indicator and rounded corner). */
 export const BOTTOM_RIGHT =
