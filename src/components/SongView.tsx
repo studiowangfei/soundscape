@@ -127,8 +127,8 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
           e.preventDefault();
           go("/", "landing");
         }}
-        aria-label="Close, back to all songs"
-        title="Back to all songs"
+        aria-label="Close, back to song wheel"
+        title="Back to song wheel"
         className={`${TOP_RIGHT} ${ICON_HOVER} text-[rgb(var(--icon))] ${box ? "" : "invisible"}`}
         // The landing search bar arrow's colour and opacity (Tune → Search bar), so the two read as one set of icons.
         style={{ width: box ?? 0, height: box ?? 0, "--icon": look.iconColor, "--icon-a": look.arrowOpacity } as React.CSSProperties}
