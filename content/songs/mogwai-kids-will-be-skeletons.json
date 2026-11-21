@@ -1,0 +1,240 @@
+{
+  "slug": "mogwai-kids-will-be-skeletons",
+  "title": "Kids Will Be Skeletons",
+  "artist": "Mogwai",
+  "aliases": [],
+  "releaseYear": 2003,
+  "addedAt": "2026-11-21",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=cHXohV72Tf0",
+  "spotifyId": "3xogCrlDsnIZ7nQo8VvRL6",
+  "youtubeMusicId": "cHXohV72Tf0",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e8/c0/cf/e8c0cf8e-5064-1e9c-accd-c98964cfca77/mzaf_14239310426869540576.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/kids-will-be-skeletons/273173399?i=273173619&uo=4"
+  },
+  "cover": {
+    "file": "mogwai-kids-will-be-skeletons.jpg",
+    "kind": "album",
+    "album": "Happy Songs for Happy People",
+    "sourceUrl": "https://coverartarchive.org/release/b08b6714-83e7-4ea3-b9c6-af2221250657/8334643687.jpg"
+  },
+  "provenance": {
+    "generator": "Soundscape card pipeline (design-6), chat session 2026-11-21",
+    "setNote": "2 background + 4 comments + 2 versions + 1 TV card on top (design-4/6: screen cards sit above the 8). No lyric card: the track is instrumental and its Genius page has zero annotated lines. Owner revision 2026-11-21: the first draft's game-framed comment cards (@oddholed 1.8K, @jennastewart1509 1.5K, @peeper2070 399) were removed at his direction ('I don't want those comments about the game'); the comment set was rebuilt likes-first from song-centered comments, all four from the official upload. @namescavenger8477 (125) was flagged to him as borderline (its last line puns on the game's title) and published with the set as presented. The set ships with no mourning-centered card: the highest under-cap bereavement comment (@phillip6098, 85) ranked below the comment cutoff on likes, so the bereavement cap never binds. Version-card listener quotes are 1 and 2 likes - the only live recordings are small fan uploads; no official live upload exists.",
+    "observed": "2026-11-21",
+    "uploads": "Pools (Top sort, harvested 2026-11-21; tops settle-and-re-read, no unresolved mismatches): A = 8PxS8wA1ES4, King_WCKD 'Life Is Strange Soundtrack' upload (1.2M views, 411-comment heading, top 150 read); B = cHXohV72Tf0, official mogwaiTV upload (1.1M views, 194-comment heading incl. replies; all 97 top-level comments YouTube serves in Top sort) - also the entry's youtubeUrl/youtubeMusicId; C = 3yDaqY5R3iM, BulletNG LiS cutscene montage (130K views, 113-comment heading, all 62 top-level read). Reply threads fetched only for the 10 shortlisted comments (leaner harvest, 2026-11-14 rule); replies beginning with an @-mention or bare name-address were passed over per the display filter. Versions checked: SXSW 2006 fan recording 0occZV-UBvE (32,555 views), Philadelphia 2008 bfNSM8-JWsE (8,845), New Orleans 2009 53_k4HAiC1c (8,075; top comment a game quote, not carded), Pavia 2018 __r3a7xtoW4 (5,764), bass cover JW7q2wPWjz4 (6,810), loop cover Z1_JyiMZYO8 (5,956).",
+    "researchNotes": "Identity: iTunes trackId 273173619, collectionId 273173399 'Happy Songs for Happy People' (artistName + collectionName verified before use); MusicBrainz release-group first release 2003-05-21, album released 17 Jun 2003 -> releaseYear 2003; Spotify 3xogCrlDsnIZ7nQo8VvRL6 via kworb (artist 34UhPkLbtFKRq3nmfFgejG). TV card: After Life S1 E1/E3/E5 placements (all 8 Mar 2019) documented by Tunefind with care-home scene notes and by WhatSong; poster is the series' Wikipedia title screen (the article carries no poster; 424x235 PNG converted to JPG at native size, no upscaling). Not carded: Life Is Strange (a game; the schema's screen kinds are film|tv, so its story is told on background card g2), The Giant Mechanical Man (2012; Tunefind/WhatSong list the song but no source describes the placement - below the strong-use bar), and a commenter's Sex and the City S6E3 claim (unverified; Tunefind does not list it)."
+  },
+  "cards": [
+    {
+      "id": "mogwai-kids-will-be-skeletons-g1",
+      "type": "background",
+      "headline": "Happy songs, no singers",
+      "snippet": "Track three on Happy Songs for Happy People, recorded at CaVa Studios in Glasgow with producer Tony Doogan and released in June 2003. It is the album where Mogwai leaned away from guitar squall toward synths, piano and strings - and nobody really sings: Stuart Braithwaite does not sing on the record at all, and the few vocals that appear are gibberish. An instrumental built from a handful of notes, named like a warning.",
+      "context": "The album reached No. 47 in the UK and later went gold in Europe; this track became its longest-lived song.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Happy_Songs_for_Happy_People",
+      "sourceDate": "2003-06-17"
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g2",
+      "type": "background",
+      "headline": "The bus ride at the end of the world",
+      "snippet": "In May 2015 the song closed 'Chaos Theory', the third episode of the adventure game Life Is Strange: Max rides the bus back to her friend Chloe's house as the track plays, arriving at a door that opens onto a rewritten life. The placement made the song the game's emotional signature - it sits on the official soundtrack album, and the two biggest uploads of the song on YouTube are both filed under the game's name, a decade of players arriving through the same scene.",
+      "context": "For a generation of listeners this is not a Mogwai song that was used in a game; it is the sound of that episode ending.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/Life_Is_Strange_(video_game)",
+      "sourceDate": "2003-06-17"
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g3",
+      "type": "comment",
+      "headline": "A quieter room in a loud house",
+      "snippet": "This song is so good because it overlays my parents voices arguing so I'm able to put my self somewhere peaceful in my mind.",
+      "context": "Posted under the band's official upload: the song as a quieter room inside a loud house.",
+      "source": {
+        "name": "YouTube — mogwaiTV",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=cHXohV72Tf0",
+      "sourceDate": null,
+      "comment": {
+        "author": "@jaquisefartin",
+        "commentId": null,
+        "likesObserved": 355,
+        "observedAt": "2026-11-21",
+        "replies": [
+          {
+            "author": "@josephcooper5225",
+            "commentId": null,
+            "text": "Things will get better, you’re loved and you’re amazing, keep going because there’s always someone who believes in you ❤️",
+            "likesObserved": 27
+          },
+          {
+            "author": "@mr.strongopinionman8507",
+            "commentId": null,
+            "text": "Feel you. It's a living hell, it destroys you psychologically and all I wanna do is run away as soon as possible.",
+            "likesObserved": 24
+          }
+        ]
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g4",
+      "type": "comment",
+      "headline": "Four notes are enough",
+      "snippet": "A E D, A E C#\n\nTurns out you don't need anymore notes for a peaceful song.",
+      "context": "A listener counts off the song's whole harmonic world in four notes - and finds that is enough.",
+      "source": {
+        "name": "YouTube — mogwaiTV",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=cHXohV72Tf0",
+      "sourceDate": null,
+      "comment": {
+        "author": "@thecosmicblueautistic",
+        "commentId": null,
+        "likesObserved": 184,
+        "observedAt": "2026-11-21",
+        "replies": [
+          {
+            "author": "@gossamer999",
+            "commentId": null,
+            "text": "To destress, I like to bust out my bass and play these notes along with the song. <3 i almost fall asleep sometimes",
+            "likesObserved": 11
+          }
+        ]
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g5",
+      "type": "comment",
+      "headline": "Damn, that sounds familiar",
+      "snippet": "\"Damn that sound familiar\"\n\n\"HOLY FUCK ITS MOGWAI!!\"\n\nlife is truly strange",
+      "context": "The recognition moment: a song half-remembered from somewhere else lands on the band's own upload.",
+      "source": {
+        "name": "YouTube — mogwaiTV",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=cHXohV72Tf0",
+      "sourceDate": null,
+      "comment": {
+        "author": "@namescavenger8477",
+        "commentId": null,
+        "likesObserved": 125,
+        "observedAt": "2026-11-21",
+        "replies": []
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g6",
+      "type": "comment",
+      "headline": "How quickly time flies",
+      "snippet": "This song makes me realize how quickly time flies, but I still often think about unimportant things and go through my days without big meaning. I'm now in grade 3 of high school, but I'm still filled with doubts about my future.",
+      "context": "A high-school listener hears his own uncertainty in the song's slow build.",
+      "source": {
+        "name": "YouTube — mogwaiTV",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=cHXohV72Tf0",
+      "sourceDate": null,
+      "comment": {
+        "author": "@saputra911",
+        "commentId": null,
+        "likesObserved": 113,
+        "observedAt": "2026-11-21",
+        "replies": [
+          {
+            "author": "@GoldenBJean1983",
+            "commentId": null,
+            "text": "Trust me, I know how you feel, buddy. I’m 21 and I still don’t have it all figured out, feeling lost a lot of the time, but what I can tell you is this; go out, try new things, meet new people, make great memories. Live life now instead of thinking you need to wait for a passion or purpose to be alive. You’ll find it so long as you put yourself out there. I know some days are hard, but what’s lost can be found. We’re in this ocean of uncertainty and chaos together. You’re not alone.",
+            "likesObserved": 10
+          },
+          {
+            "author": "@Δ-Δ-Δ-Δ",
+            "commentId": null,
+            "text": "You remind me of myself.\n\nDon't worry, for me... everything sorted itself out pretty much fine.\n\nJust don't overthink.\n\nLive in the moment.",
+            "likesObserved": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g7",
+      "type": "version",
+      "headline": "Live at Stubb's, SXSW 2006",
+      "snippet": "A fan-shot recording from Stubb's in Austin on March 15, 2006, with Mogwai playing SXSW three years after the album - one of the oldest live clips of the song on YouTube, watched more than 32,000 times. One listener: \"this is one of two songs in the world that can bring a tear to my eye.\"",
+      "source": {
+        "name": "YouTube — gumptioneer",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=0occZV-UBvE",
+      "sourceDate": "2006-05-23",
+      "version": {
+        "performer": "Mogwai",
+        "versionLabel": "Live at Stubb's, SXSW, Austin (2006)",
+        "popularityObserved": "32,555 views (YouTube, 21 Nov 2026)",
+        "observedAt": "2026-11-21"
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g8",
+      "type": "version",
+      "headline": "Live in Philadelphia, 2008",
+      "snippet": "Filmed from the crowd at the Starlight Ballroom in Philadelphia on September 19, 2008, and watched more than 8,800 times. One listener: \"Gotta love the bass in this song, this and mogwai fear satan are few of the best songs I've ever heard\"",
+      "source": {
+        "name": "YouTube — Twistedmonkey434",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=bfNSM8-JWsE",
+      "sourceDate": "2008-09-29",
+      "version": {
+        "performer": "Mogwai",
+        "versionLabel": "Live at Starlight Ballroom, Philadelphia (2008)",
+        "popularityObserved": "8,845 views (YouTube, 21 Nov 2026)",
+        "observedAt": "2026-11-21"
+      }
+    },
+    {
+      "id": "mogwai-kids-will-be-skeletons-g9",
+      "type": "film",
+      "headline": "Three visits to the care home",
+      "snippet": "Ricky Gervais's grief comedy keeps coming back to this song: it plays three times across the first season of After Life (2019), each time around Tony's visits to his father in the care home - arriving to see him, talking to the nurse, looking at the building from outside. A show about a man learning to live after loss scores its tenderest storyline with a wordless Mogwai track.",
+      "context": "All three placements sit in the care-home storyline, the show's emotional core.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/After_Life_(TV_series)",
+      "sourceDate": "2019-03-08",
+      "supporting": [
+        {
+          "label": "Tunefind — the song in After Life S1 E1, E3 and E5",
+          "url": "https://www.tunefind.com/song/mogwai/kids-will-be-skeletons"
+        },
+        {
+          "label": "WhatSong — After Life Season 1 soundtrack",
+          "url": "https://www.what-song.com/Tvshow/100417/After-Life/e/114092"
+        }
+      ],
+      "film": {
+        "association": "Ricky Gervais's grief comedy keeps coming back to this song: it plays three times across the first season of After Life (2019), each time around Tony's visits to his father in the care home - arriving to see him, talking to the nurse, looking at the building from outside. A show about a man learning to live after loss scores its tenderest storyline with a wordless Mogwai track.",
+        "title": "After Life",
+        "year": 2019,
+        "kind": "tv",
+        "poster": {
+          "file": "mogwai-kids-will-be-skeletons-g9.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Title_screen_for_the_Netflix_series%2C_After_Life.png"
+        }
+      }
+    }
+  ]
+}
