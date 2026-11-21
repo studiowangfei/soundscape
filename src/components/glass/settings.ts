@@ -6,7 +6,7 @@
  * tested in Node; the React side is in Glass.tsx.
  */
 import { defaults, type Param, type Params } from "../backdrops/params";
-import { LENS_POWER } from "./map";
+import { EDGE_SHAPES, LENS_POWER, type EdgeShape } from "./map";
 
 export const GLASS_STORE = "soundscape.glass";
 
@@ -31,13 +31,18 @@ export const GLASS_PARAMS: Param[] = [
   // Black below zero, white above (as Fill below).
   { key: "canvasFill", label: "Tint (dark – light)", min: -0.8, max: 0.5, step: 0.01, value: 0.1, when: "canvas" },
   { key: "canvasBorder", label: "Border (white)", min: 0, max: 0.5, step: 0.01, value: 0.1, when: "canvas" },
-  // 1 bends the rim as far as it goes before the view folds over (see map.ts); above that, a mirrored sliver.
+  // The bend at the rim, in half Edge widths (the same at the rim whatever the Edge shape). With the soft shape 1 bends
+  // the rim as far as it goes before the view folds over (see map.ts); above that, a mirrored sliver. The squircle
+  // folds from about 0.4.
   { key: "refraction", label: "Refraction", min: 0, max: 1.6, step: 0.05, value: 1.6 },
   // How far in from the rim the bend reaches; it builds gradually over all of it (map.ts), so wide is smooth.
   { key: "edge", label: "Edge width", min: 6, max: 120, step: 1, value: 30, unit: "px" },
-  { key: "frost", label: "Frost", min: 0, max: 30, step: 0.5, value: 4, unit: "px" },
+  // How the bend falls off across the edge (map.ts): Soft, ours, gently over all of it; Squircle, from the
+  // @zakisheriff/liquid-glass library, nearly all of it at the rim (at Edge width 16, its own cards' edge).
+  { key: "edgeShape", label: "Edge shape", min: 0, max: EDGE_SHAPES.length - 1, step: 1, value: 0, options: ["Soft", "Squircle"] },
+  { key: "frost", label: "Frost", min: 0, max: 30, step: 0.5, value: 3, unit: "px" },
   { key: "glow", label: "Edge glow", min: 0, max: 1, step: 0.05, value: 0.3 },
-  { key: "light", label: "Edge light", min: 0, max: 1, step: 0.05, value: 0.5 },
+  { key: "light", label: "Edge light", min: 0, max: 1, step: 0.05, value: 0.3 },
   { key: "dispersion", label: "Dispersion", min: 0, max: 0.3, step: 0.01, value: 0 },
   { key: "fill", label: "Fill (dark – light)", min: -0.6, max: 0.3, step: 0.01, value: 0.05 },
   { key: "vibrancy", label: "Vibrancy", min: 0.5, max: 2.5, step: 0.05, value: 1.5 },
@@ -70,7 +75,7 @@ export function glassToSave(s: Params): Params {
 export type GlassKind = "card" | "expanded" | "player";
 
 /**
- * One pane's glass: corner radius, bezel width and the most the bezel bends the view (px), frost (px), edge glow,
+ * One pane's glass: corner radius, bezel width, its shape and the most the bezel bends the view (px), frost (px), edge glow,
  * rim light, dispersion (how far apart red and blue bend), fill, vibrancy and shade (see shadeCurve). `canvas`: Canvas
  * UI's glass instead, its frost a plain CSS blur, brightened by `lift`, and a border (`ring`, its white's opacity) in
  * place of the rim light.
@@ -78,6 +83,8 @@ export type GlassKind = "card" | "expanded" | "player";
 export type GlassLook = {
   radius: number;
   bezel: number;
+  /** How the bend falls off across the bezel (map.ts). */
+  shape: EdgeShape;
   refraction: number;
   frost: number;
   glow: number;
@@ -108,11 +115,12 @@ export function glassLook(kind: GlassKind, s: Params): GlassLook {
   const k = KINDS[kind];
   // The open card is the same as its tile here, so it grows out of it with nothing changing on the way.
   if (s.canvas && kind !== "player")
-    return { radius: k.radius, bezel: 0, refraction: 0, frost: s.canvasBlur, glow: 0, light: 0, dispersion: 0, fill: s.canvasFill, vibrancy: s.canvasSaturate, shade: 0, canvas: true, lift: s.canvasLift, ring: s.canvasBorder };
+    return { radius: k.radius, bezel: 0, shape: "soft", refraction: 0, frost: s.canvasBlur, glow: 0, light: 0, dispersion: 0, fill: s.canvasFill, vibrancy: s.canvasSaturate, shade: 0, canvas: true, lift: s.canvasLift, ring: s.canvasBorder };
   const bezel = Math.min(kind === "player" ? PLAYER_HEIGHT / 2 : Infinity, Math.round(s.edge * k.bezel));
   return {
     radius: k.radius,
     bezel,
+    shape: EDGE_SHAPES[Math.round(s.edgeShape)] ?? "soft",
     refraction: (s.refraction * bezel) / LENS_POWER,
     frost: s.frost * k.frost + (kind === "expanded" ? 14 * s.openOpacity : 0),
     glow: s.glow,

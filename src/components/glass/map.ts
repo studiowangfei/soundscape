@@ -5,18 +5,55 @@
  * in Node; Glass.tsx draws it to a canvas.
  */
 
-/** The lens profile's exponent: the bend falls off as (1 − t)² across the bezel. */
+/** The soft profile's exponent: the bend falls off as (1 − t)² across the bezel. */
 export const LENS_POWER = 2;
 
 /**
- * How strongly the bezel bends the view at each depth into it, from the rim (index 0, the full bend) to where the
- * glass turns flat (last, none): (1 − t)^LENS_POWER. Pulling the view inward like this magnifies the backdrop towards
- * the rim, the way a thick convex edge does; it folds over (a mirrored sliver at the rim) only once the bend exceeds
- * bezel / LENS_POWER, so that's what a Refraction of 1 means (see settings.ts).
+ * The bezel's shape across its width (Tune → Glass → Edge shape), by position in EDGE_SHAPES (the dropdown's order):
+ * - soft (ours, the default): the bend falls off as (1 − t)², gently, over the whole bezel.
+ * - squircle (from @zakisheriff/liquid-glass, MIT, github.com/zakisheriff/Liquid-Glass): light refracted (Snell's law,
+ *   glass's index 1.5) through an edge whose cross-section is a convex squircle, (1 − (1 − t)⁴)^¼. Nearly all its bend
+ *   sits right at the rim: a quarter of the way in it keeps about a quarter of it (soft: half), and it's all but flat
+ *   past halfway, so the edge reads as a thin, hard bevel on flat glass.
  */
-export function lensProfile(samples: number): Float32Array {
+export const EDGE_SHAPES = ["soft", "squircle"] as const;
+export type EdgeShape = (typeof EDGE_SHAPES)[number];
+
+/** The squircle's index of refraction (glass). */
+const IOR = 1.5;
+
+/**
+ * The squircle bezel's sideways shift at depth t (0 at the rim, 1 where it turns flat), unscaled: the angle between a
+ * ray entering the curved surface and the same ray refracted, times the glass's height there (thicker glass, longer
+ * path; the 0.35 keeps the rim itself bending). t starts just inside the rim, where the slope is infinite.
+ */
+function squircleShift(t: number): number {
+  const q = 1 - Math.max(0.002, t);
+  const base = 1 - q ** 4;
+  const slope = q ** 3 / Math.max(1e-4, base ** 0.75);
+  const incident = Math.atan(slope);
+  const refracted = Math.asin(Math.sin(incident) / IOR);
+  return Math.tan(incident - refracted) * (0.35 + 0.65 * base ** 0.25);
+}
+
+/**
+ * How strongly the bezel bends the view at each depth into it, from the rim (index 0) to where the glass turns flat
+ * (last, none), at most 1 (the full bend, Refraction in settings.ts). Pulling the view inward like this magnifies the
+ * backdrop towards the rim, the way a thick convex edge does. Soft is (1 − t)^LENS_POWER: it folds over (a mirrored
+ * sliver at the rim) only once the bend exceeds bezel / LENS_POWER, so that's what a Refraction of 1 means. The
+ * squircle, peaking a hair inside the rim and falling faster, folds from a Refraction of about 0.4; at the default
+ * (1.6) it folds as far as the library's own cards do.
+ */
+export function lensProfile(samples: number, shape: EdgeShape = "soft"): Float32Array {
   const out = new Float32Array(samples);
-  for (let i = 0; i < samples; i++) out[i] = (1 - i / (samples - 1)) ** LENS_POWER;
+  for (let i = 0; i < samples; i++) {
+    const t = i / (samples - 1);
+    out[i] = shape === "squircle" ? squircleShift(t) : (1 - t) ** LENS_POWER;
+  }
+  if (shape === "squircle") {
+    const peak = Math.max(...out);
+    for (let i = 0; i < samples; i++) out[i] /= peak;
+  }
   return out;
 }
 

@@ -3,13 +3,13 @@
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { TuneSection } from "../backdrops/Backdrop";
 import type { Params } from "../backdrops/params";
-import { displacementMap, lensProfile } from "./map";
+import { displacementMap, lensProfile, type EdgeShape } from "./map";
 import { fillColor, GLASS_PARAMS, GLASS_STORE, glassDefaults, glassLook, glassToSave, readGlass, shadeCurve, type GlassKind, type GlassLook } from "./settings";
 
 /**
  * Liquid Glass panes. A pane is any element with the `glass` class and the style from useGlass(): its backdrop runs
  * through an SVG filter (Chromium; see glassBoot) that bends the view towards the rounded edge like a lens (the map
- * from map.ts), building gradually from the middle, then frosts it all evenly, lets it glow a little towards the rim
+ * from map.ts, in the edge shape set in Tune), building from the middle, then frosts it all evenly, lets it glow a little towards the rim
  * and lifts the colours. Other browsers get frost alone. Panes put the filter inside themselves and a GlassEdge (the light on the rim) last. No blend modes anywhere:
  * in Chrome they pull layers in front of the open card. With Canvas UI's glass on (Tune → Glass, cards only) a pane is
  * plain CSS in every browser instead: its backdrop blurred (and lifted, if set), under a tint, a hairline border for its
@@ -47,17 +47,18 @@ export function useGlassTune(): { settings: Params; section: TuneSection } {
   };
 }
 
-// The refraction maps, drawn once per pane size (all the cards share one).
-const PROFILE = lensProfile(256);
+// The refraction maps, drawn once per pane size and edge shape (all the cards share one).
+const profiles = new Map<EdgeShape, Float32Array>();
+const profile = (shape: EdgeShape) => profiles.get(shape) ?? profiles.set(shape, lensProfile(256, shape)).get(shape)!;
 const maps = new Map<string, string>();
-function mapUrl(width: number, height: number, radius: number, bezel: number) {
-  const key = `${width}x${height}/${radius}/${bezel}`;
+function mapUrl(width: number, height: number, radius: number, bezel: number, shape: EdgeShape) {
+  const key = `${width}x${height}/${radius}/${bezel}/${shape}`;
   let url = maps.get(key);
   if (!url) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    canvas.getContext("2d")!.putImageData(new ImageData(displacementMap({ width, height, radius, bezel }, PROFILE), width, height), 0, 0);
+    canvas.getContext("2d")!.putImageData(new ImageData(displacementMap({ width, height, radius, bezel }, profile(shape)), width, height), 0, 0);
     url = canvas.toDataURL();
     maps.set(key, url);
   }
@@ -113,7 +114,7 @@ export function useGlass(kind: GlassKind, { sync = false }: { sync?: boolean } =
     if (w > 0 && h > 0) setSize({ w, h }); // before the first paint, so the first frame has the map
   }, [sync]);
 
-  const map = size && !look.canvas ? mapUrl(size.w, size.h, look.radius, look.bezel) : null;
+  const map = size && !look.canvas ? mapUrl(size.w, size.h, look.radius, look.bezel, look.shape) : null;
 
   // Every displacement pass (three with dispersion: red, green and blue bend by slightly different amounts) takes the
   // bend times its own share, data-k.
