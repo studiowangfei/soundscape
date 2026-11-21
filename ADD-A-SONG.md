@@ -120,6 +120,11 @@ A song with Chinese in it needs nothing extra: every build makes the site's Chin
 characters in `content/`, fetching it from Google Fonts (`scripts/sync-cjk-font.mts`; the build log says "made the
 Chinese typeface: … for N characters"). So `npm run build` needs a network connection.
 
+The Soundscape iPhone app needs nothing extra either: every build also writes the app's copy of the content to
+`public/app/v1/` (`scripts/sync-app-content.mts`; the build log says "made the app's content: N songs, …"), so a song you
+add, and a visitor comment that's merged, reach the app with that deploy. Those files are made by the build: never edit
+or commit them.
+
 ## Pushing
 
 - One song per commit, titled `Add <Artist> – <Title>`.

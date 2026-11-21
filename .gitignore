@@ -46,3 +46,5 @@ next-env.d.ts
 /public/posters/
 /public/icons/
 /public/fonts/
+/public/app/
+/public/.well-known/apple-app-site-association

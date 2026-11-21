@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts --soft",
+    "predev": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts --soft && tsx scripts/sync-app-content.mts",
     "dev": "next dev",
-    "prebuild": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts",
+    "prebuild": "tsx scripts/sync-covers.mts && tsx scripts/check-content.mts && tsx scripts/sync-cjk-font.mts && tsx scripts/sync-app-content.mts",
     "build": "next build",
     "start": "next start -p 3200",
     "lint": "eslint",

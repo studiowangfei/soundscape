@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
     return [
       ...["covers", "posters", "icons"].map((dir) => ({ source: `/${dir}/:file*`, headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] })),
       { source: "/fonts/:dir/:file([0-9a-f]{12}\\.woff2)", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      // The iPhone app's content (src/content/app-export.ts): the index for a minute, so a new song shows in the app soon
+      // after a deploy; each song's file for good (its name changes with its contents).
+      { source: "/app/v1/index.json", headers: [{ key: "Cache-Control", value: "public, max-age=60" }] },
+      { source: "/app/v1/songs/:file([a-z0-9-]+\\.[0-9a-f]{12}\\.json)", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      // Song links open in the app (served once IOS_APP_ID is set; Apple wants it as JSON, though it has no extension).
+      { source: "/.well-known/apple-app-site-association", headers: [{ key: "Content-Type", value: "application/json" }] },
     ];
   },
   turbopack: {
