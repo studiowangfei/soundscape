@@ -4,24 +4,15 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { EntryCard } from "@/content/schema";
 import { GlassEdge, useGlass } from "../glass/Glass";
 import { Attribution } from "./Attribution";
-import { startSeconds, TYPE_LABEL, youtubeId, ytThumb } from "./meta";
+import { cardMedia, TYPE_LABEL } from "./meta";
 import { PosterStage } from "./PosterStage";
 import { isEntryCard, rowCardLabel, type RowCard } from "./row";
 import { quoted, TILE_HEADLINE as HEADLINE, TILE_LABEL as LABEL } from "./styles";
 import { EndTileFace, VisitorTileFace } from "./VisitorFaces";
 import { CjkMedium } from "../CjkMedium";
 
-
-/**
- * A card's picture on the Content kind: the video (its thumbnail, id, and where to start: a long set is linked at the
- * moment the song plays), or the film's poster. Null when it has none.
- */
-export function cardMedia(card: EntryCard): { video: string; id: string; start: number } | { poster: string; title: string } | null {
-  const vid = card.type === "version" ? youtubeId(card.url) : null;
-  if (vid) return { video: ytThumb(vid), id: vid, start: startSeconds(card.url) };
-  if (card.type === "film" && card.film?.poster) return { poster: `/posters/${card.film.poster.file}`, title: card.film.title };
-  return null;
-}
+// cardMedia moved to meta.ts (pure, so the iPhone app's content export can use it); still exported from here.
+export { cardMedia };
 
 /**
  * A quoted line, “ text ”, cut at a word to the lines its box allows (its max-height), the closing mark kept after

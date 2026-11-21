@@ -18,7 +18,8 @@ import type { VisitorComment } from "@/content/visitors";
 import { keyStaysInForm, startsInField } from "./form";
 import { linkParts } from "./linkify";
 import { VisitorForm } from "./VisitorForm";
-import { pagerFade, pagerStep } from "./switch";
+import { pagerFade, pagerStep, SidewaysWheel, SWIPE_DISTANCE } from "./switch";
+import { wheelAction } from "../landing/wheel";
 import { CjkMedium } from "../CjkMedium";
 
 type Props = {
@@ -30,8 +31,8 @@ type Props = {
   onClosed: () => void;
   /** The tile is the short variant on phones (Tune → Cards). */
   short?: boolean;
-  /** The cards either side in the row, if there are any, and how to move to one: swiping the card sideways (touch) or
-   * the arrow keys move to them. */
+  /** The cards either side in the row, if there are any, and how to move to one: swiping the card sideways (a finger,
+   * a trackpad) or the arrow keys move to them. */
   step?: { prev: boolean; next: boolean; go: (dir: -1 | 1, from?: number) => void };
   /** Arrived by a swipe from this side (1: from the right, -1: from the left): it slides in, rather than growing out of
    * its tile, and takes the last card's place in the history. */
@@ -54,9 +55,10 @@ const CLOSE = { type: "spring", stiffness: 340, damping: 36, mass: 1 } as const;
 // from wherever the finger let go.
 const PAGER = { type: "tween", duration: 0.46, ease: [0.32, 0.72, 0, 1] } as const;
 const SPRING_BACK = { type: "spring", stiffness: 500, damping: 40 } as const;
-/** How far a sideways swipe must go (px), or how fast (px/s), to move to the next card. */
-const SWIPE_DISTANCE = 80;
+/** How fast a finger's sideways swipe must go (px/s), if not far enough (SWIPE_DISTANCE), to move to the next card. */
 const SWIPE_SPEED = 500;
+// A trackpad's sideways swipes, for the whole visit: the next card is a new CardDetail under the same swipe.
+const sideways = new SidewaysWheel();
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -84,7 +86,7 @@ function holdPage() {
  * everything (a portal on <body>), the whole page dimmed and blurred behind it; on phones, 8 px in from the sides
  * (globals.css .card-stage). It grows out of its tile and shrinks back into it (morph.ts): laid out in place, drawn
  * over the tile, and eased there, its glass one pane throughout (nothing cross-fades, so nothing flashes). The tile's
- * face fades out as the card's own content fades in. Swiped sideways (touch), or with the arrow keys, it moves on to the
+ * face fades out as the card's own content fades in. Swiped sideways (a finger, a trackpad), or with the arrow keys, it moves on to the
  * next or previous card in the row, as Tune → Card switch says (the row scrolls to its tile, so closing goes back there). Closes
  * on Escape, a click outside, the browser's Back (an open card is a step in the history, so Android's back and iOS's
  * swipe back close it rather than leave the song), or, by touch, dragging it down from the top of its content. The page
@@ -340,6 +342,37 @@ export function CardDetail({ card, tile, onClosed, short = false, step, enter = 
       el.removeEventListener("touchcancel", onEnd);
     };
   }, [close, draw, dragY, dragX, progress, step, moveOn]);
+
+  // A trackpad: a sideways swipe over the card moves to the next or previous card as a finger's does: the card follows
+  // the fingers and, once it has gone far enough, slides away as the other slides in; one that stops short springs back
+  // once the wheel pauses. One card a swipe, its momentum included; a mouse wheel's sideways notch moves on at once
+  // (switch.ts SidewaysWheel). Up and down still scroll the card's content.
+  useEffect(() => {
+    const el = pane.current;
+    if (!el) return;
+    let rest = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault(); // nothing else moves sideways (nor does the browser go back a page)
+      const action = wheelAction({ deltaMode: e.deltaMode, deltaY: e.deltaX, ctrlKey: e.ctrlKey, wheelDeltaY: (e as WheelEvent & { wheelDeltaX?: number }).wheelDeltaX });
+      if (action === "ignore") return;
+      // Every sideways event counts towards the swipe it's part of, even one this card lets be (on its way out, its
+      // momentum running on), so the next card can tell the swipe's rest from a new one.
+      const busy = closing.current || leavingRef.current || !step;
+      const out = sideways.wheel(e.deltaX, action === "notch", e.timeStamp, dragX.get(), (dir) => !busy && !!(dir > 0 ? step?.next : step?.prev));
+      if (!out || busy) return;
+      clearTimeout(rest);
+      if ("go" in out) return moveOn(out.go);
+      dragX.stop();
+      dragX.set(out.drag);
+      rest = window.setTimeout(() => !closing.current && animate(dragX, 0, SPRING_BACK), 180);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      clearTimeout(rest);
+      el.removeEventListener("wheel", onWheel);
+    };
+  }, [dragX, moveOn, step]);
 
   useEffect(() => {
     // Escape while a video is full screen only leaves full screen (the browser's own), not the card too. The arrow keys

@@ -1,4 +1,4 @@
-import type { CardType } from "@/content/schema";
+import type { CardType, EntryCard } from "@/content/schema";
 
 /** The label at the top of each card (set in capitals), as the design names the three kinds. */
 export const TYPE_LABEL: Record<CardType, string> = {
@@ -45,6 +45,17 @@ export function startSeconds(url: string): number {
 
 /** hqdefault exists for every video; object-cover at 16:9 crops its letterbox bars. */
 export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+/**
+ * A card's picture on the Content kind: the video (its thumbnail, id, and where to start: a long set is linked at the
+ * moment the song plays), or the film's poster. Null when it has none.
+ */
+export function cardMedia(card: EntryCard): { video: string; id: string; start: number } | { poster: string; title: string } | null {
+  const vid = card.type === "version" ? youtubeId(card.url) : null;
+  if (vid) return { video: ytThumb(vid), id: vid, start: startSeconds(card.url) };
+  if (card.type === "film" && card.film?.poster) return { poster: `/posters/${card.film.poster.file}`, title: card.film.title };
+  return null;
+}
 
 export function formatDate(d: string | null | undefined): string | null {
   if (!d) return null;
