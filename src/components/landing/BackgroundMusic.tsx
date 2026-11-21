@@ -21,9 +21,10 @@ export function BackgroundMusic({ src, box }: { src: string | null | undefined; 
       emoji={on ? "🔊" : "🔇"}
       box={box}
       onClick={toggle}
+      // "Sound", on or off (a screen reader says which: aria-pressed).
       aria-pressed={on}
-      aria-label={on ? "Mute the music" : "Play the music"}
-      title={on ? "Mute the music" : "Play the music"}
+      aria-label="Sound"
+      title="Sound"
       className={LANDING_MUSIC}
     />
   );

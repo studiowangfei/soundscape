@@ -17,7 +17,7 @@ import { BackgroundMusic } from "./BackgroundMusic";
 import { useSoundtrack } from "../player/Soundtrack";
 import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
-import { useTurnTune } from "../useTurnTune";
+import { COVER_CHANGE_DRIFT, useTurnTune } from "../useTurnTune";
 import { landingDrift, wheelWay } from "./drift-trial";
 import { useTypeface } from "../useTypeface";
 import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
@@ -142,7 +142,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
   // cover changing in place as the wheel rests.
   useStageScene(shown && song ? landingScene(song, tune.settings.fog, (arrived ?? rest) !== shown.i) : null);
   // Drift trial (landing/drift-trial.ts): which way the cover drifts as it changes, the way the wheel went.
-  const coverDrift = useTurnTune({ store: "soundscape.landing.drift", title: "Cover change" });
+  const coverDrift = useTurnTune({ store: "soundscape.landing.drift", title: "Cover change", spec: COVER_CHANGE_DRIFT });
   const lastShown = useRef<number | null>(null);
   useEffect(() => {
     if (!shown) return;
@@ -226,8 +226,8 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
               falls, clearing a trail (backdrops/variants.tsx, FogHandle.drip); on an iPhone its first tap also asks for
               the motion sensor, so shaking the phone lets drops fall too (ShakeDrops); like wiping, it holds the wheel still a
               while (AutoRotate). A random song. */}
-          <EmojiButton emoji="💧" box={start !== null ? box : null} pop onClick={() => (askMotion(), window.dispatchEvent(new Event(FOG_PLAYED)), stage.drip("landing"))} aria-label="Let a drop fall" title="Let a drop fall" className={LANDING_DROP} />
-          <EmojiButton emoji="🎲" box={start !== null ? box : null} pop onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="Random song" title="Random song" className={LANDING_DICE} />
+          <EmojiButton emoji="💧" box={start !== null ? box : null} pop onClick={() => (askMotion(), window.dispatchEvent(new Event(FOG_PLAYED)), stage.drip("landing"))} aria-label="Make it drop" title="Make it drop" className={LANDING_DROP} />
+          <EmojiButton emoji="🎲" box={start !== null ? box : null} pop onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="I'm feeling lucky" title="I'm feeling lucky" className={LANDING_DICE} />
           <BackgroundMusic src={shownSong ? shownSong.preview : undefined} box={box} />
           <Wordmark leaving={leaving} />
           <ShakeDrops ready={start !== null && !leaving} onDrop={() => stage.drip("landing")} />
