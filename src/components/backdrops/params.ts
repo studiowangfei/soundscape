@@ -122,6 +122,11 @@ export const PARAMS = {
     { key: "edgeSoft", label: "Edge softness", min: 0, max: 200, step: 5, value: 200, unit: "px" },
     brightness(0.8),
     { key: "glow", label: "Ambient glow", min: 0, max: 0.8, step: 0.05, value: 0 },
+    // Song pages: the window beside the cover (left of it on wide screens, below it on upright ones) tinted with the
+    // colours of the cover's edge next to it (side-tint.ts), at this strength where the fog's edge starts, falling off
+    // to `tintFar` of that at the window's edge.
+    { key: "tint", label: "Side tint", min: 0, max: 1, step: 0.05, value: 0.7 }, // tuned by the user, 2026-11-21
+    shownWhen("tint")({ key: "tintFar", label: "Side tint at the window's edge", min: 0, max: 1, step: 0.05, value: 0.1, unit: "×" }),
     ...zoom(20, 20),
   ],
   echo: [
