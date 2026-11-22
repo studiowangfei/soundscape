@@ -1,0 +1,191 @@
+{
+  "slug": "fka-twigs-closer",
+  "title": "Closer",
+  "artist": "FKA twigs",
+  "aliases": [],
+  "releaseYear": 2014,
+  "addedAt": "2026-11-22",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=I_3_m6kVeFw",
+  "spotifyId": "5sSV59D2IPCLxHFqzljMMO",
+  "youtubeMusicId": "I_3_m6kVeFw",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/fb/58/85/fb588564-f28e-4744-5c4d-6e5c316e34a0/mzaf_2459349300660953441.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/closer/1546107580?i=1546107605&uo=4"
+  },
+  "cover": {
+    "file": "fka-twigs-closer.jpg",
+    "kind": "album",
+    "album": "LP1",
+    "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/5d/4b/8e/5d4b8e65-8789-f72b-8748-3acc311c0e6f/889030011893.png/3000x3000bb.jpg"
+  },
+  "provenance": {
+    "generator": "Soundscape card pipeline (design-6), chat session 2026-11-22",
+    "setNote": "3 background + 4 comments + 1 version; no lyric card and no film card. The song was never a single and has no music video, so its YouTube footprint is exceptionally thin: all five uploads together hold 37 top-level comments, and the comment set is likes-first from that whole pool (top eligible likes 49/25/14/13 after the standing skips). A third background stands in for the missing second version, per the design doc's flex rule. No lyric card: exactly one comment quotes an annotated Genius line (@HandmadebyVWY, 9 likes, the five words 'all those years in isolation') against the >=3 threshold; the 40-like full-lyric transcription does not count, and the chorus carries no Genius annotation. No film card: the song plays in Transparent S2E6 'Bulnerable' (2015), but no source gives the placement scene-level prominence - below the strong-use bar. No mourning-centered comment exists in the pools, so the bereavement cap never binds.",
+    "observed": "2026-11-22",
+    "uploads": "Pools (Top sort, harvested 2026-11-22; every pool read in full and its top comments settle-and-re-read, no mismatches): A = I_3_m6kVeFw, official FKA twigs - Topic upload (119,298 views, 14 top-level comments) - also the entry's youtubeUrl/youtubeMusicId; B = _zuLtkZ-bVk, glossynth instrumental (17,672 views, 7 comments; its top comments ask about a different song); C = hR7VzoQECeM, Apselene fan edit pairing the song with the manga Oyasumi Punpun (8,735 views, 7 comments); D = 0Yth28D73Xk, OlaGoesToGigs Roundhouse live film, 19 Feb 2015 (8,963 views, 6 comments); E = Ub8vkmT-HFE, Atlantis Witch upload (7,104 views, 3 comments). Excluded: mashup _wFFBu3lFXM (three songs blended) and Danny Oliver XZzZkOQc2pM (0 comments). Reply threads fetched only for the three carded comments that have one (leaner harvest, 2026-11-14 rule). Versions checked: Roundhouse 20 Feb 2015 archangel ty H5sS8JyH9cs (4,509 views; carded), Roundhouse 19 Feb 2015 (pool D; folded into the one version card's facts), MasterAsthma Mix IvwjUZp9wkM (1,566 views, no comments), Son Of Goldie rework vAK7DOlMJJk (1,514), Milena Straczynski cover excerpt iNtn_CwNfoc (405 views, 0 comments) - no substantial cover of the song exists on YouTube; the KEXP full performance's setlist does not include 'Closer'.",
+    "researchNotes": "Identity: iTunes trackId 1546107605, collectionId 1546107580 'LP1' (artistName + collectionName verified before use); MusicBrainz LP1 release group first release 2014-08-06 -> releaseYear 2014; Spotify 5sSV59D2IPCLxHFqzljMMO via kworb (artist id from MusicBrainz url-rels). Track 8 of 10 on LP1 (Young Turks, 6 Aug 2014); writers FKA twigs + Tic; producers twigs with Cy An and Tic additional. Genius: 7 annotated referents, none for the chorus; top line the outro 'All those years in isolation / Isolation, isolation' (+25). Background g2 quotes twigs from Apple Music's Magdalene editorial notes (2019), where she calls 'Closer' 'essentially a hymn' and cites her choir childhood and Sunday school; g3 quotes The Line of Best Fit's LP1 review (8 Aug 2014), which calls the song the record's highlight."
+  },
+  "cards": [
+    {
+      "id": "fka-twigs-closer-g1",
+      "type": "background",
+      "headline": "Track eight on a monumental debut",
+      "snippet": "LP1, released by Young Turks on 6 August 2014, was FKA twigs' debut album, and it landed fully formed: Metacritic scored it 86, Pitchfork named it the second-best album of 2014, and it was shortlisted for the Mercury Prize. Twigs produced it with Arca, Emile Haynie, Clams Casino, Paul Epworth, Sampha, Dev Hynes and Tic. 'Closer' is the eighth of its ten tracks, written by twigs and Tic and produced by twigs, with Tic and Cy An adding guitar and drums — an album about desire and intimacy whose most devoted song is built like a hymn.",
+      "context": "The album frame: where 'Closer' sits on LP1, and who made it.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/LP1_(FKA_Twigs_album)",
+      "sourceDate": "2014-08-06"
+    },
+    {
+      "id": "fka-twigs-closer-g2",
+      "type": "background",
+      "headline": "'Essentially a hymn' — her words",
+      "snippet": "Asked about her sacred-music streak in 2019, twigs pointed back at this song herself: 'Even on LP1, I had “Closer”, which is essentially a hymn. I spent a lot of time in choir as a child and I went to Sunday school, so it's part of who I am.' She was listening to a lot of Gregorian music at the time, drawn to medieval chords. The lyric follows the upbringing: a beloved addressed as a saviour, footsteps in the sand, and a singer asking to be led to a place free from all the wrongs she does.",
+      "context": "Twigs on the song's roots, from Apple Music's Magdalene album notes (2019).",
+      "source": {
+        "name": "Apple Music",
+        "platform": "web"
+      },
+      "url": "https://music.apple.com/kh/album/magdalene/1477652618",
+      "sourceDate": "2019-11-08"
+    },
+    {
+      "id": "fka-twigs-closer-g3",
+      "type": "background",
+      "headline": "The highlight that ends on 'isolation'",
+      "snippet": "The Line of Best Fit called 'Closer' the record's highlight: 'a solemn hymn for a decrepit future', a tearjerk eulogy in a futuristic coating, carried by her choral coo and ambient R&B. What makes it strange is the landing. After three minutes of devotion — 'I'm here to be closer to you' — the song doesn't resolve; it ebbs away repeating a single word from its first verse: 'Isolation, isolation, isolation.'",
+      "context": "How the critics heard it in August 2014: devotion that dissolves into its opposite.",
+      "source": {
+        "name": "thelineofbestfit.com",
+        "platform": "web"
+      },
+      "url": "https://www.thelineofbestfit.com/reviews/albums/fka-twigs-lp1",
+      "sourceDate": "2014-08-08"
+    },
+    {
+      "id": "fka-twigs-closer-g4",
+      "type": "comment",
+      "headline": "Side effects include religious psychosis",
+      "snippet": "me after religious psychosis",
+      "context": "Four words under the official upload; the hymn joke writes itself, and the one reply just says 'real'.",
+      "source": {
+        "name": "YouTube — FKA twigs - Topic",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=I_3_m6kVeFw",
+      "sourceDate": null,
+      "comment": {
+        "author": "@eriycoo",
+        "commentId": null,
+        "likesObserved": 49,
+        "observedAt": "2026-11-22",
+        "replies": [
+          {
+            "author": "@alliebird3e",
+            "commentId": null,
+            "text": "real",
+            "likesObserved": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "fka-twigs-closer-g5",
+      "type": "comment",
+      "headline": "Björk-level within a decade",
+      "snippet": "this is such an exceptionally beautiful song. the hymnal elements with the beats and those profound lyrics. FKA twigs is such a visionary! everything she does is inventive. I believe that within the next decade she'll have solidified herself in BJORK level status!!!!!",
+      "context": "The fullest defense in the pool: the hymnal elements, the profound lyrics, and a ten-year prophecy.",
+      "source": {
+        "name": "YouTube — FKA twigs - Topic",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=I_3_m6kVeFw",
+      "sourceDate": null,
+      "comment": {
+        "author": "@thisiscrazy-q1q",
+        "commentId": null,
+        "likesObserved": 25,
+        "observedAt": "2026-11-22",
+        "replies": []
+      }
+    },
+    {
+      "id": "fka-twigs-closer-g6",
+      "type": "comment",
+      "headline": "Sung through tears, thinking of her baby",
+      "snippet": "I sing this with tears flowing as I think about my baby 🥹🫶",
+      "context": "The hymn as a lullaby: she sings it through tears, for her child.",
+      "source": {
+        "name": "YouTube — FKA twigs - Topic",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=I_3_m6kVeFw",
+      "sourceDate": null,
+      "comment": {
+        "author": "@J.PHD-",
+        "commentId": null,
+        "likesObserved": 14,
+        "observedAt": "2026-11-22",
+        "replies": [
+          {
+            "author": "@venusianworkshop",
+            "commentId": null,
+            "text": "awwww so cute",
+            "likesObserved": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "fka-twigs-closer-g7",
+      "type": "comment",
+      "headline": "She couldn't believe it was really her",
+      "snippet": "Okay so before clicking this video I was thinking in my head \"There is no way that the song is going to be Closer by FKA\" BUT THEN IT TURNS OUT TO BE THE SONG AND IM JUST SO HAPPY BECAUSE IT FITS SO WELL. VERY WELL DONE 10/10 <33",
+      "context": "From a fan edit pairing the song with the manga Oyasumi Punpun; the editor's own reply agrees the song is the whole point.",
+      "source": {
+        "name": "YouTube — Apselene",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=hR7VzoQECeM",
+      "sourceDate": null,
+      "comment": {
+        "author": "@akierr1reika",
+        "commentId": null,
+        "likesObserved": 13,
+        "observedAt": "2026-11-22",
+        "replies": [
+          {
+            "author": "@Apselene",
+            "commentId": null,
+            "text": "Omg thank you but seriously this is so lazily doneee (at least the typography) simply because I love the song and I was like LOOOK AT THIS PERFECT SONG ASSOCIATIONNNN haha\nMaybe ill redo this or make a new one and take my time",
+            "likesObserved": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "fka-twigs-closer-g8",
+      "type": "version",
+      "headline": "She almost never sings it on stage",
+      "snippet": "Fan-filmed at the Roundhouse in London on 20 February 2015, the second of two consecutive nights — the previous night's film is even titled 'Dancing to Closer'. She rarely performs the song live, and the listeners under both films say so. One listener: \"Yeeeeeees! OMG, I wondered why she never performed \"Closer\" on stage. This sounds more phenomenal than the studio version. She really brought a show to her stomping grounds.\"",
+      "context": "A fan film from the LP1-era Roundhouse run — the song's rare live outing, danced as much as sung.",
+      "source": {
+        "name": "YouTube — archangel ty",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=H5sS8JyH9cs",
+      "sourceDate": "2015-02-20",
+      "version": {
+        "performer": "FKA twigs",
+        "versionLabel": "Live at the Roundhouse, London (20 February 2015)",
+        "popularityObserved": "4,509 views (YouTube, observed 22 Nov 2026)",
+        "observedAt": "2026-11-22"
+      }
+    }
+  ]
+}
