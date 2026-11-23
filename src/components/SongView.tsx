@@ -30,7 +30,7 @@ import { useTypeface } from "./useTypeface";
 /**
  * One song, laid out after the Figma song page: the title, artist and preview player at the top left, and the cards in
  * a row along the foot of the window, over the cover backdrop; on phones (the Figma's mobile frame) the player joins
- * the cards at the foot. (Spacing in px: 64 from the left and the header 64 from the top on desktops and tablets, the
+ * the cards at the foot. (Spacing in px: 64 from the left and the header 40 from the top on desktops and tablets, the
  * cards 28 from the bottom, 13 on phones, their own gap. The design's wordmark is hidden for now.) Up and down turn to the next and previous song (useSongTurn: a swipe, the
  * wheel, ↑ / ↓; docs/plans/2026-11-17-song-paging-design.md), as ⏮ / ⏭ do.
  */
@@ -141,10 +141,10 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
       {/* The title and artist at the top left of the window on every screen (on phones as the Figma's mobile frame has
           them, 20px in from the left). The title runs as wide as there's room for, on one line where it fits: on the
           right it stops short of the close button's circle (px-beside-close, which keeps clear of a notch too). Its box
-          starts at its capitals (text-box trim), so the gap above the letters looks as wide as the one to their left
-          (the line height had put them 6-8px lower); on phones they come level with the top of the close button's
+          starts at its capitals (text-box trim), so the gap above the letters is the padding's 40px on desktops and
+          tablets (the line height had put them 6-8px lower); on phones they come level with the top of the close button's
           circle (its corner, plus the 3/32 of its box above the circle), which clears the status bar. */}
-      <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-beside-close pt-16 phone:pt-[calc(var(--corner-top)_+_var(--corner-box,40px)*3/32)]`}>
+      <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-beside-close pt-10 phone:pt-[calc(var(--corner-top)_+_var(--corner-box,40px)*3/32)]`}>
         <Entrance>
           <h1 className="font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
         </Entrance>

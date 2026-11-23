@@ -35,17 +35,17 @@ export const BOTTOM_LEFT =
   "fixed bottom-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.5rem))] left-[max(1.25rem,calc(env(safe-area-inset-left)+0.5rem))] z-30 grid place-items-center";
 
 /**
- * The landing page's emoji, placed as the Figma design has them (Desktop 263:13, Mobile 281:30). On desktops and tablets
- * in the corners, 36px in: the 💧 top right, the 🎲 bottom left, the music bottom right. On phones (`phone:`) in a row
- * along the bottom, 28px in: the 💧 on the left, the 🎲 in the middle, the music on the right. Always clear of a phone's
- * notch, home indicator and rounded corners.
+ * The landing page's emoji. On desktops and tablets in the corners, 36px in: the 💧 bottom left, the 🎲 bottom right, the
+ * music top right (moved from the Figma design's 💧 top right, 🎲 bottom left, music bottom right on 2026-11-22). On
+ * phones (`phone:`) as the Figma design has them (Mobile 281:30), in a row along the bottom, 28px in: the 💧 on the left,
+ * the 🎲 in the middle, the music on the right. Always clear of a phone's notch, home indicator and rounded corners.
  */
 export const LANDING_DROP =
-  "fixed z-30 grid place-items-center top-[max(36px,calc(env(safe-area-inset-top)+0.5rem))] right-[max(36px,calc(env(safe-area-inset-right)+0.5rem))] phone:top-auto phone:right-auto phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:left-[max(28px,calc(env(safe-area-inset-left)+0.5rem))]";
+  "fixed z-30 grid place-items-center bottom-[max(36px,calc(env(safe-area-inset-bottom)+0.5rem))] left-[max(36px,calc(env(safe-area-inset-left)+0.5rem))] phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:left-[max(28px,calc(env(safe-area-inset-left)+0.5rem))]";
 export const LANDING_DICE =
-  "fixed z-30 grid place-items-center bottom-[max(36px,calc(env(safe-area-inset-bottom)+0.5rem))] left-[max(36px,calc(env(safe-area-inset-left)+0.5rem))] phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:left-1/2 phone:-translate-x-1/2";
+  "fixed z-30 grid place-items-center bottom-[max(36px,calc(env(safe-area-inset-bottom)+0.5rem))] right-[max(36px,calc(env(safe-area-inset-right)+0.5rem))] phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:right-auto phone:left-1/2 phone:-translate-x-1/2";
 export const LANDING_MUSIC =
-  "fixed z-30 grid place-items-center bottom-[max(36px,calc(env(safe-area-inset-bottom)+0.5rem))] right-[max(36px,calc(env(safe-area-inset-right)+0.5rem))] phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:right-[max(28px,calc(env(safe-area-inset-right)+0.5rem))]";
+  "fixed z-30 grid place-items-center top-[max(36px,calc(env(safe-area-inset-top)+0.5rem))] right-[max(36px,calc(env(safe-area-inset-right)+0.5rem))] phone:top-auto phone:bottom-[max(28px,calc(env(safe-area-inset-bottom)+0.5rem))] phone:right-[max(28px,calc(env(safe-area-inset-right)+0.5rem))]";
 
 /**
  * An emoji as an icon button: drawn as big as the others in a box `box` px square (null: not measured yet, so hidden),
