@@ -199,6 +199,16 @@ export function pairShown(prev: Shown | null, to: number, art: LoadedArt | null,
 }
 
 /**
+ * The song whose music the landing plays, or null to carry on with what's playing: the background's song (`shown`,
+ * null before there is one), once the wheel has come to rest on it (`rest`) and isn't setting off elsewhere (`heading`).
+ * Never while the wheel turns: changing track (fading out, loading the next, starting it) right as the wheel slowed to
+ * a stop made it stutter on phones (2026-11-22), so the music follows "a moment after the wheel".
+ */
+export function musicSong(shown: number | null, rest: number, heading: number): number | null {
+  return shown !== null && shown === rest && heading === rest ? rest : null;
+}
+
+/**
  * The session key for the song the landing wheel shows when you come back: where it last rested, or the song page you
  * closed (its X sets it).
  */

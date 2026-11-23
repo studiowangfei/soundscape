@@ -14,13 +14,13 @@ import { FOG_PLAYED } from "../gesture";
 import { askMotion } from "./shake";
 import { ShakeDrops } from "./ShakeDrops";
 import { BackgroundMusic } from "./BackgroundMusic";
-import { useSoundtrack } from "../player/Soundtrack";
+import { useSoundtrackActions } from "../player/Soundtrack";
 import { Wordmark } from "./Wordmark";
 import { TUNING } from "../tuning";
 import { COVER_CHANGE_DRIFT, useTurnTune } from "../useTurnTune";
 import { landingDrift, wheelWay } from "./drift-trial";
 import { useTypeface } from "../useTypeface";
-import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
+import { iconBox, LANDING_FOCUS_KEY, LANDING_FOG_SPECS, landingScene, musicSong, pairShown, searchBarLook, sessionGet, sessionSet, useLandingSettings, wheelSettings, type Shown } from "./settings";
 import { SongWheel, type WheelHandle } from "./SongWheel";
 import { landingOrder, shuffleSongs, SORT_STORE, sortSongs, visitOrder, type SortKey } from "./sort";
 import { useWheelLayout } from "./useWheelLayout";
@@ -137,6 +137,8 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
     setShown((prev) => pairShown(prev, heading, art, (i) => `/covers/${songs[i].cover.file}`));
   }, [art, heading, songs]);
   const shownSong = shown ? songs[shown.i] : null;
+  // The music follows the background, once the wheel has come to rest on its song (musicSong).
+  const music = musicSong(shown ? shown.i : null, rest, heading);
   const song: Song | null = shownSong && { title: shownSong.title, artist: shownSong.artist, cover: `/covers/${shownSong.cover.file}`, coverKind: shownSong.cover.kind };
   // The backdrop is the site's one window (backdrops/Stage.tsx): the landing's pane on it, one for the whole visit, its
   // cover changing in place as the wheel rests.
@@ -171,7 +173,8 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
     gone.current = false;
     return () => void (gone.current = true); // gone already (Back): don't navigate after all
   }, []);
-  const soundtrack = useSoundtrack();
+  // Its actions only: the page isn't re-rendered as the music plays (that slowed the wheel).
+  const soundtrack = useSoundtrackActions();
   const open = (i: number, newTab: boolean) => {
     const s = songs[i];
     const url = `/songs/${s.slug}/`;
@@ -228,7 +231,7 @@ export function Landing({ songs: catalogue }: { songs: LandingSong[] }) {
               while (AutoRotate). A random song. */}
           <EmojiButton emoji="💧" box={start !== null ? box : null} pop onClick={() => (askMotion(), window.dispatchEvent(new Event(FOG_PLAYED)), stage.drip("landing"))} aria-label="Make it drop" title="Make it drop" className={LANDING_DROP} />
           <EmojiButton emoji="🎲" box={start !== null ? box : null} pop onClick={() => (onUser(), wheelRef.current?.roll())} aria-label="I'm feeling lucky" title="I'm feeling lucky" className={LANDING_DICE} />
-          <BackgroundMusic src={shownSong ? shownSong.preview : undefined} box={box} />
+          <BackgroundMusic src={music === null ? undefined : songs[music].preview} box={box} />
           <Wordmark leaving={leaving} />
           <ShakeDrops ready={start !== null && !leaving} onDrop={() => stage.drip("landing")} />
           <AutoRotate wheel={wheelRef} ready={start !== null && !leaving} song={rest} preview={songs[rest].preview} userAt={userAt} />
