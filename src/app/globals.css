@@ -26,7 +26,7 @@
   --foreground: #f3eee8;
   color-scheme: dark;
   /* The page's side margin; never less than a notched phone's safe area (held sideways). 20px on phones held upright,
-     80 held sideways, 64 on desktops and tablets (the song's name as far in from the left as from the top). */
+     80 held sideways, 64 on desktops and tablets. */
   --page-x: 1.25rem;
   /* The top right corner's inset (icon.tsx TOP_RIGHT: the song page's close button): 20px, or clear of a phone's notch
      and rounded corner. */
