@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { startsOnOpen } from "./music-choice";
 import { announcePlay, onOtherPlay } from "./youtube";
 
@@ -29,11 +29,25 @@ export type Soundtrack = {
   seek: (s: number) => void;
 };
 
+/** What can be asked of the soundtrack, without its state: the same functions for as long as the page is open. */
+export type SoundtrackActions = Pick<Soundtrack, "follow" | "open" | "toggle" | "seek">;
+
 const Ctx = createContext<Soundtrack | null>(null);
+const ActionsCtx = createContext<SoundtrackActions | null>(null);
 
 export function useSoundtrack(): Soundtrack {
   const s = useContext(Ctx);
   if (!s) throw new Error("useSoundtrack needs a SoundtrackProvider (app/layout.tsx)");
+  return s;
+}
+
+/**
+ * Only the soundtrack's actions: a component using this isn't re-rendered as it plays (its clock ticks about four times
+ * a second, and each change of song takes several steps). The landing page, whose wheel those re-renders slowed.
+ */
+export function useSoundtrackActions(): SoundtrackActions {
+  const s = useContext(ActionsCtx);
+  if (!s) throw new Error("useSoundtrackActions needs a SoundtrackProvider (app/layout.tsx)");
   return s;
 }
 
@@ -120,33 +134,41 @@ export function SoundtrackProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value: Soundtrack = {
-    src,
-    on,
-    time,
-    duration,
-    follow,
-    open: (s: string | null) => {
-      follow(s);
-      if (startsOnOpen({ on, src: s })) switchOn(s);
-    },
-    toggle: () => {
-      if (on) setOn(false);
-      else switchOn(src);
-    },
-    seek: (s: number) => {
-      const a = audio.current;
-      if (a && src) {
-        load(a, src);
-        a.currentTime = s;
-      }
-      setTime(s);
-    },
-  };
+  // The actions read the state as it is when they're called, so they never change (useSoundtrackActions).
+  const now = useRef({ on, src });
+  useLayoutEffect(() => {
+    now.current = { on, src };
+  });
+  const actions = useMemo<SoundtrackActions>(
+    () => ({
+      follow,
+      open: (s: string | null) => {
+        follow(s);
+        if (startsOnOpen({ on: now.current.on, src: s })) switchOn(s);
+      },
+      toggle: () => {
+        if (now.current.on) setOn(false);
+        else switchOn(now.current.src);
+      },
+      seek: (s: number) => {
+        const a = audio.current;
+        const followed = now.current.src;
+        if (a && followed) {
+          load(a, followed);
+          a.currentTime = s;
+        }
+        setTime(s);
+      },
+    }),
+    // switchOn and load use only refs and state setters: the first render's are as good as any.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [follow],
+  );
+  const value: Soundtrack = { src, on, time, duration, ...actions };
 
   return (
     <Ctx.Provider value={value}>
-      {children}
+      <ActionsCtx.Provider value={actions}>{children}</ActionsCtx.Provider>
       <audio
         ref={audio}
         loop
