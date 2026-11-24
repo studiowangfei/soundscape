@@ -1,0 +1,275 @@
+{
+  "slug": "madvillain-all-caps",
+  "title": "All Caps",
+  "artist": "Madvillain",
+  "aliases": [
+    "ALL CAPS"
+  ],
+  "releaseYear": 2004,
+  "addedAt": "2026-11-23",
+  "tags": [],
+  "youtubeUrl": "https://www.youtube.com/watch?v=gSJeHDlhYls",
+  "spotifyId": "45uVJD9hneCkojv51Bqjbh",
+  "youtubeMusicId": "NPiAK33CfxQ",
+  "preview": {
+    "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/56/8b/52/568b5286-04ec-ef24-4265-22526275e7fa/mzaf_9342372846842960470.plus.aac.p.m4a",
+    "source": "itunes",
+    "link": "https://music.apple.com/us/album/all-caps/887699504?i=887699536&uo=4"
+  },
+  "cover": {
+    "file": "madvillain-all-caps.jpg",
+    "kind": "album",
+    "album": "Madvillainy",
+    "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2d/33/99/2d33992f-4550-269a-bab2-a2558996e5c3/816.jpg/3000x3000bb.jpg"
+  },
+  "provenance": {
+    "generator": "Soundscape card pipeline (design-6), chat session 2026-11-23",
+    "setNote": "2 background + 1 lyric + 4 comments + 2 versions + 1 TV card on top (design-4/6: screen cards sit above the 8). Lyric winner 'Just remember ALL CAPS when you spell the man name' (Genius +423; 11 quoting comments across the three uploads). Judgment calls disclosed at approval: the official video's #1 comment (@jonathandigennaro, 43K) skipped as a bare lyric quote with no listener voice; the highest mourning comment (@rodangles382, 6.8K) skipped under the bereavement cap, the posthumous theme carried by @yourcerealguy's discovery story. Pool C (fan visual) contributed no cards. The Boondocks poster is the series' Wikipedia title treatment (the article carries no poster)."
+  },
+  "cards": [
+    {
+      "id": "madvillain-all-caps-g1",
+      "type": "background",
+      "headline": "A demo, a leak, and 50 hand-painted sleeves",
+      "snippet": "An early version of \"All Caps\" sat on the Madvillainy demo tape that leaked online in early 2003. Stones Throw pressed about 200 promotional 12-inches of the \"Curls & All Caps\" single for radio and DJs ahead of the album — and cover designer Jeff Jank hand-painted 40 to 50 of them.",
+      "context": "The single came out on February 4, 2004, weeks before Madvillainy itself.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/All_Caps_(Madvillain_song)",
+      "sourceDate": "2004-02-04"
+    },
+    {
+      "id": "madvillain-all-caps-g2",
+      "type": "background",
+      "headline": "The Silver Age comic that moves",
+      "snippet": "James Reitano animated the video as a living Silver Age comic book: two lab scientists are gassed and mutate — one into a hulking masked \"Madvillain\", the other into a telepathic alien sealed in a golden case — then flee the Minions of Death. It ends on a cliffhanger page, and the creature was later made into a Kidrobot vinyl figure.",
+      "context": "One of four videos made for the album on its release; this is the one everyone remembers.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/All_Caps_(Madvillain_song)",
+      "sourceDate": "2004-03-23"
+    },
+    {
+      "id": "madvillain-all-caps-g3",
+      "type": "lyric",
+      "headline": "The instruction the whole song is named for",
+      "snippet": "In the Fantastic Four comics, Doctor Doom's name is lettered in capitals like everything else — comic lettering has no lowercase. DOOM later told XXL the line was \"not really connected\" to anything: an observation delivered with authority, not a complaint.",
+      "context": "They quote it word for word under every upload — more than any other line in the song.",
+      "source": {
+        "name": "Genius",
+        "platform": "web"
+      },
+      "url": "https://genius.com/82424/Madvillain-all-caps/Just-remember-all-caps-when-you-spell-the-man-name",
+      "sourceDate": "2004-03-23",
+      "lyric": {
+        "excerptOrTimestamp": "Just remember ALL CAPS when you spell the man name",
+        "lyricSource": "Madvillainy, 2004",
+        "reusePermission": "Short quotation (1-2 lines)",
+        "selectionBasis": "observed_frequency",
+        "selectionNote": "Quoted by 11 comments across the three uploads (led by @XxkingzackxX, 689 likes, and @dinoanimates-fn1, 371); the annotation is the song's most-upvoted on Genius at +423.",
+        "reactionCardIds": []
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g4",
+      "type": "comment",
+      "headline": "The demand Marvel keeps hearing",
+      "snippet": "If MARVEL don’t play this song for Doctor Doom, we riot..",
+      "context": "The official video's most-liked comment: since the Doomsday casting, this is the song's second life.",
+      "source": {
+        "name": "YouTube — Stones Throw",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=gSJeHDlhYls",
+      "sourceDate": null,
+      "comment": {
+        "author": "@vb2388",
+        "commentId": null,
+        "likesObserved": 38000,
+        "observedAt": "2026-11-23",
+        "replies": [
+          {
+            "author": "@Stamnley",
+            "commentId": null,
+            "likesObserved": 2500,
+            "text": "yeah they won't lol"
+          },
+          {
+            "author": "@RarebitFiends",
+            "commentId": null,
+            "likesObserved": 1800,
+            "text": "Please don't associate this artistry with the crap factory Marvel has become."
+          }
+        ]
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g5",
+      "type": "comment",
+      "headline": "The Grammys didn't get the memo",
+      "snippet": "MF DOOM: Makes entire song about how his name is spelt in all caps\nGrammys: mf doom",
+      "context": "The joke writes itself — and one reply spots that in slang, \"cap\" means a lie: his whole history is fictional.",
+      "source": {
+        "name": "YouTube — Stones Throw",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=gSJeHDlhYls",
+      "sourceDate": null,
+      "comment": {
+        "author": "@mechudo8748",
+        "commentId": null,
+        "likesObserved": 34000,
+        "observedAt": "2026-11-23",
+        "replies": [
+          {
+            "author": "@SeekerGoldstone",
+            "commentId": null,
+            "likesObserved": 3500,
+            "text": "It only JUST occured to me that not only is his name spelled with capital letters... but also, all of his history is fictional. Its \"all caps\". They made it all up in the lab."
+          },
+          {
+            "author": "@flaviahidalgo7376",
+            "commentId": null,
+            "likesObserved": 931,
+            "text": "Deadass yo 🤦🏽‍♀️"
+          }
+        ]
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g6",
+      "type": "comment",
+      "headline": "Found him too late, like so many",
+      "snippet": "It really sucks  finding out about someone's art after they pass.\nBut no lie there's  just something about hearing something this good for the first time damn.",
+      "context": "DOOM's death was announced on New Year's Eve 2020, two months after it happened — discovery and mourning arrived together.",
+      "source": {
+        "name": "YouTube — Stones Throw",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=gSJeHDlhYls",
+      "sourceDate": null,
+      "comment": {
+        "author": "@yourcerealguy",
+        "commentId": null,
+        "likesObserved": 27000,
+        "observedAt": "2026-11-23",
+        "replies": [
+          {
+            "author": "@dontarguewithtrolls",
+            "commentId": null,
+            "likesObserved": 948,
+            "text": "Welcome to Villianhood my cereal guy"
+          },
+          {
+            "author": "@ana-ip6kh",
+            "commentId": null,
+            "likesObserved": 271,
+            "text": "same :( im so upset that i only discovered him now"
+          }
+        ]
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g7",
+      "type": "comment",
+      "headline": "The movie that exists only as a wish",
+      "snippet": "I'd LOVE to see an animated Madvillain movie where the album tells this whole story much like what Daft Punk did with Interstellar 5555",
+      "context": "The Reitano video already proved the album wants to be a comic — a listener asks for the feature-length version.",
+      "source": {
+        "name": "YouTube — Stones Throw",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=gSJeHDlhYls",
+      "sourceDate": null,
+      "comment": {
+        "author": "@garybedell6740",
+        "commentId": null,
+        "likesObserved": 12000,
+        "observedAt": "2026-11-23",
+        "replies": [
+          {
+            "author": "@mons1117",
+            "commentId": null,
+            "likesObserved": 80,
+            "text": "A comic book would be better"
+          }
+        ]
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g8",
+      "type": "version",
+      "headline": "The cover that launched a career",
+      "snippet": "In 2014 a 17-year-old A-F-R-O posted himself rapping the song front to back, breathless and note-perfect. That year he caught the attention of R.A. the Rugged Man and broke through — the tribute became his audition for a career. One listener: \"my microwave broke so i played this and heated my food real good..thanks afro\"",
+      "context": "Half a million views for a teenager, a webcam and the hardest flow to copy in rap.",
+      "source": {
+        "name": "YouTube — A-F-R-O",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=6URmzZUAhBQ",
+      "sourceDate": "2014-10-28",
+      "version": {
+        "performer": "A-F-R-O",
+        "versionLabel": "A-F-R-O raps the song, 2014",
+        "popularityObserved": "531,161 views (YouTube, 23 Nov 2026)",
+        "observedAt": "2026-11-23"
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g9",
+      "type": "version",
+      "headline": "A peer sings it the day after",
+      "snippet": "On January 1, 2021 — the day after DOOM's death was announced — Yasiin Bey, the former Mos Def, sang \"All Caps\" on camera in tribute, a fellow masked-era MC carrying the whole song alone. One listener: \"This performance proves that DOOM's flow and voice were unique.\"",
+      "context": "No band, no beat theatrics — just one great rapper keeping another's song upright.",
+      "source": {
+        "name": "YouTube — four seven",
+        "platform": "web"
+      },
+      "url": "https://www.youtube.com/watch?v=tpxsyL30Urk",
+      "sourceDate": "2021-01-01",
+      "version": {
+        "performer": "Yasiin Bey",
+        "versionLabel": "Yasiin Bey's tribute, January 1, 2021",
+        "popularityObserved": "324,902 views (YouTube, 23 Nov 2026)",
+        "observedAt": "2026-11-23"
+      }
+    },
+    {
+      "id": "madvillain-all-caps-g10",
+      "type": "film",
+      "headline": "Huey vs. Bushido Brown",
+      "snippet": "\"All Caps\" scores the marquee fight of The Boondocks episode \"Let's Nab Oprah\" (Adult Swim, February 12, 2006): ten-year-old Huey Freeman takes on Bushido Brown, Oprah's kung-fu bodyguard, to the sound of DOOM and Madlib. The episode raids Madvillainy three times — \"Raid\" and \"Strange Ways\" play too.",
+      "context": "For a generation of viewers this fight was the door into Madvillainy — listeners still arrive saying so.",
+      "source": {
+        "name": "Wikipedia",
+        "platform": "web"
+      },
+      "url": "https://en.wikipedia.org/wiki/The_Boondocks_(TV_series)",
+      "sourceDate": "2006-02-12",
+      "supporting": [
+        {
+          "label": "68to05 — 2004: MF DOOM, Madvillainy",
+          "url": "https://www.68to05.com/essays/2004-mf-doom-madvillain"
+        },
+        {
+          "label": "The Boondocks Wiki — List of songs",
+          "url": "https://boondocks.fandom.com/wiki/List_of_songs"
+        }
+      ],
+      "film": {
+        "association": "\"All Caps\" scores the marquee fight of The Boondocks episode \"Let's Nab Oprah\" (Adult Swim, February 12, 2006): ten-year-old Huey Freeman takes on Bushido Brown, Oprah's kung-fu bodyguard, to the sound of DOOM and Madlib. The episode raids Madvillainy three times — \"Raid\" and \"Strange Ways\" play too.",
+        "title": "The Boondocks",
+        "year": 2006,
+        "kind": "tv",
+        "poster": {
+          "file": "madvillain-all-caps-g10.jpg",
+          "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/c3/The_Boondocks.png"
+        }
+      }
+    }
+  ]
+}
