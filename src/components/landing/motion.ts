@@ -6,10 +6,16 @@
  * The list loops. Positions are unbounded rows (row k shows song wrap(k, count)). SongWheel feeds it
  * events and ticks it every frame while `moving`.
  */
+import { HOLD_SLOP } from "../gesture";
 import { flickTarget, glideTarget, nearestEquivalent, rollSecs, rollTarget, springStep, SWIPE, swipeRows, wrap } from "./wheel";
 
 export type Mode = "idle" | "drag" | "spring" | "ease" | "glide";
 
+/**
+ * A press is a tap until it moves more than this (px) up or down (the wheel turns with it), or more than HOLD_SLOP
+ * sideways (a swipe across a title opens nothing; a fingertip wobbles a few px as it presses).
+ */
+const TAP_SLOP = 4;
 /** A flick's speed comes only from the finger's last 100 ms, so a drag that stops before letting go doesn't fling. */
 const FLICK_WINDOW = 100;
 /** A trackpad swipe turns the page once it has moved this many px. */
@@ -32,7 +38,7 @@ export class WheelMotion {
   private glideTau = 0.3;
   private lastTick = 0;
   private swipe = { at: -Infinity, size: 0, travel: 0, turned: false, trackpad: false, start: 0, base: 0, peak: 0, rows: 0, peakPx: 0 };
-  private press_: { y: number; start: number; moved: boolean; row: number | null; wasIdle: boolean; samples: { t: number; p: number }[] } | null = null;
+  private press_: { x: number; y: number; start: number; moved: boolean; row: number | null; wasIdle: boolean; samples: { t: number; p: number }[] } | null = null;
 
   constructor(
     public count: number,
@@ -116,16 +122,17 @@ export class WheelMotion {
     this.goTo(nearestEquivalent(this.aim(), i, this.count), now);
   }
 
-  press(y: number, row: number | null, now: number) {
-    this.press_ = { y, start: this.pos, moved: false, row, wasIdle: this.mode === "idle", samples: [{ t: now, p: this.pos }] };
+  /** A finger or the mouse presses at (x, y) (x only tells a swipe across from a tap), on title `row` or between them. */
+  press(y: number, row: number | null, now: number, x = 0) {
+    this.press_ = { x, y, start: this.pos, moved: false, row, wasIdle: this.mode === "idle", samples: [{ t: now, p: this.pos }] };
     this.mode = "drag";
     this.vel = 0; // caught: whatever speed it had is gone (or the settle after letting go would start with it)
   }
 
-  move(y: number, now: number) {
+  move(y: number, now: number, x = 0) {
     const p = this.press_;
     if (!p) return;
-    if (Math.abs(y - p.y) > 4) p.moved = true;
+    if (Math.abs(y - p.y) > TAP_SLOP || Math.abs(x - p.x) > HOLD_SLOP) p.moved = true;
     this.pos = p.start + (p.y - y) / this.opts.pitch;
     p.samples.push({ t: now, p: this.pos });
     if (p.samples.length > 12) p.samples.shift();

@@ -187,12 +187,12 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
       loop.current = 0;
       touch = e.pointerId;
       landedY = e.clientY;
-      motion.current!.press(e.clientY, row ? Number(row.getAttribute("data-row")) : null, performance.now());
+      motion.current!.press(e.clientY, row ? Number(row.getAttribute("data-row")) : null, performance.now(), e.clientX);
     };
     const onMove = (e: PointerEvent) => {
       if (!ours(e)) return;
       const m = motion.current!;
-      m.move(e.clientY, performance.now());
+      m.move(e.clientY, performance.now(), e.clientX);
       if (Math.abs(e.clientY - landedY) > HOLD_SLOP && !claim(e.pointerId, "wheel")) return letGo();
       setPos(m.pos);
       if (travelling(from.current, m.target, m.pos, m.count, true)) setSpun(true);
@@ -236,13 +236,13 @@ export function SongWheel({ titles, index, settings, onFocus, onAim, onArrive, o
     byHand();
     cancelAnimationFrame(loop.current);
     loop.current = 0;
-    motion.current!.press(e.clientY, Number(hit.getAttribute("data-row")), performance.now());
+    motion.current!.press(e.clientY, Number(hit.getAttribute("data-row")), performance.now(), e.clientX);
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const m = motion.current!;
     if (e.pointerType !== "mouse" || m.mode !== "drag") return;
-    m.move(e.clientY, performance.now());
+    m.move(e.clientY, performance.now(), e.clientX);
     setPos(m.pos);
     if (travelling(from.current, m.target, m.pos, m.count, true)) setSpun(true);
   };
