@@ -1,6 +1,6 @@
 /**
- * The collapsed cards' variants on phones, picked in Tune → Cards and remembered in this browser. Wider screens always
- * have Standard. Pure, so it's tested in Node; the React side is useMobileCard.
+ * The collapsed cards' variants on phones, and where the player sits beside them, picked in Tune → Cards and remembered
+ * in this browser. Wider screens always have Standard. Pure, so it's tested in Node; the React side is useMobileCard.
  */
 import type { Param } from "../backdrops/params";
 
@@ -33,3 +33,35 @@ export const readMobileCard = (saved: unknown): MobileCard => MOBILE_CARDS.find(
 
 export const mobileCardIndex = (key: MobileCard) => MOBILE_CARDS.findIndex((c) => c.key === key);
 export const mobileCardAt = (i: number): MobileCard => MOBILE_CARDS[Math.round(i)]?.key ?? DEFAULT_MOBILE_CARD;
+
+export const MOBILE_PLAYER_STORE = "soundscape.mobilePlayer";
+
+/**
+ * Where the player sits on phones, picked in Tune → Cards: above the cards (the Figma's mobile frame) or below them, at
+ * the foot of the window. Wider screens always have it under the song's name.
+ */
+export const MOBILE_PLAYERS = [
+  { key: "above", label: "Above the cards" },
+  { key: "below", label: "Below the cards" },
+] as const;
+
+export type MobilePlayer = (typeof MOBILE_PLAYERS)[number]["key"];
+
+export const DEFAULT_MOBILE_PLAYER: MobilePlayer = "above";
+
+export const MOBILE_PLAYER_PARAM: Param = {
+  key: "mobilePlayer",
+  label: "Player on phones",
+  min: 0,
+  max: MOBILE_PLAYERS.length - 1,
+  step: 1,
+  value: MOBILE_PLAYERS.findIndex((p) => p.key === DEFAULT_MOBILE_PLAYER),
+  options: MOBILE_PLAYERS.map((p) => p.label),
+  radio: true,
+};
+
+/** The saved place if it's one there is, else the default (above the cards). */
+export const readMobilePlayer = (saved: unknown): MobilePlayer => MOBILE_PLAYERS.find((p) => p.key === saved)?.key ?? DEFAULT_MOBILE_PLAYER;
+
+export const mobilePlayerIndex = (key: MobilePlayer) => MOBILE_PLAYERS.findIndex((p) => p.key === key);
+export const mobilePlayerAt = (i: number): MobilePlayer => MOBILE_PLAYERS[Math.round(i)]?.key ?? DEFAULT_MOBILE_PLAYER;
