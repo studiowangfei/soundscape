@@ -1226,9 +1226,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   }, [p.opacity]);
 
   // Runs down the glass, from a droplet that shows as it should (not where the fog fades out, not under the writing,
-  // not wiped or swept away) in the upper 70% of the cover. One of its own (`ask` false): any big enough to run, bigger
-  // ones far likelier (by volume, r³); one run in three goes all the way down, off the bottom edge of the pane, the
-  // others stop on the glass. One asked for (FogHandle.drip): one of the six biggest showing (bigger ones likelier),
+  // not wiped or swept away) in the upper 70% of the cover and in sight (the window's upper 70%, clear of its sides).
+  // One of its own (`ask` false): any big enough to run, bigger ones far likelier (by volume, r³); one run in three goes
+  // all the way down, off the bottom edge of the pane, the others stop on the glass. One asked for (FogHandle.drip): one of the six biggest showing (bigger ones likelier),
   // falling off the bottom. One tapped (`at`, fog px, with how far round it a fingertip reaches): the runnable droplet
   // under it (dropNear), falling off the bottom as an asked one does. Returns whether one started.
   const toBottom = useRef(oneInThree());
@@ -1294,20 +1294,20 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const inArea = (d: { x: number; y: number }) => d.x > lo + span * 0.04 && d.x < lo + span * 0.96 && d.y > lo + span * 0.03 && d.y < lo + span * 0.7;
       const isGrown = (d: { i: number }) => d.i >= GROWN_BASE;
       const shows = (d: { i: number; x: number; y: number }) => showsToRun(showing(d), false);
+      // In sight: the cover may be cropped by the window (its top and bottom on a wide one, its sides on a phone).
+      const seen = (d: { x: number; y: number }) => {
+        const [u, v] = inWindow(d.x, d.y);
+        return u > 0.04 && u < 0.96 && v > 0.03 && v < 0.7;
+      };
       let pool = [...allDrops.current.filter((d) => d.canRun && !gone.current.has(d.i)), ...grown.current.filter((d) => now >= d.born + GROW_MS)].filter(inArea);
       if (at) {
         const d = tappable(at.x, at.y, at.reach);
         pool = d ? [d] : [];
         ask = true;
       } else if (ask) {
-        // In sight: the cover may be cropped by the window (its top and bottom on a wide one, its sides on a phone).
-        const seen = (d: { x: number; y: number }) => {
-          const [u, v] = inWindow(d.x, d.y);
-          return u > 0.04 && u < 0.96 && v > 0.03 && v < 0.7;
-        };
         pool = pool.filter((d) => seen(d) && shows(d)).sort((a, b) => b.rd - a.rd);
         pool.length = Math.min(pool.length, STOCK + 2);
-      }
+      } else pool = pool.filter(seen); // one of its own starts in sight too (on a phone's landing, half the cover is off it)
       for (let tries = 0; tries < 6 && pool.length; tries++) {
         let t = Math.random() * pool.reduce((sum, d) => sum + d.rd ** 3, 0);
         const k = pool.findIndex((d) => (t -= d.rd ** 3) <= 0);
