@@ -1,0 +1,246 @@
+{
+ "slug": "beck-lost-cause",
+ "title": "Lost Cause",
+ "artist": "Beck",
+ "aliases": [],
+ "releaseYear": 2002,
+ "addedAt": "2026-11-25",
+ "tags": [],
+ "youtubeUrl": "https://www.youtube.com/watch?v=qkNa5xzOe5U",
+ "spotifyId": "29i8axWOLDmgbiutJb9prB",
+ "youtubeMusicId": "luTKHZYHTFM",
+ "preview": {
+  "url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/1a/11/80/1a118009-9e3a-3ee2-6840-1d8571b2208d/mzaf_6037609225070753906.plus.aac.p.m4a",
+  "source": "itunes",
+  "link": "https://music.apple.com/us/album/lost-cause/1440733298?i=1440733627&uo=4"
+ },
+ "cover": {
+  "file": "beck-lost-cause.jpg",
+  "kind": "album",
+  "album": "Sea Change",
+  "sourceUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b7/39/f5/b739f599-a321-9ddf-9691-6f888bd46f97/00602527874692.rgb.jpg/3000x3000bb.jpg"
+ },
+ "provenance": {
+  "generator": "Soundscape card pipeline (design-6), chat session 2026-11-25",
+  "setNote": "2 background + 1 lyric + 4 comments + 2 versions. Lyric winner 'I'm tired of fighting / Fighting for a lost cause' (Genius +15; 7 quoting comments, led by @flaviol 266). Comments strict likes-first from the original video's pool (@bobbydavis800 1200, @juanjuri6127 1000, @pinkertonisbetterthanblue9096 621, @icanbelieveitsnotbutter8679 451); Fei directed one swap at approval — @icanbelieveitsnotbutter8679 replaced @marcosias9465 552, the draft's one bereavement-cap mourning card, so the published set has no mourning-centered comment card. No film/TV card: Scrubs S4E3 and Along Came Polly are IMDb-confirmed placements with no scene or prominence evidence; the True Blood S7E5 claim (episode shares the title) and the Summer I Turned Pretty claim are unconfirmed. A third background card on Beyond: Two Souls (Jodie busks the song in the 'Homeless' chapter) was drafted but cut at approval: the schema caps regular cards at 8, and Fei chose the cut over dropping the Conan version card; per the add-only rule it stays dropped. Tunefind was Cloudflare-blocked during research; placements verified via IMDb and the Scrubs and Beyond: Two Souls wikis."
+ },
+ "cards": [
+  {
+   "id": "beck-lost-cause-g1",
+   "type": "background",
+   "headline": "The breakup album he couldn't joke his way out of",
+   "snippet": "Sea Change began with the end of Beck's long relationship, and he answered it by dropping nearly everything he was known for: the samples, the wordplay, the irony. Recorded over two months in Los Angeles with producer Nigel Godrich, the album is played live and sung plainly — heartbreak, desolation and solitude with nowhere to hide. It reached No. 8 on the Billboard 200, and 'Lost Cause', its fifth track, became the song listeners carried away from it.",
+   "context": "Fifth track on Sea Change (Geffen, 2002), Beck's eighth studio album.",
+   "source": {
+    "name": "Wikipedia",
+    "platform": "web"
+   },
+   "url": "https://en.wikipedia.org/wiki/Sea_Change_(album)",
+   "sourceDate": "2002-09-24"
+  },
+  {
+   "id": "beck-lost-cause-g2",
+   "type": "background",
+   "headline": "A Beck made of paper, falling out of the sky",
+   "snippet": "'Lost Cause' was never a full single — it went out as a promo in the UK, Germany and Japan, and still reached No. 36 on Billboard's Alternative Airplay chart. Director Garth Jennings made two videos for it. In the first, an effigy of Beck tumbles slowly out of the sky, a clip produced entirely in Adobe Photoshop; in the second, Beck and his band play the song in footage that keeps speeding up, slowing down and slipping into stop motion. MTV called the song 'sparse and melancholy… embellished with soft brush drumming.'",
+   "context": "The falling-effigy video is the song's main upload today, with 6.5 million views.",
+   "source": {
+    "name": "Wikipedia",
+    "platform": "web"
+   },
+   "url": "https://en.wikipedia.org/wiki/Lost_Cause_(Beck_song)",
+   "sourceDate": "2003-03-22"
+  },
+  {
+   "id": "beck-lost-cause-g3",
+   "type": "lyric",
+   "headline": "The moment he stops fighting",
+   "snippet": "After two verses of indictment, the fight goes out of the song. Genius's annotators read the repeated line as its reality check: he knows the relationship cannot be salvaged, so he stops fighting for it — and agrees to the breakup with the bitterness still in his voice.",
+   "context": "It is the line listeners quote back most; seven comments across the uploads repeat it.",
+   "source": {
+    "name": "Genius",
+    "platform": "web"
+   },
+   "url": "https://genius.com/2182419/Beck-lost-cause/Im-tired-of-fighting-fighting-for-a-lost-cause",
+   "sourceDate": "2002-09-24",
+   "lyric": {
+    "excerptOrTimestamp": "I'm tired of fighting / Fighting for a lost cause",
+    "lyricSource": "Sea Change, 2002",
+    "reusePermission": "Short quotation (1-2 lines)",
+    "selectionBasis": "observed_frequency",
+    "selectionNote": "7 quoting comments across the pools (@flaviol 266, @Imphepho 64, @raviramnath2990 15, @crust4745 9, @radical3073 6, @whichphilosipher9023 3, @trippjonesiii6566 1); Genius annotation +15. Next referent: the 'lost cause' chorus block (2182411, +22) with 3 quoting comments.",
+    "reactionCardIds": []
+   }
+  },
+  {
+   "id": "beck-lost-cause-g4",
+   "type": "comment",
+   "headline": "For when you're ready to pick up the pieces",
+   "snippet": "This is the song to play when you're tired of suffering and ready to try to pick up the pieces, and move on...I've reached that point.",
+   "context": "The most-liked comment on any of the song's uploads.",
+   "source": {
+    "name": "YouTube — Beck",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=qkNa5xzOe5U",
+   "sourceDate": null,
+   "comment": {
+    "author": "@bobbydavis800",
+    "commentId": null,
+    "likesObserved": 1200,
+    "observedAt": "2026-11-25",
+    "replies": [
+     {
+      "author": "@iamnoone3040",
+      "commentId": null,
+      "likesObserved": 34,
+      "text": "Well good luck with it. Honestly I hope you can. I got there too, but I kept falling no matter what I did. Finally, I had to turn myself off. Lost who I was, a whole life in a landfill. Existence is not life, and I hope you find and feel life; it is irreplaceable. 🙂"
+     },
+     {
+      "author": "@stephensealey4677",
+      "commentId": null,
+      "likesObserved": 16,
+      "text": "2 years later... did your life find better avenues since you sat there 2 years ago and seen your turning point? I hope it has. Life is too brief to settle for suffering. Cheers Bobby."
+     }
+    ]
+   }
+  },
+  {
+   "id": "beck-lost-cause-g5",
+   "type": "comment",
+   "headline": "The piñata year",
+   "snippet": "this one hits really close to home because the year it came out i was going through a pretty rough experience working as a giant pyrotechnic piñata. still hurts",
+   "context": "Its replies say readers come back to it yearly, to laugh in the middle of the song.",
+   "source": {
+    "name": "YouTube — Beck",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=qkNa5xzOe5U",
+   "sourceDate": null,
+   "comment": {
+    "author": "@juanjuri6127",
+    "commentId": null,
+    "likesObserved": 1000,
+    "observedAt": "2026-11-25",
+    "replies": [
+     {
+      "author": "@winterbeaches",
+      "commentId": null,
+      "likesObserved": 9,
+      "text": "About once a year I get sentimental and look this song up. Juan's comment is like the friend who always puts a smile on your face when your about to cry. 🫂"
+     },
+     {
+      "author": "@nuala13able",
+      "commentId": null,
+      "likesObserved": 8,
+      "text": "I started reading this with such a powerful feeling of connection and empathy. Cos it hit close to home with me too. Then I cracked the fuck up 🪅 🥊"
+     }
+    ]
+   }
+  },
+  {
+   "id": "beck-lost-cause-g6",
+   "type": "comment",
+   "headline": "Every Beck, ranked in one line",
+   "snippet": "I love Hip-Hop Beck, Electronic Beck, Funk Beck and Rock Beck, But Folk Beck is his ultimate form.",
+   "context": "Posted under the original video.",
+   "source": {
+    "name": "YouTube — Beck",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=qkNa5xzOe5U",
+   "sourceDate": null,
+   "comment": {
+    "author": "@pinkertonisbetterthanblue9096",
+    "commentId": null,
+    "likesObserved": 621,
+    "observedAt": "2026-11-25",
+    "replies": [
+     {
+      "author": "@SteveTheAmazing",
+      "commentId": null,
+      "likesObserved": 49,
+      "text": "This comment is Where It's At"
+     },
+     {
+      "author": "@alfieweedable",
+      "commentId": null,
+      "likesObserved": 10,
+      "text": "Ultimate form hahahahaha I couldn't agree more with that"
+     }
+    ]
+   }
+  },
+  {
+   "id": "beck-lost-cause-g7",
+   "type": "comment",
+   "headline": "Understood, if not better",
+   "snippet": "we need more 'all hope lost' type songs like this. they don make me feel better, but they make me feel understood. my life is a lost cause...",
+   "context": "Posted under the original video.",
+   "source": {
+    "name": "YouTube — Beck",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=qkNa5xzOe5U",
+   "sourceDate": null,
+   "comment": {
+    "author": "@icanbelieveitsnotbutter8679",
+    "commentId": null,
+    "likesObserved": 451,
+    "observedAt": "2026-11-25",
+    "replies": [
+     {
+      "author": "@toriagiro9519",
+      "commentId": null,
+      "likesObserved": 19,
+      "text": "Not better... But not alone. Understood."
+     },
+     {
+      "author": "@princessboogs13",
+      "commentId": null,
+      "likesObserved": 15,
+      "text": "i can believe its not butter I can't explain why but you are absolutely right."
+     }
+    ]
+   }
+  },
+  {
+   "id": "beck-lost-cause-g8",
+   "type": "version",
+   "headline": "Willie sings it at 91",
+   "snippet": "In 2024, at 91, Willie Nelson recorded the song for his album Last Leaf on the Tree — Beck's breakup ballad carried by the oldest voice in American music, over two decades after Sea Change. One listener: \"When my Dad was dying and I was far away, I asked my Mom to play Willie for him. So Willie sang him into the afterlife. ❤️ That's how special Willie was to him and me.\"",
+   "context": "From Nelson's 76th album — a song about giving up, sung by a man who never has.",
+   "source": {
+    "name": "YouTube — Willie Nelson",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=bc-r4ooPhDs",
+   "sourceDate": "2024-10-25",
+   "version": {
+    "performer": "Willie Nelson",
+    "versionLabel": "Willie Nelson's cover, from Last Leaf on the Tree (2024)",
+    "popularityObserved": "132,633 views (YouTube, 25 Nov 2026)",
+    "observedAt": "2026-11-25"
+   }
+  },
+  {
+   "id": "beck-lost-cause-g9",
+   "type": "version",
+   "headline": "Ted Danson, on triangle, under a blanket",
+   "snippet": "In 2002 Beck toured Sea Change with The Flaming Lips as his backing band, and this is them on Late Night with Conan O'Brien — the host holds up the album, and the night's guest, Ted Danson, sits in with the band. One listener: \"And of course, Ted Danson is there playing triangle under a blanket.\"",
+   "context": "The Flaming Lips were his touring band that fall; the host holds up the album as they play.",
+   "source": {
+    "name": "YouTube — recordplayr",
+    "platform": "web"
+   },
+   "url": "https://www.youtube.com/watch?v=O76x2OydAp8",
+   "sourceDate": "2002-11-01",
+   "version": {
+    "performer": "Beck with The Flaming Lips",
+    "versionLabel": "Live on Late Night with Conan O'Brien (2002)",
+    "popularityObserved": "327,350 views (YouTube, 25 Nov 2026)",
+    "observedAt": "2026-11-25"
+   }
+  }
+ ]
+}
