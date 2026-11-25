@@ -30,7 +30,7 @@ import { useTypeface } from "./useTypeface";
 /**
  * One song, laid out after the Figma song page: the title, artist and preview player at the top left, and the cards in
  * a row along the foot of the window, over the cover backdrop; on phones (the Figma's mobile frame) the player joins
- * the cards at the foot. (Spacing in px: 64 from the left and the header 40 from the top on desktops and tablets, the
+ * the cards at the foot, above them (the Figma) or below (Tune → Cards). (Spacing in px: 64 from the left and the header 40 from the top on desktops and tablets, the
  * cards 28 from the bottom, 13 on phones, their own gap. The design's wordmark is hidden for now.) Up and down turn to the next and previous song (useSongTurn: a swipe, the
  * wheel, ↑ / ↓; docs/plans/2026-11-17-song-paging-design.md), as ⏮ / ⏭ do.
  */
@@ -48,6 +48,7 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
   const typeface = useTypeface();
   const glass = useGlassTune();
   const mobileCard = useMobileCard();
+  const playerBelow = mobileCard.player === "below";
   const turnTune = useTurnTune({ cover: true });
   // Close is drawn as big as the landing page's icons, so it's sized from the landing wheel's text, measured here too.
   const landing = useLandingSettings().settings;
@@ -146,10 +147,10 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
           circle (its corner, plus the 3/32 of its box above the circle), which clears the status bar. */}
       <header style={outShift} className={`${fade} ${out ? "opacity-0" : ""} px-beside-close pt-10 phone:pt-[calc(var(--corner-top)_+_var(--corner-box,40px)*3/32)]`}>
         <Entrance>
-          <h1 className="font-serif text-[40px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white sm:text-[48px] short:text-[36px]">{entry.title}</h1>
+          <h1 className="font-serif text-[48px] leading-[1.24] font-medium [text-box:trim-start_cap_alphabetic] text-white phone:text-[36px]">{entry.title}</h1>
         </Entrance>
-        {/* Set for the visible gap: 15px from the title's descenders to the artist. */}
-        <Entrance as="p" className="mt-1 text-[24px] text-white">
+        {/* Set for the visible gap: 15px from the title's descenders to the artist (13.5 on phones, where it's 21px). */}
+        <Entrance as="p" className="mt-1 text-[24px] text-white phone:text-[21px]">
           {entry.artist}
         </Entrance>
       </header>
@@ -157,14 +158,15 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
       {/* The cards sit at the foot of the window, with either card size (Tune → Cards): pushed down by the space above
           them, and held there (sticky) when the window is too short for everything, so the top of the page slides under
           them. The player goes under the song's name, 50px from the artist's descenders; on phones it joins the cards,
-          at their own gap above them (CardGrid). One player either way: elsewhere its group is see-through to the page's
-          layout (contents), and the order puts it under the header and the cards at the foot; on phones the group is one
-          block, after the space, held at the foot. */}
-      <div className="contents phone:sticky phone:bottom-0 phone:order-2 phone:block">
+          at their own gap (13px, CardGrid) above them, or below them (Tune → Cards: Player on phones), the window's foot
+          then under the player. One player either way: elsewhere its group is see-through to the page's layout
+          (contents), and the order puts it under the header and the cards at the foot; on phones the group is one column,
+          after the space, held at the foot, its order putting the player above the cards or below. */}
+      <div className="contents phone:sticky phone:bottom-0 phone:order-2 phone:flex phone:flex-col">
         {/* The player stays put from song to song (no entrance coming from another song's page); its cover changes with
             the backdrop (PlayerCover). A finger wipes the fog behind it only after holding still (data-wipe-hold:
             backdrops/variants.tsx), as it's mostly controls. */}
-        <div data-wipe-hold className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0`}>
+        <div data-wipe-hold className={`${fade} ${out === "landing" ? "opacity-0" : ""} order-1 mt-[45px] px-page phone:mt-0 ${playerBelow ? "phone:order-4 phone:pb-[max(13px,env(safe-area-inset-bottom))]" : ""}`}>
           <Entrance stayFrom="song">
             <PreviewBar cover={backdrop.cover} coverDrift={turnTune.coverDrift} preview={entry.preview} nav={nav} links={streamLinks(entry)} onSkip={(href, to, dir) => go(href, "song", to, { dir })} />
           </Entrance>
@@ -173,8 +175,9 @@ export function SongView({ entry, visitors = [], songs, titles, icons = {} }: { 
           cards={rowCards(entry.cards, visitors, entry.slug)}
           mobile={mobileCard.variant}
           style={outShift}
-          // On phones the row ends the cards' own gap above the window's bottom (13px), clear of the home indicator.
-          className={`${fade} ${out === "landing" ? "translate-y-1.5" : ""} ${out ? "opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static phone:pb-[max(13px,env(safe-area-inset-bottom))]`}
+          // On phones the row ends the cards' own gap (13px) above the window's bottom, clear of the home indicator, or
+          // above the player under them.
+          className={`${fade} ${out === "landing" ? "translate-y-1.5" : ""} ${out ? "opacity-0" : ""} sticky bottom-0 order-3 pb-[max(28px,env(safe-area-inset-bottom))] phone:static ${playerBelow ? "phone:pb-[13px]" : "phone:pb-[max(13px,env(safe-area-inset-bottom))]"}`}
         />
       </div>
       <div className="order-2 min-h-10 flex-1 phone:order-1" />
