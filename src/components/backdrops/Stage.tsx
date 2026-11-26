@@ -11,7 +11,7 @@ import { coverFrame, edgeBleed, useArtwork, zoomAt, type Song } from "./art";
 import { VARIANTS } from "./Backdrop";
 import { defaults, PARAMS, type Params } from "./params";
 import { brighter, paintTint, pictureTintColours, tintCanvas, tintGeometry, TINT_STEP } from "./side-tint";
-import { driftPath, EMPTY_STAGE, edgeStops, enterHow, isShown, kindOf, needsMove, paneClock, READY_TIMEOUT_MS, sceneOrigin, screenCover, stageReducer, startThickness, TIMING, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
+import { driftPath, EMPTY_STAGE, edgeStops, enterHow, isShown, kindOf, moverLight, needsMove, paneClock, READY_TIMEOUT_MS, sceneOrigin, screenCover, stageReducer, startThickness, TIMING, turnedBackLight, visibleBox, type Edge, type Kind, type Mode, type Pane, type Scene, type StageAction } from "./stage-model";
 import { Fog, padSquare, type FogHandle } from "./variants";
 
 /**
@@ -145,9 +145,11 @@ type Move = {
   margin: number;
   fromEdge: Edge;
   toEdge: Edge;
-  /** The fog's brightness for its clear cover, on the page left and on the page arrived at. */
+  /** The brightness on screen at the start (the page left's fog's, or where a move turned back had got to) and at the
+   * end (the page arrived at's fog's), and what the picture is drawn at (moverLight). */
   fromDim: number;
   toDim: number;
+  drawn: number;
   /** The fog's ambient glow round the cover (its `glow`), on each page. */
   fromGlow: number;
   toGlow: number;
@@ -218,6 +220,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
       let fromKind: Kind;
       let fromDim: number;
       let fromGlow: number;
+      let drawn = 1;
       let snap: HTMLCanvasElement | null = null;
       let thickness = 0;
       let srcMargin = 0; // the page left's edge bleed, as a fraction of the cover's side
@@ -227,8 +230,15 @@ export function StageProvider({ children }: { children: ReactNode }) {
         // The moving cover's box is the cover square (its margin overflows it).
         const r = moverRef.current.getBoundingClientRect();
         from = { left: r.left, top: r.top, width: r.width, height: r.height };
-        [src, fromKind, fromDim, snap, thickness, fromGlow] = [m.next ?? m.src, m.toKind, m.toDim, m.next ? null : m.snap, m.thickness, m.toGlow];
+        [src, fromKind, snap, thickness] = [m.next ?? m.src, m.toKind, m.next ? null : m.snap, m.thickness];
         [srcMargin, fromEdge] = [m.next ? 0 : m.margin, m.next ? null : m.toEdge];
+        // Its brightness and glow carry on from where they've got to (until 2026-11-24 they restarted from the old
+        // move's end, as if the picture had the page arrived at's brightness: Close mid-open ended a quarter too dark).
+        const lit = moverLight(m);
+        const filter = parseFloat(/brightness\(([\d.]+)\)/.exec(getComputedStyle(moverRef.current).filter)?.[1] ?? "");
+        const glowEl = moverRef.current.querySelector<HTMLElement>(".glow-fade");
+        const glowNow = glowEl ? parseFloat(getComputedStyle(glowEl).opacity) : NaN;
+        ({ fromDim, drawn, fromGlow } = turnedBackLight(Number.isFinite(filter) ? filter : lit.dim[1], Number.isFinite(glowNow) ? glowNow : lit.glow[1], m.drawn, !!m.next));
         // Turned back mid-move: the side tint goes the other way from where it's got to.
         const now = tintRef.current ? parseFloat(getComputedStyle(tintRef.current).opacity) : NaN;
         if (m.tint) tint = { ...m.tint, from: Number.isFinite(now) ? now : m.tint.to, to: target === "song" ? 1 : 0 };
@@ -243,7 +253,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
         [src, fromKind, fromDim, fromGlow] = [out.scene.song.cover, kindOf(f), out.scene.params.brightness ?? 1, out.scene.params.glow ?? 0];
         const handle = handles.current.get(out.id)?.current;
         const misted = handle?.misted() ?? null;
-        if (misted) [snap, thickness, srcMargin] = [misted.canvas, misted.thickness, misted.pad / misted.cover];
+        if (misted) [snap, thickness, srcMargin, drawn] = [misted.canvas, misted.thickness, misted.pad / misted.cover, fromDim];
         // Leaving a song page: its own side tint, just as it is on screen, fades as the cover grows over the window.
         const own = handle?.tint() ?? null;
         if (own) tint = { canvas: own, from: 1, to: 0, z, origin: sceneOrigin(f, W, H) };
@@ -272,7 +282,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
         const tg = tintGeometry(tf, W, H, edgeBleed(tf, H, p.bleed ?? 0));
         if (tg && (p.tint ?? 0) > 0) {
           const cover = Math.round(snap.width / (1 + 2 * margin));
-          const cols = brighter(pictureTintColours(snap, cover, Math.round(margin * cover), tg.side), (p.brightness ?? 1) / (fromDim || 1));
+          const cols = brighter(pictureTintColours(snap, cover, Math.round(margin * cover), tg.side), (p.brightness ?? 1) / (drawn || 1));
           const painted = paintTint(tg, cols, W, H, p.tint, p.tintFar ?? 0.25);
           if (painted) tint = { canvas: tintCanvas(painted), from: 0, to: 1, z: 1, origin: { x: 0, y: 0 } };
         }
@@ -284,7 +294,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
       // response to the click), and an animation is timed from the frame it starts in, so starting it there would skip
       // its first part, a visible stop and jump. The outgoing pane fades as it starts.
       const edges = { margin, fromEdge: fromEdge ?? edgeStops(fromKind, srcMargin, margin), toEdge: edgeStops(kindOf(tf), Math.min(tgtMargin, margin), margin) };
-      setBoth({ id, target, arrived, done: false, from, to, src, snap, thickness, firstPane, next, fromKind, toKind: kindOf(tf), ...edges, fromDim, toDim: p.brightness ?? 1, fromGlow, toGlow: p.glow ?? 0, tint, startedAt: performance.now() });
+      setBoth({ id, target, arrived, done: false, from, to, src, snap, thickness, firstPane, next, fromKind, toKind: kindOf(tf), ...edges, fromDim, toDim: p.brightness ?? 1, drawn, fromGlow, toGlow: p.glow ?? 0, tint, startedAt: performance.now() });
       // Whatever happens (the page never shows a scene: Back before it did, a cover that never loads), the move ends: the
       // moving cover never stays on screen.
       window.setTimeout(() => {
@@ -447,9 +457,8 @@ function Mover({ move, elRef, tintRef, onStart, onDone }: { move: Move; elRef: R
       [t.width, t.height] = [move.tint.canvas.width, move.tint.canvas.height];
       t.getContext("2d")!.drawImage(move.tint.canvas, 0, 0);
     }
-    const lift = 1 / (move.fromDim || 1);
     // The misted picture already has the outgoing fog's brightness; it goes to the incoming one's.
-    const dim = move.snap ? [1, move.toDim / (move.fromDim || 1)] : [move.fromDim, move.toDim];
+    const { dim, glow: glows } = moverLight(move);
     const start = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`;
     // Up first, still, where the cover is now (see startMove); moving from the next frame but one.
     Object.assign(el.style, { transform: start, filter: `brightness(${dim[0]})` });
@@ -462,7 +471,7 @@ function Mover({ move, elRef, tintRef, onStart, onDone }: { move: Move; elRef: R
         anims = [
           a,
           masked.current?.animate([fade(move.fromEdge), fade(move.toEdge)], opts),
-          glow.current?.animate([{ opacity: Math.min(1, move.fromGlow * lift) }, { opacity: Math.min(1, move.toGlow * lift) }], opts),
+          glow.current?.animate([{ opacity: glows[0] }, { opacity: glows[1] }], opts),
           move.tint ? tintRef.current?.animate([{ opacity: move.tint.from }, { opacity: move.tint.to }], opts) : undefined,
         ];
         a.finished.then(() => onDone(move.id), () => {});
@@ -500,7 +509,7 @@ function Mover({ move, elRef, tintRef, onStart, onDone }: { move: Move; elRef: R
         />
       )}
       <div ref={elRef} className="absolute" style={{ left: to.left, top: to.top, width: to.width, height: to.height, transformOrigin: "0 0" }}>
-        {move.snap && <canvas ref={glow} className="glow-fade absolute -inset-[20%] size-[140%]" style={{ opacity: Math.min(1, move.fromGlow / (move.fromDim || 1)) }} />}
+        {move.snap && <canvas ref={glow} className="glow-fade absolute -inset-[20%] size-[140%]" style={{ opacity: moverLight(move).glow[0] }} />}
         {/* The cover square with its margin round it (the picture is that much bigger than the box), faded at its edges. */}
         <div
           ref={masked}

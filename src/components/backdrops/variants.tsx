@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { beadBox, beadsCarry, toBeads, trailStrip, type BeadBox } from "./beads";
 import { drawBlurred } from "./canvas-blur";
 import { backdropSize, BG, softCut, coverFrame, edgeBleed, fillDropScale, fitCanvas, holdTransform, pushInAnimation, rgb, sampleSquare, zoomAt, zoomOrigin, type Layout, type LoadedArt, type Song } from "./art";
 import { coarseNow, phoneNow, wideNow } from "../env";
@@ -8,11 +9,11 @@ import { claim, giveBack, HOLD_MS, HOLD_SLOP, release, FOG_PLAYED } from "../ges
 import { haptic } from "../haptics";
 import { landingDrift } from "../landing/drift-trial";
 import { touchIntent, type TouchPoint } from "../paging";
-import { dripAt, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, inRunsWay, segmentDistance, showsToRun, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, wipedAway, type Drip } from "./drip";
+import { dripAt, dripFront, dripProgress, dripSpot, dripStretch, newDrip, newFall, oneInThree, pathDrops, inRunsWay, segmentDistance, showsToRun, sweepRadii, TRAIL_SOFT, trailHalf, trailTop, wipedAway, type Drip } from "./drip";
 import { marksNear } from "./fading";
 import { createFogRenderer } from "./fog-client";
 import type { FogResult } from "./fog-job";
-import { dropPainter, fillParams, fogDrops, glassSeed, mistBlur, thickened } from "./fog-render";
+import { dropPainter, dropsTouch, fillParams, fogDrops, glassSeed, mistBlur, thickened } from "./fog-render";
 import { glassAlpha, keepDrop } from "./glass-edge";
 import { paintTint, tintCanvas, tintColours, tintGeometry, TINT_STEP } from "./side-tint";
 import { frameDraw, ticker } from "./ticker";
@@ -78,8 +79,13 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const fogRef = useRef<HTMLCanvasElement>(null);
   // The glass as it was, fading out over a slow change as the fog canvas fades in with it (see composeSlow).
   const easeRef = useRef<HTMLCanvasElement>(null);
+  // The droplets on the glass, at the screen's px over the part of the pane the window shows (beads.ts): the fog canvas
+  // has the mist, rendered coarser (soft anyway), and this one, over it, the droplets, sharp. The same wipes, trails and
+  // writing cut through both.
+  const beadsRef = useRef<HTMLCanvasElement>(null);
+  const beadsMade = useRef<unknown[]>([]); // what the droplets' canvas was last drawn from (drawFog)
   // The fog in two parts: the scene as seen through the mist (it moves with the scene: see the zoom loop) and the
-  // droplets on the glass big enough to show an image (they stay put). The thick pane's two are below.
+  // droplets on the glass, in the droplets' layer's px (they stay put). The thick pane's two are below.
   const sceneSrc = useRef<HTMLCanvasElement | null>(null);
   const lensSrc = useRef<HTMLCanvasElement | null>(null);
   const mask = useRef<FadingLayer | null>(null); // opaque where the fog has been wiped
@@ -87,8 +93,8 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   // Mask layout: cover size and bleed margin in mask px, px per CSS px, where the fog layer fades out at its edges, and
   // the part of it across that's in the window (mask px: the stacked layout crops the cover's sides on phones).
   // `dropFade`: how many of its droplets the glass keeps at a point (glass-edge.ts): all over the cover, thinning out
-  // across the bleed round it to none at the pane's edge.
-  const geom = useRef<{ cover: number; pad: number; q: number; fade: Fade | null; dropFade: Fade | null; view: [number, number] | null }>({ cover: 0, pad: 0, q: 1, fade: null, dropFade: null, view: null });
+  // across the bleed round it to none at the pane's edge. `beads`: the droplets' layer (beads.ts), null until built.
+  const geom = useRef<{ cover: number; pad: number; q: number; fade: Fade | null; dropFade: Fade | null; view: [number, number] | null; beads: BeadBox | null }>({ cover: 0, pad: 0, q: 1, fade: null, dropFade: null, view: null, beads: null });
   // The finger-written title: where the fog is cleared, and the water beads left on the glass.
   const writing = useRef<Awaited<ReturnType<typeof fingerWriting>> | null>(null);
   const clearSrc = useRef<HTMLCanvasElement | null>(null); // the clear (unfogged) view, for measuring contrast
@@ -121,10 +127,12 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const restDrops = useRef<FadingLayer | null>(null);
   const rested = useRef<{ d: Drip; at: { x: number; y: number; r: number } }[]>([]);
   const sweptAny = useRef(false); // anything swept yet (skips the pass until then)
+  const sweptN = useRef(0); // changes to the swept glass (the droplets' layer is redrawn only when what's on it changes)
   const scratch = useRef<{ cov: HTMLCanvasElement; clr: HTMLCanvasElement; film: HTMLCanvasElement } | null>(null);
   const drips = useRef<Drip[]>([]); // running now (several when runs start closer together than they last)
   const dropsRef = useRef<HTMLCanvasElement>(null);
   const dropsShown = useRef(false); // anything on dropsRef to clear
+  const dropsDrawn = useRef<[number, number, number, number][]>([]); // where (its px), to clear just there
   const allDrops = useRef<ReturnType<typeof fogDrops>>([]);
   const gone = useRef(new Set<number>()); // droplets off the glass (runners and those they took), by layout index
   // Droplets condensed since (condense), like fogDrops()'s plus when each began to grow, on a layer of their own drawn
@@ -132,6 +140,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const grown = useRef<(ReturnType<typeof fogDrops>[number] & { born: number })[]>([]);
   const grownC = useRef<HTMLCanvasElement | null>(null);
   const grownCount = useRef(0);
+  const grownN = useRef(0); // repaints of grownC
   const regrow = useRef(false);
   const startRunRef = useRef<(now: number, ask: boolean, at?: { x: number; y: number; reach: number }) => boolean>(() => false);
   const dropNearRef = useRef<(x: number, y: number, reach: number) => boolean>(() => false);
@@ -153,9 +162,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const tinted = useRef<HTMLCanvasElement | null>(null); // the side tint, under it all (side-tint.ts)
 
   /**
-   * Fog canvas = the mist (pushed in with the scene) and its droplets, minus the writing, plus its water beads, minus the
-   * user's wipes. `at`: the moment (performance.now() ms) whose push-in to draw the mist at: now, or where the scene will
-   * be once a slow change has eased in (composeSlow).
+   * Fog canvas = the mist (pushed in with the scene), minus the writing, plus its water beads, minus the user's wipes;
+   * the droplets' canvas over it (beadsRef) = its droplets, cut the same way. `at`: the moment (performance.now() ms)
+   * whose push-in to draw the mist at: now, or where the scene will be once a slow change has eased in (composeSlow).
    */
   const drawFog = useCallback((at?: number) => {
     const c = fogRef.current;
@@ -187,14 +196,6 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       ctx.globalCompositeOperation = "source-over";
     }
-    // The droplets on the glass, whole wherever they are: the mist fades out at the pane's edges, its droplets thin out
-    // instead (thinDrops), so none is see-through.
-    if (lensSrc.current) ctx.drawImage(lensSrc.current, 0, 0, c.width, c.height);
-    if (thickLensSrc.current && thick.current > 0) {
-      ctx.globalAlpha = thick.current;
-      ctx.drawImage(thickLensSrc.current, 0, 0, c.width, c.height);
-      ctx.globalAlpha = 1;
-    }
     const w = writing.current;
     if (w && w.clear.width === c.width) {
       const h = haze.current;
@@ -217,6 +218,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     // again. Then the drops where runs stopped.
     const now = performance.now();
     const running = drips.current.map((d) => ({ d, s: dripProgress(d, now) }));
+    let cut: HTMLCanvasElement | null = null; // the glass swept so far and the trails being cleared, for the droplets too
     if (swept.current && clearness.current && (running.length || sweptAny.current)) {
       if (scratch.current?.cov.width !== c.width) {
         const make = () => Object.assign(document.createElement("canvas"), { width: c.width, height: c.height });
@@ -243,6 +245,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       addTrail(k);
       ctx.globalCompositeOperation = "destination-out";
       ctx.drawImage(cov, 0, 0);
+      cut = cov;
       if (specksSrc.current) {
         // The returning mist (pushed in with the scene), thickened with the rest of the pane, laid over it just as the
         // thick fog is; and its texture, the tiniest droplets, on the glass (staying put).
@@ -275,18 +278,63 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         ctx.drawImage(film, 0, 0);
       }
     }
-    ctx.globalCompositeOperation = "source-over";
-    restDrops.current?.drawOn(ctx, c.width, c.height);
-    if (grownC.current && grown.current.length) ctx.drawImage(grownC.current, 0, 0, c.width, c.height);
     ctx.globalCompositeOperation = "destination-out";
     mask.current.drawOn(ctx, c.width, c.height);
     ctx.globalCompositeOperation = "source-over";
+    // The droplets on the glass, on a canvas of their own at the screen's px (beads.ts), over the mist: whole wherever
+    // they are (the mist fades out at the pane's edges, its droplets thin out instead: thinDrops), the thick pane's
+    // coming in as the fog thickens, cut by the writing and by where runs swept the glass, then the drops where runs
+    // stopped and those condensed since, and all of it by the wipes. What's in the glass's px is drawn the whole pane
+    // over, scaled and shifted so the window's part lands on this canvas.
+    // Most drawings only move the mist on (the push-in): the droplets are drawn again only when what's on their canvas
+    // has changed (`made`: everything it's drawn from), the thick pane's coming in by fiftieths (too little to see), and
+    // where only runs going on have changed it, just along their trails (trailStrip).
+    const b = beadsRef.current;
+    const box = geom.current.beads;
+    const thickNow = thickLensSrc.current ? Math.round(thick.current * 50) / 50 : 0;
+    const textNow = w && w.clear.width === c.width ? Math.round(clarity.current * textFog.current * 100) / 100 : 0;
+    const rest = restDrops.current;
+    const made = [b, box, lensSrc.current, thickLensSrc.current, thickNow, w, textNow, swept.current, sweptN.current, rest, rest?.version, grownC.current, grownN.current, grown.current.length, mask.current, mask.current.version];
+    const strips = box && made.every((v, i) => v === beadsMade.current[i]) ? running.map(({ d, s }) => trailStrip(d, s, box)) : null;
+    beadsMade.current = made;
+    if ((!strips || strips.length) && b && box && lensSrc.current && b.width === box.w && b.height === box.h) {
+      const g = b.getContext("2d")!;
+      if (strips) {
+        g.save();
+        g.beginPath();
+        for (const r of strips) g.rect(...r);
+        g.clip();
+      }
+      const pane = [-box.x, -box.y, c.width * box.k, c.height * box.k] as const;
+      g.clearRect(0, 0, box.w, box.h); // within the strips only, if drawn just there (as "copy" isn't, in every browser)
+      g.drawImage(lensSrc.current, 0, 0, box.w, box.h);
+      if (thickLensSrc.current && thickNow > 0) {
+        g.globalAlpha = thickNow;
+        g.drawImage(thickLensSrc.current, 0, 0, box.w, box.h);
+        g.globalAlpha = 1;
+      }
+      g.globalCompositeOperation = "destination-out";
+      if (textNow > 0) {
+        g.globalAlpha = textNow;
+        g.drawImage(w!.clear, ...pane);
+        g.globalAlpha = 1;
+      }
+      if (cut) g.drawImage(cut, ...pane);
+      g.globalCompositeOperation = "source-over";
+      rest?.drawOn(g, box.w, box.h);
+      if (grownC.current && grown.current.length) g.drawImage(grownC.current, 0, 0, box.w, box.h);
+      g.globalCompositeOperation = "destination-out";
+      mask.current.drawOn(g, pane[2], pane[3], pane[0], pane[1]);
+      g.globalCompositeOperation = "source-over";
+      if (strips) g.restore();
+    }
     // Running drops sit on the glass, over everything: each its droplet's own look, faded like the fog around it and
     // hazed as far as the fog has thickened, stretching only while it slides. They have a canvas of their own, above
     // the copy of the old glass that fades out when the cover changes, so a drop never doubles up mid-run.
     const top = dropsRef.current?.getContext("2d");
     if (top && (running.length || dropsShown.current)) {
-      top.clearRect(0, 0, top.canvas.width, top.canvas.height);
+      for (const r of dropsDrawn.current) top.clearRect(...r);
+      dropsDrawn.current = [];
       dropsShown.current = false;
       const paint = painter.current;
       const fade = geom.current.dropFade;
@@ -294,7 +342,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         const hide = mixHide(hides.current, thickSrc.current ? thick.current : 0);
         for (const { d, s } of running) {
           const at = dripAt(d, s);
-          paintDrop(top, paint, d, at, d.e * dripStretch(d, now), hide, glassAlpha(fadeAt(fade, c.width, at.x, at.y)));
+          if (box) dropsDrawn.current.push(paintBead(top, paint, box, d, at, d.e * dripStretch(d, now), hide, glassAlpha(fadeAt(fade, c.width, at.x, at.y))));
           dropsShown.current = true;
         }
       }
@@ -361,8 +409,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   // is drawn for where the scene will be as the crossfade to it ends, and the two crossfade (the browser runs it:
   // nothing to draw meanwhile). Each runs a little longer than until the next slow drawing can come, which takes over
   // from wherever it has got to, so the mist never stops between drawings. Added together in their isolated group
-  // (plus-lighter), the two make an exact mix at every moment: no dip or bump where the fog is see-through. The
-  // droplets, wipes and writing are the same in both, so they hold still; only the mist moves, a little each frame.
+  // (plus-lighter), the two make an exact mix at every moment: no dip or bump where the fog is see-through. The wipes
+  // and writing are the same in both, so they hold still; only the mist moves, a little each frame. The droplets are
+  // on a canvas of their own, drawn as they are.
   const drawEased = useCallback(() => {
     const a = fogRef.current;
     const b = easeRef.current;
@@ -459,22 +508,24 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
   const takeDrop = useCallback((x: number, y: number, rx: number, ry: number, clear = true) => {
     for (const g of [swept.current?.getContext("2d"), clear ? clearness.current?.mark() : null]) if (g) sweep(g, x, y, rx, ry);
     sweptAny.current = true;
+    sweptN.current++;
   }, []);
 
   /** Paints the droplets condensed since the pane was built (grown), each as far as it has grown, seeing this cover. */
   const paintGrown = useCallback((now = performance.now()) => {
     const size = fogRef.current?.width ?? 0;
     const paint = painter.current;
-    const fade = geom.current.dropFade;
-    if (!size || !paint || !fade) return;
-    if (grownC.current?.width !== size) grownC.current = blank(size);
+    const { dropFade: fade, beads } = geom.current;
+    if (!size || !paint || !fade || !beads) return;
+    if (grownC.current?.width !== beads.w || grownC.current.height !== beads.h) grownC.current = blank(beads.w, beads.h);
     const g = grownC.current.getContext("2d")!;
-    g.clearRect(0, 0, size, size);
+    g.clearRect(0, 0, beads.w, beads.h);
+    grownN.current++;
     const hide = mixHide(hides.current, thickSrc.current ? thick.current : 0);
     for (const d of grown.current) {
       const k = 1 - (1 - Math.min(1, (now - d.born) / GROW_MS)) ** 2; // quickly at first, settling into its size
       const at = { x: d.x * size, y: d.y * size, r: d.rd * size * (0.4 + 0.6 * k) };
-      paintDrop(g, paint, d, at, d.e, hide, k * glassAlpha(fadeAt(fade, size, at.x, at.y)));
+      paintBead(g, paint, beads, d, at, d.e, hide, k * glassAlpha(fadeAt(fade, size, at.x, at.y)));
     }
   }, []);
 
@@ -493,11 +544,13 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       g.filter = "none";
     }
     sweptAny.current = true;
+    sweptN.current++;
     const fade = geom.current.dropFade;
     if (rest && restDrops.current && painter.current && fade) {
       const end = dripAt(d, s);
       const hide = mixHide(hides.current, thickSrc.current ? thick.current : 0);
-      paintDrop(restDrops.current.mark(), painter.current, d, end, d.e, hide, glassAlpha(fadeAt(fade, restDrops.current.size, end.x, end.y)));
+      const { cover, pad, beads } = geom.current;
+      if (beads) paintBead(restDrops.current.mark(), painter.current, beads, d, end, d.e, hide, glassAlpha(fadeAt(fade, cover + 2 * pad, end.x, end.y)));
       rested.current.push({ d, at: end });
     }
     drips.current = drips.current.filter((x) => x !== d);
@@ -514,7 +567,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     const scene = baseRef.current;
     const glass = fogRef.current;
     if (!wrap || !scene || !glass?.width) return;
-    const [pb, pg] = Array.from(wrap.children) as HTMLCanvasElement[];
+    const [pb, pg, pd] = Array.from(wrap.children) as HTMLCanvasElement[];
     pb.width = scene.width;
     pb.height = scene.height;
     pb.getContext("2d")!.drawImage(scene, 0, 0);
@@ -523,6 +576,12 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     pg.height = glass.height;
     pg.getContext("2d")!.drawImage(glass, 0, 0);
     Object.assign(pg.style, { left: glass.style.left, top: glass.style.top, width: glass.style.width, height: glass.style.height });
+    const beads = beadsRef.current;
+    [pd.width, pd.height] = [beads?.width ?? 0, beads?.height ?? 0];
+    if (beads?.width) {
+      pd.getContext("2d")!.drawImage(beads, 0, 0);
+      Object.assign(pd.style, { left: beads.style.left, top: beads.style.top, width: beads.style.width, height: beads.style.height });
+    }
     wrap.style.transition = "none";
     wrap.style.opacity = "1";
     wrap.getBoundingClientRect(); // applies it now, so thaw() in the same task still fades from it
@@ -542,7 +601,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const out = wrap.animate([{ opacity: 1, translate: "0 0" }, { opacity: 0, translate: `0 ${-drift}px` }], { duration: 600, easing: "ease" });
       wrap.style.opacity = "0";
       void out.finished.then(() => out.cancel(), () => {});
-      for (const el of [baseRef.current, fogRef.current, easeRef.current, dropsRef.current]) {
+      for (const el of [baseRef.current, fogRef.current, easeRef.current, beadsRef.current, dropsRef.current]) {
         if (!el) continue;
         el.style.setProperty("-webkit-box-reflect", drift > 0 ? "above" : "below");
         const done = () => el.style.removeProperty("-webkit-box-reflect");
@@ -725,6 +784,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const edge = edgeBleed(f, H, bleed); // CSS px: the fogged pane runs this far past the cover and fades out
       const pad = Math.round(edge * q);
       const size = coverPx + 2 * pad;
+      const span = f.side + 2 * edge;
+      // The droplets' layer: the screen's px over the window's part of the pane, which goes onto whole screen px.
+      const beads = beadBox({ W, H, dpr, paneX: f.ox - edge, paneY: f.oy - edge, span, size });
       const tuned = { density, opacity, blur: mistBlur(blur, phoneNow()), bloom, drops, dropSize, refraction, trails, patchiness, brightness, seed: pane };
       const params = f.fill ? fillParams(tuned, fillDropScale(W, H, bleed)) : tuned;
       const src = padCover(art.img, coverPx, pad, edgeSoft * q);
@@ -733,9 +795,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       // thin out while that's on its way.
       const gen = ++buildGen.current;
       const newCover = shownArt.current !== art;
-      const thickJob = thickOn ? r.thick.render({ src, size, scale: q, params: thickened(params, thickMax) }) : null;
+      const thickJob = thickOn ? r.thick.render({ src, size, scale: q, params: thickened(params, thickMax), view: beads.view }) : null;
       const waitThick = newCover && thick.current > 0 ? thickJob : null;
-      const [out, thicker] = await Promise.all([r.base.render({ src, size, scale: q, params }), waitThick]);
+      const [out, thicker] = await Promise.all([r.base.render({ src, size, scale: q, params, view: beads.view }), waitThick]);
       if (!out || gen !== buildGen.current) return;
       if (newCover && held.current) {
         await new Promise<void>((go) => released.current.push(go));
@@ -743,7 +805,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       if (shownArt.current && newCover) freeze();
       const { ctx } = fitCanvas(baseRef.current!);
-      painter.current = dropPainter(src, size, params);
+      painter.current = dropPainter(src, size, params, beads.box.k); // in the droplets' layer's px
       hides.current = { base: opacity * 0.92, thick: thickened(params, thickMax).opacity * 0.92 };
       // The fog's layers keep their full extent (the pane's soft edges are laid on after the mist is pushed in: compose);
       // the clear cover underneath, drawn into the scene once, gets them now.
@@ -757,7 +819,6 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       };
       // Underneath: the side tint (the window beside the cover in the colours of its edge there, as seen through the
       // mist: side-tint.ts), then the clear (dimmed) cover, with the same bleed.
-      const span = f.side + 2 * edge;
       const tg = tintGeometry(f, W, H, edge);
       const painted = tg && sideTint > 0 ? paintTint(tg, tintColours(out.clear, size, { x: pad, y: pad, w: coverPx, h: coverPx }, tg.side, out.scene), W, H, sideTint, sideTintFar) : null;
       tinted.current = painted && tintCanvas(painted);
@@ -809,9 +870,15 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const onGlass = (d: D) => f.fill || (whole(d) && keepDrop(d.i, pane, fadeAt(dropFade, size, d.x * size, d.y * size)));
       const kept = everyDrop.filter(onGlass);
       const dropped = everyDrop.filter((d) => !onGlass(d));
-      const thin = (c: HTMLCanvasElement) => thinDrops(c, kept, dropped);
+      const thin = (c: HTMLCanvasElement) => thinDrops(c, kept, dropped, size, beads.box);
+      // The droplets, in the droplets' layer's px.
+      const beadLayer = (data: Uint8ClampedArray<ArrayBuffer>) => {
+        const c = blank(beads.box.w, beads.box.h);
+        c.getContext("2d")!.putImageData(new ImageData(data, beads.box.w, beads.box.h), 0, 0);
+        return c;
+      };
       sceneSrc.current = layer(out.scene);
-      lensSrc.current = thin(layer(out.lenses));
+      lensSrc.current = thin(beadLayer(out.lenses));
       specksSrc.current = layer(out.specks);
       edgeFade.current = f.fill ? null : (() => {
         const m = blank(size);
@@ -838,9 +905,18 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         }
         return m;
       };
+      // The drops left where runs stopped are on the droplets' layer: onto the new one, pinned to the cover likewise.
+      const carryBeads = (old: FadingLayer | null) => {
+        const [wb, nb] = [was.beads, beads.box];
+        if (old && wb && old.size === nb.w && old.h === nb.h && wb.x === nb.x && wb.y === nb.y && wb.k === nb.k) return old;
+        if (!old || !wb || !was.cover) return new FadingLayer(nb.w, nb.h);
+        const K = coverPx / was.cover;
+        const c = beadsCarry(wb, nb, K, pad - was.pad * K);
+        return old.moved(nb.w, nb.h, c.s, c.x, c.y);
+      };
       mask.current = carry(mask.current);
       clearness.current = carry(clearness.current);
-      restDrops.current = carry(restDrops.current);
+      restDrops.current = carryBeads(restDrops.current);
       swept.current = carryCanvas(swept.current);
       // Drops mid-run carry on over a new cover, but not into a new layout (a resize): they're in the old one's pixels.
       if (coverPx !== was.cover || pad !== was.pad) {
@@ -851,22 +927,26 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       }
       allDrops.current = kept;
       const view: [number, number] = [Math.max(pad, (edge - f.ox) * q), Math.min(pad + coverPx, (W - f.ox + edge) * q)];
-      geom.current = { cover: coverPx, pad, q, fade: fadeStops(f.wide, size, pad, f.fill), dropFade, view };
+      geom.current = { cover: coverPx, pad, q, fade: fadeStops(f.wide, size, pad, f.fill), dropFade, view, beads: beads.box };
       settle();
-      for (const c of [fogRef.current!, easeRef.current!, dropsRef.current!]) {
+      for (const c of [fogRef.current!, easeRef.current!]) {
         c.width = c.height = size;
-        Object.assign(c.style, { left: `${f.ox - edge}px`, top: `${f.oy - edge}px`, width: `${span}px`, height: `${span}px` });
+        Object.assign(c.style, { left: `${beads.paneX}px`, top: `${beads.paneY}px`, width: `${span}px`, height: `${span}px` });
+      }
+      for (const c of [beadsRef.current!, dropsRef.current!]) {
+        [c.width, c.height] = [beads.box.w, beads.box.h];
+        Object.assign(c.style, { left: `${beads.css.left}px`, top: `${beads.css.top}px`, width: `${beads.css.width}px`, height: `${beads.css.height}px` });
       }
       // The scene pushes in about its canvas's transform origin; in fog px, so the mist can be drawn in step.
       const [originX, originY] = getComputedStyle(baseRef.current!).transformOrigin.split(" ").map(parseFloat);
-      zoom.current.ox = ((originX - (f.ox - edge)) * size) / span;
-      zoom.current.oy = ((originY - (f.oy - edge)) * size) / span;
+      zoom.current.ox = ((originX - beads.paneX) * size) / span;
+      zoom.current.oy = ((originY - beads.paneY) * size) / span;
       zoom.current.reach = Math.max(Math.hypot(originX, originY), Math.hypot(W - originX, originY), Math.hypot(originX, H - originY), Math.hypot(W - originX, H - originY));
       // The thick pane: a new cover's own if it came along, else none until it lands. Settings changes keep the previous
       // one meanwhile, stretched to the new size.
       const setThick = (t: FogResult | null) => {
         thickSrc.current = t && layer(t.scene);
-        thickLensSrc.current = t && thin(layer(t.lenses));
+        thickLensSrc.current = t && thin(beadLayer(t.lenses));
         thickSpecksSrc.current = t && layer(t.specks);
       };
       if (!thickJob || waitThick) setThick(thicker);
@@ -874,9 +954,13 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       // The drops runs left on the glass see the new cover through them, each still as strong as it was.
       if (newCover) {
         const rd = restDrops.current;
-        rested.current = rested.current.filter(({ at }) => rd.alphaAt(Math.round(at.x), Math.round(at.y)) > 0);
+        const shows = (at: { x: number; y: number; r: number }) => {
+          const b = toBeads(beads.box, at);
+          return b.x >= 0 && b.y >= 0 && b.x < rd.size && b.y < rd.h && rd.alphaAt(Math.floor(b.x), Math.floor(b.y)) > 0;
+        };
+        rested.current = rested.current.filter(({ at }) => shows(at));
         const hide = mixHide(hides.current, thickSrc.current ? thick.current : 0);
-        if (rested.current.length) rd.repaint((g) => rested.current.forEach(({ d, at }) => paintDrop(g, painter.current!, d, at, d.e, hide, 1)));
+        if (rested.current.length) rd.repaint((g) => rested.current.forEach(({ d, at }) => paintBead(g, painter.current!, beads.box, d, at, d.e, hide, 1)));
       }
       if (grown.current.length) paintGrown(); // the new cover through them, at the new size
       drawNow(); // at once: the canvas was just cleared (resized)
@@ -1252,18 +1336,24 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
     }
     return best;
   }, []);
-  /** How a droplet shows where it is (showsToRun): the pane's edge fade there, the writing, and the fog under it. */
+  /**
+   * How a droplet shows where it is (showsToRun): the pane's edge fade there, the writing, and how much of it is still
+   * on the glass (the droplets' layer there: wipes and trails take it off; none outside the window).
+   */
   const showing = useCallback((d: { i: number; x: number; y: number }) => {
     const fogC = fogRef.current;
     const size = fogC?.width ?? 0;
-    const fade = geom.current.fade;
+    const { fade, beads: box } = geom.current;
     const [x, y] = [d.x * size, d.y * size];
     const w = writing.current;
+    const b = beadsRef.current;
+    const at = box && toBeads(box, { x, y, r: 0 });
+    const inBeads = !!b && !!at && at.x >= 0 && at.y >= 0 && at.x < b.width && at.y < b.height;
     return {
       edge: fogC && fade ? fadeAt(fade, size, x, y) : 0,
       nearText: !!w && x > w.box.x0 - w.fontPx && x < w.box.x1 + w.fontPx && y > w.box.y0 - w.fontPx && y < w.box.y1 + w.fontPx,
       grown: d.i >= GROWN_BASE,
-      fogAlpha: fogC ? fogC.getContext("2d")!.getImageData(Math.round(x), Math.round(y), 1, 1).data[3] : 0,
+      fogAlpha: inBeads ? b.getContext("2d")!.getImageData(Math.floor(at.x), Math.floor(at.y), 1, 1).data[3] : 0,
     };
   }, []);
   /** The droplet a tap at fog px (x, y) sends running: the runnable one under it, if it's in sight there. */
@@ -1366,6 +1456,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
       const like = runners[Math.floor(Math.random() * Math.min(runners.length, STOCK + 2))];
       const rd = big + Math.random() * (runners[0].rd - big);
       const rx = rd * (1 + like.wob * 1.5);
+      // Not on another droplet, grown in full (two touching would have run together).
+      const self = { x, y, rx, ry: rx * like.e };
+      if (allDrops.current.some((o) => !gone.current.has(o.i) && dropsTouch(self, o)) || grown.current.some((o) => dropsTouch(self, o))) continue;
       // Clear of trails and wipes still showing (all of what it'd cover, rim and all, and a little more) and of runs
       // going on.
       const reach = rx * size * 1.3 + 2;
@@ -1396,8 +1489,9 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
           d.leftSpot = true;
           takeDrop(d.x0, d.y0, ...dripSpot(d), false);
         }
-        // Droplets in its path go as it reaches them.
-        while (d.absorb[d.taken] && d.absorb[d.taken].s <= s + d.r / d.len) {
+        // Droplets in its path go as its front reaches them, and those it would stop on when it stops.
+        const front = dripFront(d, s, now);
+        while (d.absorb[d.taken] && d.absorb[d.taken].y - d.absorb[d.taken].ry <= front) {
           const o = d.absorb[d.taken++];
           takeDrop(o.x, o.y, o.rx, o.ry, o.clear); // one only overlapping the run's spot just goes, no clear dot
           if (o.i < GROWN_BASE) gone.current.add(o.i);
@@ -1451,8 +1545,11 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
         <canvas ref={fogRef} className="absolute" />
         <canvas ref={easeRef} aria-hidden className="absolute opacity-0 [mix-blend-mode:plus-lighter]" />
       </div>
+      {/* The droplets on the glass, at the screen's px (beads.ts). */}
+      <canvas ref={beadsRef} aria-hidden className="absolute" />
       <div ref={prevRef} aria-hidden className="pointer-events-none absolute inset-0 opacity-0">
         <canvas className="absolute inset-0 h-full w-full" />
+        <canvas className="absolute" />
         <canvas className="absolute" />
       </div>
       <canvas ref={dropsRef} className="absolute" />
@@ -1463,7 +1560,7 @@ export function Fog({ art, p, song, layout = "beside", hold = false, seed, onRea
 /** How often at most the fog is redrawn for its slow changes, the push-in among them (the scene itself moves every frame, on its own). */
 const SLOW_MS = 100;
 
-const blank = (size: number) => Object.assign(document.createElement("canvas"), { width: size, height: size });
+const blank = (width: number, height = width) => Object.assign(document.createElement("canvas"), { width, height });
 
 /**
  * A mask or overlay (wipes, run trails, the water runs left) that fades away over time without visible steps. Canvas
@@ -1474,22 +1571,30 @@ const blank = (size: number) => Object.assign(document.createElement("canvas"), 
  * faint traces of old wipes).
  */
 class FadingLayer {
-  aged: HTMLCanvasElement;
-  fresh: HTMLCanvasElement;
+  private px: [HTMLCanvasElement, HTMLCanvasElement] | null = null; // made at the first mark, let go once it's clear
+  get aged() {
+    return (this.px ??= [blank(this.size, this.h), blank(this.size, this.h)])[0];
+  }
+  get fresh() {
+    return (this.px ??= [blank(this.size, this.h), blank(this.size, this.h)])[1];
+  }
   private pending = 0; // fade accrued since the last applied step
+  version = 0; // bumped whenever what drawOn draws changes
   private left = 0; // the most any mark can still show: 1 after a new one, 0 when there's nothing
   private marked = false; // `fresh` has marks not yet joined to `aged`
 
-  constructor(readonly size: number) {
-    this.aged = blank(size);
-    this.fresh = blank(size);
-  }
+  /** `size` × `h` px (square unless `h` is given: the droplets' layer is the window's part of the pane). */
+  constructor(
+    readonly size: number,
+    readonly h = size,
+  ) {}
 
   /** Called on every new mark, so the fade loops sleeping while nothing faded wake up (see fadeLoop). */
   static readonly onMark = new Set<() => void>();
 
   /** The context to draw new marks with. */
   mark() {
+    this.version++;
     this.marked = true;
     this.left = 1;
     for (const wake of FadingLayer.onMark) wake();
@@ -1503,18 +1608,19 @@ class FadingLayer {
   /** Accrues `ms` of fading at 1/`seconds` per second (each applied share multiplies what's left, as it always has). */
   advance(ms: number, seconds: number) {
     if (!this.live) return;
+    this.version++;
     this.pending += ms / 1000 / seconds;
     if (this.pending < 0.25) return;
     const a = Math.min(1, this.pending);
     const g = this.aged.getContext("2d")!;
     g.globalCompositeOperation = "destination-out";
     g.fillStyle = `rgba(0,0,0,${a})`;
-    g.fillRect(0, 0, this.size, this.size);
+    g.fillRect(0, 0, this.size, this.h);
     g.globalCompositeOperation = "source-over";
     this.left *= 1 - a;
     if (this.marked) {
       g.drawImage(this.fresh, 0, 0);
-      this.fresh.getContext("2d")!.clearRect(0, 0, this.size, this.size);
+      this.fresh.getContext("2d")!.clearRect(0, 0, this.size, this.h);
       this.marked = false;
       this.left = 1;
     }
@@ -1522,14 +1628,14 @@ class FadingLayer {
     if (this.left < 0.004) this.clear();
   }
 
-  /** Draws the layer with the context's current composite operation and alpha. */
-  drawOn(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  /** Draws the layer with the context's current composite operation and alpha, w × h, its top-left at (x, y). */
+  drawOn(ctx: CanvasRenderingContext2D, w: number, h: number, x = 0, y = 0) {
     if (!this.live) return;
     const a = ctx.globalAlpha;
     ctx.globalAlpha = a * (1 - this.pending);
-    ctx.drawImage(this.aged, 0, 0, w, h);
+    ctx.drawImage(this.aged, x, y, w, h);
     ctx.globalAlpha = a;
-    if (this.marked) ctx.drawImage(this.fresh, 0, 0, w, h);
+    if (this.marked) ctx.drawImage(this.fresh, x, y, w, h);
   }
 
   /** Whether any mark still shows (as drawn now, from about 1%: see SHOWS_FROM) within `r` of (x, y). */
@@ -1538,7 +1644,7 @@ class FadingLayer {
     const x0 = Math.max(0, Math.floor(x - r));
     const y0 = Math.max(0, Math.floor(y - r));
     const w = Math.min(this.size, Math.ceil(x + r)) - x0;
-    const h = Math.min(this.size, Math.ceil(y + r)) - y0;
+    const h = Math.min(this.h, Math.ceil(y + r)) - y0;
     if (w <= 0 || h <= 0) return false;
     const strength = (c: HTMLCanvasElement) => (c === this.aged ? 1 - this.pending : 1); // as drawOn draws them
     for (const c of this.marked ? [this.aged, this.fresh] : [this.aged])
@@ -1555,7 +1661,8 @@ class FadingLayer {
   /** The same marks in new colours: `paint` draws them all again at full strength; each keeps how strongly it shows. */
   repaint(paint: (g: CanvasRenderingContext2D) => void) {
     if (!this.live) return;
-    const full = blank(this.size);
+    this.version++;
+    const full = blank(this.size, this.h);
     paint(full.getContext("2d")!);
     for (const c of [this.aged, this.fresh]) {
       const g = c.getContext("2d")!;
@@ -1566,7 +1673,8 @@ class FadingLayer {
   }
 
   clear() {
-    for (const c of [this.aged, this.fresh]) c.getContext("2d")!.clearRect(0, 0, this.size, this.size);
+    this.version++;
+    this.px = null;
     this.pending = 0;
     this.left = 0;
     this.marked = false;
@@ -1574,8 +1682,14 @@ class FadingLayer {
 
   /** The same marks on a layer of another size, scaled by `k` and shifted by `shift` px (to stay pinned to the cover). */
   carried(size: number, k: number, shift: number) {
-    const next = new FadingLayer(size);
-    for (const [from, to] of [[this.aged, next.aged], [this.fresh, next.fresh]]) to.getContext("2d")!.drawImage(from, shift, shift, from.width * k, from.height * k);
+    return this.moved(size, size, k, shift, shift);
+  }
+
+  /** The same marks on a layer w × h: a px at (x, y) here goes to (x·s + x0, y·s + y0) there. */
+  moved(w: number, h: number, s: number, x0: number, y0: number) {
+    const next = new FadingLayer(w, h);
+    if (!this.px) return next;
+    for (const [from, to] of [[this.aged, next.aged], [this.fresh, next.fresh]]) to.getContext("2d")!.drawImage(from, x0, y0, from.width * s, from.height * s);
     Object.assign(next, { pending: this.pending, left: this.left, marked: this.marked });
     return next;
   }
@@ -1662,7 +1776,7 @@ let spriteCanvas: HTMLCanvasElement | null = null;
  * Draws a drop with the droplet painter (so it looks exactly as its droplet was baked into the fog) at its current
  * place and size, `e` its elongation, at `alpha` (the fog layer's edge fade there).
  */
-function paintDrop(ctx: CanvasRenderingContext2D, paint: ReturnType<typeof dropPainter>, d: Pick<Drip, "wob" | "ph">, at: { x: number; y: number; r: number }, e: number, hide: number, alpha: number) {
+function paintDrop(ctx: CanvasRenderingContext2D, paint: ReturnType<typeof dropPainter>, d: Pick<Drip, "wob" | "ph">, at: { x: number; y: number; r: number }, e: number, hide: number, alpha: number): [number, number, number, number] {
   const ry = at.r * e;
   const box = Math.ceil(Math.max(at.r, ry) * (1 + d.wob * 1.5) + 2);
   const w = 2 * box + 1;
@@ -1678,6 +1792,18 @@ function paintDrop(ctx: CanvasRenderingContext2D, paint: ReturnType<typeof dropP
   ctx.globalAlpha = before * alpha;
   ctx.drawImage(spriteCanvas, 0, 0, w, w, ox, oy, w, w);
   ctx.globalAlpha = before;
+  return [ox, oy, w, w];
+}
+
+/**
+ * paintDrop on the droplets' layer: `at` in fog px, drawn in the layer's px (the painter's: dropPainter's k). Returns
+ * where it drew, in the layer's px.
+ */
+function paintBead(ctx: CanvasRenderingContext2D, paint: ReturnType<typeof dropPainter>, box: BeadBox, d: Pick<Drip, "wob" | "ph">, at: { x: number; y: number; r: number }, e: number, hide: number, alpha: number) {
+  ctx.setTransform(1, 0, 0, 1, -box.x, -box.y);
+  const [x, y, w, h] = paintDrop(ctx, paint, d, { x: at.x * box.k, y: at.y * box.k, r: at.r * box.k }, e, hide, alpha);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  return [x - box.x, y - box.y, w, h] as [number, number, number, number];
 }
 
 type Face = (typeof FOG_FONTS)[number];
@@ -2044,19 +2170,20 @@ function fadeStops(wide: boolean, size: number, pad = 0, fill = false): Fade {
 }
 
 /**
- * A layer of the droplets (a pane's lenses) with only those on the glass left: `dropped` (where the pane fades out at
- * its edges, glass-edge.ts) taken off whole, `kept` left whole even where one overlaps a dropped one. Changes `c`.
+ * A layer of the droplets (a pane's lenses, on the droplets' layer `box` of a pane `size` fog px a side) with only those
+ * on the glass left: `dropped` (where the pane fades out at its edges, glass-edge.ts) taken off whole, `kept` left
+ * whole even where one overlaps a dropped one. Changes `c`.
  */
-function thinDrops(c: HTMLCanvasElement, kept: ReturnType<typeof fogDrops>, dropped: ReturnType<typeof fogDrops>) {
+function thinDrops(c: HTMLCanvasElement, kept: ReturnType<typeof fogDrops>, dropped: ReturnType<typeof fogDrops>, size: number, box: BeadBox) {
   if (!dropped.length) return c;
-  const size = c.width;
-  const m = blank(size);
+  const m = blank(c.width, c.height);
   const o = m.getContext("2d")!;
   o.fillStyle = "#000";
-  o.fillRect(0, 0, size, size);
+  o.fillRect(0, 0, c.width, c.height);
+  const s = size * box.k;
   const blot = (d: ReturnType<typeof fogDrops>[number]) => {
     o.beginPath();
-    o.ellipse(d.x * size, d.y * size, d.rx * size + 2, d.ry * size + 2, 0, 0, Math.PI * 2);
+    o.ellipse(d.x * s - box.x, d.y * s - box.y, (d.rx * size + 2) * box.k, (d.ry * size + 2) * box.k, 0, 0, Math.PI * 2);
     o.fill();
   };
   o.globalCompositeOperation = "destination-out";

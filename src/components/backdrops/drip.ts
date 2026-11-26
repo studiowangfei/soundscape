@@ -3,6 +3,8 @@
  * stop-and-go timing, and the droplets it takes along. Positions are fog-canvas px.
  */
 
+import { dropsTouch } from "./fog-render";
+
 /** The trail is this fraction of the drop's radius wide on each side, with a soft edge blurred by `TRAIL_SOFT` × r. */
 export const TRAIL_HALF = 0.75;
 export const TRAIL_SOFT = 0.2;
@@ -28,7 +30,7 @@ export type Drip = {
   wob: number;
   ph: number;
   leftSpot: boolean; // has moved off the spot it sat on (which is then swept)
-  absorb: PathDrop[]; // droplets in its path, by progress
+  absorb: PathDrop[]; // droplets in its path, by where their tops are (the order its front reaches them)
   taken: number; // first of those not taken yet
 };
 
@@ -141,13 +143,17 @@ export function trailTop(d: Drip, steps = 8): [number, number][] {
 }
 
 /**
- * The droplets in a run's path, which it takes along whole as it reaches them, by progress: every one whose drawn
- * extent reaches the cleared trail, soft edge included, so none is left cut in half. `drops` are fogDrops() (fractions
- * of `size`); `self` is the running drop's own index.
+ * The droplets in a run's path, which it takes along whole as its front reaches them (dripFront), by where their tops
+ * are: every one whose drawn extent reaches the cleared trail, soft edge included, so none is left cut in half; and,
+ * for a drop that stops on the glass, every one the drop would touch where it stops (it runs into them). `drops` are
+ * fogDrops() (fractions of `size`); `self` is the running drop's own index.
  */
 export function pathDrops(d: Drip, drops: { i: number; x: number; y: number; rx: number; ry: number }[], size: number, self: number): PathDrop[] {
   const above = (dropOutline(d)[1] + 2 * TRAIL_SOFT * d.r) / d.len; // up to the top of the trail, soft edge included
   const [sa, sb] = spotReach(d);
+  const end = dripAt(d, 1);
+  const endRx = end.r * (1 + d.wob * 1.5);
+  const stop = { x: end.x, y: end.y, rx: endRx, ry: endRx * d.e };
   return drops
     .flatMap((o) => {
       if (o.i === self) return [];
@@ -156,9 +162,21 @@ export function pathDrops(d: Drip, drops: { i: number; x: number; y: number; rx:
       const clear = s > -above && s < 1 && Math.abs(o.x * size - at.x) < trailHalf(d, s) + 2 * TRAIL_SOFT * at.r + o.rx * size;
       // Overlapping the run's own spot, which is taken off the glass in full: it goes too, or it'd be left cut.
       const spot = ((o.x * size - d.x0) / (sa + o.rx * size)) ** 2 + ((o.y * size - d.y0) / (sb + o.ry * size)) ** 2 < 1;
-      return clear || spot ? [{ i: o.i, s, x: o.x * size, y: o.y * size, rx: o.rx * size, ry: o.ry * size, clear }] : [];
+      const there = { x: o.x * size, y: o.y * size, rx: o.rx * size, ry: o.ry * size };
+      const stopped = d.rests && dropsTouch(stop, there);
+      return clear || spot || stopped ? [{ i: o.i, s, ...there, clear }] : [];
     })
-    .sort((a, b) => a.s - b.s);
+    .sort((a, b) => a.y - a.ry - (b.y - b.ry) || a.s - b.s);
+}
+
+/**
+ * How far down the glass the running drop's front is at progress s (fog px): its middle, plus its drawn radius down,
+ * stretched as it slides. Droplets in its path go once it reaches their tops; all that are left go when it stops.
+ */
+export function dripFront(d: Drip, s: number, now: number) {
+  if (s >= 1) return Infinity;
+  const at = dripAt(d, s);
+  return at.y + at.r * (1 + d.wob * 1.5) * d.e * dripStretch(d, now);
 }
 
 /**

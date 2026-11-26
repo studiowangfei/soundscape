@@ -71,7 +71,12 @@ const LARGE = { r: 0.008, min: 28, max: 36 };
 export function glassSeed(name: string): number {
   for (let k = 0; k < 20; k++) {
     const seed = hashSeed(k ? `${name}#${k}` : name);
-    const large = makeLayout(1, 10, seed).drops.filter((d) => d.r >= LARGE.r).length;
+    // Counted once those touching bigger ones are taken off (apart). Only droplets at least as big as the smallest
+    // large one need looking at: one only ever goes for touching a bigger one.
+    const { list } = placeDrops(1, 10, seed);
+    const reach = (d: Drop) => d.r * (1 + d.wob * 1.5);
+    const least = Math.min(...list.filter((d) => d.r >= LARGE.r).map(reach));
+    const large = apart(list.filter((d) => reach(d) >= least)).filter((d) => d.r >= LARGE.r).length;
     if (large >= LARGE.min && large <= LARGE.max) return seed;
   }
   return hashSeed(name); // not in practice
@@ -243,6 +248,13 @@ function layout(drops: number, trailCount: number, seed = WINDOW_SEED) {
 let lastLayout: { key: string; value: ReturnType<typeof makeLayout> } | null = null;
 
 function makeLayout(drops: number, trailCount: number, seed: number) {
+  const { list, trails } = placeDrops(drops, trailCount, seed);
+  const kept = apart(list);
+  return { drops: kept, trails, bySize: [...kept].sort((a, c) => a.r - c.r) };
+}
+
+/** Droplets and trails as the seed places them, before those touching others are taken off (apart). */
+function placeDrops(drops: number, trailCount: number, seed: number) {
   const rand = rng(seed);
   const trails: Trail[] = [];
   for (let i = 0; i < 30; i++) {
@@ -285,7 +297,48 @@ function makeLayout(drops: number, trailCount: number, seed: number) {
       list.push({ x: trailX(t, y) + (rand() - 0.5) * t.w, y, r: t.w * (0.2 + rand() * 0.45), e: 1 + rand() * 0.3, wob: 0, ph: 0 });
     }
   }
-  return { drops: list, trails: activeTrails, bySize: [...list].sort((a, c) => a.r - c.r) };
+  return { list, trails: activeTrails };
+}
+
+/**
+ * How close two droplets may come: their drawn extents (wobble and elongation included, as fogDrops gives them) summed
+ * along each axis, times this. Two that touched would have run together into one.
+ */
+export const DROP_GAP = 1.1;
+
+/** Whether two droplets (centre, drawn radii, in the same units) come closer than DROP_GAP allows. */
+export function dropsTouch(a: { x: number; y: number; rx: number; ry: number }, b: { x: number; y: number; rx: number; ry: number }) {
+  const u = (a.x - b.x) / (a.rx + b.rx);
+  const v = (a.y - b.y) / (a.ry + b.ry);
+  return u * u + v * v < DROP_GAP * DROP_GAP;
+}
+
+/**
+ * The droplets with none touching another (dropsTouch): biggest first, each kept unless it touches one already kept,
+ * in their placed order. (Placed at random, small ones fell on the edges of big ones and on each other.)
+ */
+function apart(list: Drop[]): Drop[] {
+  const ext = list.map((d) => {
+    const rx = d.r * (1 + d.wob * 1.5);
+    return { x: d.x, y: d.y, rx, ry: rx * d.e };
+  });
+  const order = list.map((_, i) => i).sort((a, b) => ext[b].rx - ext[a].rx || a - b);
+  // A grid over the pane: each kept droplet listed in every cell its box covers, so one it touches shares a cell.
+  const CELL = 0.02;
+  const n = Math.ceil(1 / CELL) + 2;
+  const cell = (v: number) => Math.min(n - 1, Math.max(0, Math.floor(v / CELL) + 1));
+  const grid: number[][] = Array.from({ length: n * n }, () => []);
+  const keep = new Uint8Array(list.length);
+  for (const i of order) {
+    const e = ext[i];
+    const [x0, x1, y0, y1] = [cell(e.x - e.rx), cell(e.x + e.rx), cell(e.y - e.ry), cell(e.y + e.ry)];
+    let touches = false;
+    for (let cy = y0; cy <= y1 && !touches; cy++) for (let cx = x0; cx <= x1 && !touches; cx++) touches = grid[cy * n + cx].some((j) => dropsTouch(e, ext[j]));
+    if (touches) continue;
+    keep[i] = 1;
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) grid[cy * n + cx].push(i);
+  }
+  return list.filter((_, i) => keep[i]);
 }
 
 /**
@@ -340,10 +393,15 @@ export type DropShape = { cx: number; cy: number; rx: number; ry: number; wob: n
 /**
  * How a droplet looks, shared by renderFog and the drops that run down the glass on their own (so a running drop is
  * the very droplet that was there, not a lookalike). Returns paint(drop, hide, out, ow, oh, ox, oy, over), which draws
- * into `out` (RGBA, ow×oh, its top-left at fog px (ox, oy)): composited over what's there when `over`, else as a
+ * into `out` (RGBA, ow×oh, its top-left at (ox, oy)): composited over what's there when `over`, else as a
  * straight-alpha sprite on a clear buffer. `hide` is how far the mist hides the scene (opacity × 0.92).
+ *
+ * `k` is the droplets' px per fog px: the drop, `out` and its place are in those px, so a droplet can be drawn sharper
+ * than the fog it's on (the screen's own px, where the mist, soft anyway, is rendered coarser). Only its edge gets
+ * finer: what it shows, and its size class (lens or speck, highlight, caustic), go by its size in fog px. `under` (the
+ * mist behind, for the tiniest) is in fog px.
  */
-export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refraction" | "brightness">) {
+export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refraction" | "brightness">, k = 1) {
   const { veil } = sceneVeil(src, size);
   const b = p.brightness;
   const sampleClear = (x: number, y: number, c: number) => {
@@ -361,6 +419,7 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
   };
   return (dr: DropShape, hide: number, out: Uint8ClampedArray, ow: number, oh: number, ox: number, oy: number, over: boolean, under?: Img) => {
     const { cx, cy, rx, ry, wob, ph } = dr;
+    const rf = rx / k; // its radius in fog px
     const pad = 1 + rx * wob;
     for (let y = Math.max(oy, Math.floor(cy - ry - pad)); y < Math.min(oy + oh, Math.ceil(cy + ry + pad)); y++) {
       for (let x = Math.max(ox, Math.floor(cx - rx - pad)); x < Math.min(ox + ow, Math.ceil(cx + rx + pad)); x++) {
@@ -373,18 +432,22 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
         const o = ((y - oy) * ow + (x - ox)) * 4;
         const view = p.refraction * (1 + 0.5 * rho * rho); // edges bend harder
         // Rim darkening (strongest at the bottom, light comes from above), highlight top-left, caustic at the bottom.
-        const rim = Math.min(1, Math.max(0, (rho - 0.55) / 0.45)) ** 1.5 * (0.55 + 0.25 * Math.max(0, v));
-        const spec = Math.exp(-((u + 0.32) ** 2 + (v + 0.42) ** 2) / 0.03) * (rx > 1.5 ? 0.85 : 0.35);
-        const caustic = rx > 2.5 ? Math.exp(-(u ** 2 + (v - 0.55) ** 2) / 0.09) * 0.22 : 0;
+        // A speck drawn finer than its fog px would show its rim as a ring and its highlight as a dot: it gets the
+        // rim and highlight it has on average over its disc instead, a darker dot as it looks a fog px wide.
+        const flat = k > 1 && rf <= LENS_PX;
+        const rim = flat ? SPECK_RIM : Math.min(1, Math.max(0, (rho - 0.55) / 0.45)) ** 1.5 * (0.55 + 0.25 * Math.max(0, v));
+        const spec = flat ? SPECK_SPEC : Math.exp(-((u + 0.32) ** 2 + (v + 0.42) ** 2) / 0.03) * (rf > 1.5 ? 0.85 : 0.35);
+        const caustic = rf > 2.5 ? Math.exp(-(u ** 2 + (v - 0.55) ** 2) / 0.09) * 0.22 : 0;
         const a = cover;
         const ma = over ? out[o + 3] / 255 : 0;
         const outA = a + ma * (1 - a);
+        const uo = (Math.min(size - 1, ((y + 0.5) / k) | 0) * size + Math.min(size - 1, ((x + 0.5) / k) | 0)) * 4; // `under` here
         for (let c = 0; c < 3; c++) {
           // Inverted, wider view of the clear scene. Tiny drops are too small to show an image: a darker speck of the
           // mist behind (`under`, when drawing on a layer of droplets over it) with a hint of the sharper scene, which
           // is what gives fog its texture up close.
-          const behind = ma > 0 || !under ? (over ? out[o + c] : 0) : under[o + c];
-          const seen = rx > LENS_PX ? sampleClear(cx - (x + 0.5 - cx) * view, cy - (y + 0.5 - cy) * view, c) * 1.08 : (behind / Math.max(0.01, b)) * 0.62 + sampleClear(cx, cy, c) * 0.3;
+          const behind = ma > 0 || !under ? (over ? out[o + c] : 0) : under[uo + c];
+          const seen = rf > LENS_PX ? sampleClear((cx - (x + 0.5 - cx) * view) / k, (cy - (y + 0.5 - cy) * view) / k, c) * 1.08 : (behind / Math.max(0.01, b)) * 0.62 + sampleClear(cx / k, cy / k, c) * 0.3;
           const hazy = seen + (veil[c] - seen) * hide * 0.5; // drops on opaque mist see through the haze too
           const col = (hazy * (1 - rim) + 255 * (spec + caustic)) * b;
           out[o + c] = over ? (col * a + out[o + c] * ma * (1 - a)) / Math.max(0.001, outA) : col;
@@ -398,17 +461,28 @@ export function dropPainter(src: Img, size: number, p: Pick<FogParams, "refracti
 /** Droplets wider than this (radius, px) are lenses, showing an image of the scene; smaller ones are specks of mist. */
 export const LENS_PX = 1.5;
 
+/** A speck's rim darkening and highlight averaged over its disc (dropPainter's, for a speck drawn finer than fog px). */
+const SPECK_RIM = 0.1946;
+const SPECK_SPEC = 0.0105;
+
 /** Droplets smaller than this (the first size class) read as the mist's texture rather than as droplets. */
 export const TEXTURE_DROP = 0.0013;
+
+/**
+ * Where on the pane the droplets are drawn, and how finely: `k` px per fog px, over the fog px from (x, y), w × h (the
+ * part of the pane the window shows: the droplets are on the glass and stay put, so the rest is never seen).
+ */
+export type LensView = { k: number; x: number; y: number; w: number; h: number };
 
 /**
  * Renders the fog (RGBA with alpha: mist, trails, droplets) in two parts, `scene` (the mist, which shows the scene and so
  * moves with it) and `lenses` (every droplet, the tiniest too, which are on the glass and stay put; fogOf puts them
  * together), plus the tiniest droplets alone (`specks`, the mist's texture, which a running drop's trail fogs back
  * with) and the clear view beneath (RGBA), all `size`×`size`, from the cover sampled at that size. `scale` is render px per CSS px (for
- * the blur radius).
+ * the blur radius). With `view`, `lenses` is drawn sharper over part of the pane: (w·k) × (h·k), its top-left at fog px
+ * (x, y) (lensBox); the specks stay in fog px.
  */
-export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
+export function renderFog(src: Img, size: number, scale: number, p: FogParams, view?: LensView) {
   const fog = new Uint8ClampedArray(size * size * 4);
   const clear = new Uint8ClampedArray(size * size * 4);
   const b = p.brightness;
@@ -456,16 +530,39 @@ export function renderFog(src: Img, size: number, scale: number, p: FogParams) {
   // texture, so they're kept apart too (`specks`): a run's trail fogs back with them, but not with the rest.
   const S = size * p.dropSize;
   const paint = dropPainter(src, size, p);
-  const lenses = new Uint8ClampedArray(size * size * 4);
-  let specks: Uint8ClampedArray | null = null;
+  const box = lensBox(size, view);
+  const k = box.k;
+  // Drawn finer, the droplets go on a layer of their own, and the specks (in fog px) are painted again apart.
+  const fine = k !== 1 || box.w !== size || box.h !== size ? dropPainter(src, size, p, k) : null;
+  const lenses = new Uint8ClampedArray(box.w * box.h * 4);
+  let specks: Uint8ClampedArray | null = fine ? new Uint8ClampedArray(size * size * 4) : null;
   for (const dr of bySize) {
-    if (!specks && dr.r >= TEXTURE_DROP) specks = lenses.slice();
     const rx = Math.max(0.5, dr.r * S);
+    if (fine) {
+      if (dr.r < TEXTURE_DROP) paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, specks!, size, size, 0, 0, true, fog);
+      fine({ cx: dr.x * size * k, cy: dr.y * size * k, rx: rx * k, ry: rx * dr.e * k, wob: dr.wob, ph: dr.ph }, hide, lenses, box.w, box.h, box.x, box.y, true, fog);
+      continue;
+    }
+    if (!specks && dr.r >= TEXTURE_DROP) specks = lenses.slice();
     paint({ cx: dr.x * size, cy: dr.y * size, rx, ry: rx * dr.e, wob: dr.wob, ph: dr.ph }, hide, lenses, size, size, 0, 0, true, fog);
   }
   specks ??= lenses.slice();
   const done = (b: Uint8ClampedArray) => b as Uint8ClampedArray<ArrayBuffer>;
   return { scene: done(fog), lenses: done(lenses), specks: done(specks), clear: done(clear) };
+}
+
+/**
+ * The droplet layer's own px (renderFog's `lenses`): `k` per fog px, the layer w × h of them, its top-left at (x, y) of
+ * them. Without a view, the whole pane in fog px. The view's edges are rounded out to whole px of the layer.
+ */
+export function lensBox(size: number, view?: LensView): { k: number; x: number; y: number; w: number; h: number } {
+  if (!view) return { k: 1, x: 0, y: 0, w: size, h: size };
+  const k = view.k;
+  const x0 = Math.max(0, Math.floor(Math.max(0, view.x) * k));
+  const y0 = Math.max(0, Math.floor(Math.max(0, view.y) * k));
+  const x1 = Math.min(Math.round(size * k), Math.ceil(Math.min(size, view.x + view.w) * k));
+  const y1 = Math.min(Math.round(size * k), Math.ceil(Math.min(size, view.y + view.h) * k));
+  return { k, x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
 }
 
 /** The whole fog as one image: the lenses laid over the scene layer (the page draws the two apart). */

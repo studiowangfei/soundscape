@@ -210,3 +210,29 @@ export function edgeStops(kind: Kind, m: number, M: number): Edge {
   const inner = m > 0 ? 0 : 0.1;
   return { x0: at(M - m), x1: at(M + 0.3), x2: at(M + 1), x3: at(M + 1 + m), y0: at(M - m), y1: at(M + inner), y2: at(M + 1 - inner), y3: at(M + 1 + m) };
 }
+
+/** How bright the moving cover is: on screen at its start and end (`fromDim`, `toDim`: the fogs' brightness), what its
+ * picture is drawn at (`drawn`: the misted cover has the outgoing fog's brightness in it; the clear cover 1), and its
+ * glow on each page (the fogs' `glow`). */
+export type MoverLight = { fromDim: number; toDim: number; drawn: number; fromGlow: number; toGlow: number };
+
+/**
+ * The moving cover's brightness() filter and its glow's opacity, at the start and the end. The filter is the brightness
+ * on screen over what the picture is drawn at. The glow is the picture drawn small and blurred, so it's dimmed with it
+ * and lifted back by the same.
+ */
+export function moverLight(l: MoverLight): { dim: [number, number]; glow: [number, number] } {
+  const d = l.drawn || 1;
+  return { dim: [l.fromDim / d, l.toDim / d], glow: [Math.min(1, l.fromGlow / d), Math.min(1, l.toGlow / d)] };
+}
+
+/**
+ * A move turned back mid-way (Close while a song opens, or a song opened while Close's move runs) starts from what's on
+ * screen: `filter` is the moving cover's brightness() filter where it has got to, `glow` its glow's opacity. Its picture
+ * is the one already moving (drawn at `drawn`), or the opened song's clear cover (`next`: drawn at 1, under the same
+ * filter), so the filter and the glow carry on from where they were, and the move ends at the page's own brightness.
+ */
+export function turnedBackLight(filter: number, glow: number, drawn: number, next: boolean): Pick<MoverLight, "fromDim" | "drawn" | "fromGlow"> {
+  const d = next ? 1 : drawn || 1;
+  return { fromDim: filter * d, drawn: d, fromGlow: glow * d };
+}
