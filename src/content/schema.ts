@@ -33,7 +33,16 @@ export const EntryCardSchema = z
       .object({
         performer: z.string(),
         versionLabel: z.string(),
-        popularityObserved: z.string().nullable(),
+        // Displayed verbatim in the card footer: the plain view count only ("110,524 views" or "95K views").
+        // No platform, date, likes or comment counts in here — the observation date belongs in observedAt.
+        // (Guard added 2026-11-26 after the "(YouTube, 26 Nov 2026)" drift Fei flagged on the M83 entry.)
+        popularityObserved: z
+          .string()
+          .refine(
+            (v) => !/[(·]|\blikes\b|\bcomments\b|\b(?:19|20)\d{2}\b/.test(v),
+            "popularityObserved is the plain view count only (e.g. '110,524 views'); put the observation date in observedAt",
+          )
+          .nullable(),
         observedAt: isoDate.nullable(),
       })
       .optional(),
